@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Closure queue</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F4F5F7}
+a{color:#0B5E5E}a:hover{color:#073F3F}
+</style>
+</helmet>
+<div style="font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #16202A; background: #F4F5F7; min-height: 1040px; display: flex; flex-wrap: wrap; align-items: stretch">
+
+  <nav aria-label="App sections" style="flex: 1 1 232px; max-width: 100%; background: #16202A; color: #E6EAEE; padding: 22px 14px; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px">
+    <div style="font-weight: 700; font-size: 20px; color: #FFFFFF; padding: 0 10px 18px">HawkerReach</div>
+    <div style="font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #8C99A6; padding: 6px 10px">Planner workflow</div>
+    <a href="App1Queue.dc.html" style="color: #16202A; background: #FFFFFF; font-weight: 600; text-decoration: none; font-size: 14px; padding: 11px 12px; border-radius: 6px">① Closure queue</a>
+    <a href="App2Impact.dc.html" style="color: #E6EAEE; text-decoration: none; font-size: 14px; padding: 11px 12px; border-radius: 6px">② Impact</a>
+    <a href="App3Timing.dc.html" style="color: #E6EAEE; text-decoration: none; font-size: 14px; padding: 11px 12px; border-radius: 6px">③ Conflicts &amp; what-if</a>
+    <a href="App4Action.dc.html" style="color: #E6EAEE; text-decoration: none; font-size: 14px; padding: 11px 12px; border-radius: 6px">④ Action plan</a>
+    <div style="font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #8C99A6; padding: 18px 10px 6px">More</div>
+    <a href="Community.dc.html" style="color: #E6EAEE; text-decoration: none; font-size: 14px; padding: 11px 12px; border-radius: 6px">Community list (AACs)</a>
+    <a href="OnePage.dc.html" style="color: #E6EAEE; text-decoration: none; font-size: 14px; padding: 11px 12px; border-radius: 6px">Network overview</a>
+    <a href="OnePage.dc.html" style="color: #E6EAEE; text-decoration: none; font-size: 14px; padding: 11px 12px; border-radius: 6px">How sure are we?</a>
+    <a href="OnePage.dc.html" style="color: #E6EAEE; text-decoration: none; font-size: 14px; padding: 11px 12px; border-radius: 6px">Ask Genie ↗</a>
+    <div style="margin-top: auto; font-size: 12px; color: #8C99A6; padding: 18px 10px 0">Data: NEA, HDB, URA, SingStat (June 2026)</div>
+  </nav>
+
+  <main style="flex: 999 1 760px; min-width: 0; padding: 28px 32px; box-sizing: border-box; display: flex; flex-direction: column; gap: 22px">
+    <div style="display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: flex-end">
+      <div style="flex: 1 1 420px">
+        <h1 style="margin: 0 0 6px; font-size: 28px; font-weight: 700">Closure queue</h1>
+        <p style="margin: 0; font-size: 15px; color: #4A5562">Which closures put seniors at risk? Start with the top row.</p>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <label for="pa" style="font-size: 13px; color: #4A5562">Planning area</label>
+        <select id="pa" style="font: inherit; font-size: 14px; padding: 10px 12px; border: 1px solid #C5CDD5; border-radius: 8px; min-height: 44px; background: #FFFFFF"><option>All of Singapore</option></select>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <label for="pace" style="font-size: 13px; color: #4A5562">Walking pace</label>
+        <select id="pace" style="font: inherit; font-size: 14px; padding: 10px 12px; border: 1px solid #C5CDD5; border-radius: 8px; min-height: 44px; background: #FFFFFF"><option>Senior · 1.0 m/s · 15 min</option></select>
+      </div>
+    </div>
+
+    <section aria-label="Summary" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px">
+      <div style="background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 16px 18px"><div style="font-size: 13px; color: #4A5562">Renovations active or upcoming</div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 30px; margin-top: 6px">3</div></div>
+      <div style="background: #FFFFFF; border: 1px solid #DDE2E7; border-top: 4px solid #A33A0B; border-radius: 10px; padding: 16px 18px"><div style="font-size: 13px; color: #4A5562">Seniors losing a walkable centre (est.)</div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 30px; margin-top: 6px; color: #A33A0B">[N]</div></div>
+      <div style="background: #FFFFFF; border: 1px solid #DDE2E7; border-top: 4px solid #C2410C; border-radius: 10px; padding: 16px 18px"><div style="font-size: 13px; color: #4A5562">Nearby centres also closing (≤1 km)</div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 30px; margin-top: 6px">5</div></div>
+      <div style="background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 16px 18px"><div style="font-size: 13px; color: #4A5562">Operating hawker centres</div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 30px; margin-top: 6px">122</div></div>
+    </section>
+
+    <section aria-label="Active and upcoming renovations" style="background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+      <h2 style="margin: 0; font-size: 18px; font-weight: 600">Active and upcoming renovations</h2>
+      <div style="overflow-x: auto">
+        <table style="width: 100%; min-width: 760px; border-collapse: collapse; font-size: 14px">
+          <thead><tr style="text-align: left; color: #4A5562; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em">
+            <th style="padding: 10px 8px; border-bottom: 1px solid #DDE2E7">Risk</th>
+            <th style="padding: 10px 8px; border-bottom: 1px solid #DDE2E7">Centre</th>
+            <th style="padding: 10px 8px; border-bottom: 1px solid #DDE2E7">Dates</th>
+            <th style="padding: 10px 8px; border-bottom: 1px solid #DDE2E7; text-align: right">Seniors cut off (est.)</th>
+            <th style="padding: 10px 8px; border-bottom: 1px solid #DDE2E7; text-align: right">Nearby closures</th>
+            <th style="padding: 10px 8px; border-bottom: 1px solid #DDE2E7"></th>
+          </tr></thead>
+          <tbody>
+            <tr style="background: #FFF4E8"><td style="padding: 14px 8px; border-bottom: 1px solid #EEF1F4"><span style="background: #A33A0B; color: #FFFFFF; font-size: 12px; font-weight: 600; padding: 4px 8px; border-radius: 4px">High</span></td><td style="padding: 14px 8px; border-bottom: 1px solid #EEF1F4"><strong>Kim Keat Palm</strong><div style="font-size: 12px; color: #4A5562">Toa Payoh Lor 7 Blk 22 · 61 stalls</div></td><td style="padding: 14px 8px; border-bottom: 1px solid #EEF1F4">14 Sep – 13 Dec<div style="font-size: 12px; color: #A33A0B; font-weight: 600">Closed now</div></td><td style="padding: 14px 8px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">[N]</td><td style="padding: 14px 8px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace; color: #A33A0B">4</td><td style="padding: 14px 8px; border-bottom: 1px solid #EEF1F4; text-align: right"><a href="App2Impact.dc.html" style="background: #0B5E5E; color: #FFFFFF; text-decoration: none; font-weight: 600; font-size: 13px; padding: 10px 14px; border-radius: 6px; display: inline-block">Open</a></td></tr>
+            <tr><td style="padding: 14px 8px; border-bottom: 1px solid #EEF1F4"><span style="background: #F2B880; color: #3A1A04; font-size: 12px; font-weight: 600; padding: 4px 8px; border-radius: 4px">[Risk]</span></td><td style="padding: 14px 8px; border-bottom: 1px solid #EEF1F4"><strong>Clementi West St 2 Blk 726</strong><div style="font-size: 12px; color: #4A5562">60 stalls</div></td><td style="padding: 14px 8px; border-bottom: 1px solid #EEF1F4">14 Sep – 27 Dec<div style="font-size: 12px; color: #A33A0B; font-weight: 600">Closed now</div></td><td style="padding: 14px 8px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">[N]</td><td style="padding: 14px 8px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">0</td><td style="padding: 14px 8px; border-bottom: 1px solid #EEF1F4; text-align: right"><a href="App2Impact.dc.html" style="color: #0B5E5E; font-weight: 600; font-size: 13px; padding: 10px 6px; display: inline-block">Open</a></td></tr>
+            <tr><td style="padding: 14px 8px"><span style="background: #F2B880; color: #3A1A04; font-size: 12px; font-weight: 600; padding: 4px 8px; border-radius: 4px">[Risk]</span></td><td style="padding: 14px 8px"><strong>Telok Blangah Rise Blk 36</strong><div style="font-size: 12px; color: #4A5562">32 stalls</div></td><td style="padding: 14px 8px">1 Nov – 31 Dec<div style="font-size: 12px; color: #4A5562">Starts in 12 days</div></td><td style="padding: 14px 8px; text-align: right; font-family: 'IBM Plex Mono', monospace">[N]</td><td style="padding: 14px 8px; text-align: right; font-family: 'IBM Plex Mono', monospace">1</td><td style="padding: 14px 8px; text-align: right"><a href="App2Impact.dc.html" style="color: #0B5E5E; font-weight: 600; font-size: 13px; padding: 10px 6px; display: inline-block">Open</a></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="font-size: 12px; color: #4A5562">Source: NEA closure schedule. "Nearby closures" = other centres within 1 km closed for cleaning or works during the same window.</div>
+    </section>
+
+    <section aria-label="Every centre if it closed" style="background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px">
+        <h2 style="margin: 0; font-size: 18px; font-weight: 600">Planning ahead: every centre, if it closed</h2>
+        <span style="font-size: 13px; color: #4A5562">All 122 centres ranked by the model · use before scheduling the next round of works</span>
+      </div>
+      <ol style="margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 10px; font-size: 14px">
+        <li><strong>[Centre]</strong> · <span style="font-family: 'IBM Plex Mono', monospace">[N]</span> seniors cut off · [planning area]</li>
+        <li><strong>[Centre]</strong> · <span style="font-family: 'IBM Plex Mono', monospace">[N]</span> seniors cut off · [planning area]</li>
+        <li><strong>[Centre]</strong> · <span style="font-family: 'IBM Plex Mono', monospace">[N]</span> seniors cut off · [planning area]</li>
+        <li><strong>[Centre]</strong> · <span style="font-family: 'IBM Plex Mono', monospace">[N]</span> seniors cut off · [planning area]</li>
+      </ol>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1040}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

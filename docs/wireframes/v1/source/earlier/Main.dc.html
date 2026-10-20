@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Network overview</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F4F5F7}
+a{color:#0B5E5E}a:hover{color:#073F3F}
+</style>
+</helmet>
+<div style="font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #16202A; background: #F4F5F7; min-height: 1180px; box-sizing: border-box">
+  <header style="background: #16202A; color: #FFFFFF; padding: 16px 32px; display: flex; flex-wrap: wrap; align-items: center; gap: 24px">
+    <div style="font-weight: 700; font-size: 20px; letter-spacing: -0.01em">HawkerReach</div>
+    <nav aria-label="Dashboard tabs" style="display: flex; flex-wrap: wrap; gap: 4px">
+      <a href="Main.dc.html" style="color: #16202A; background: #FFFFFF; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 14px">Network overview</a>
+      <a href="Simulator.dc.html" style="color: #E6EAEE; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-size: 14px">Closure simulator</a>
+      <a href="Community.dc.html" style="color: #E6EAEE; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-size: 14px">Community list</a>
+    </nav>
+    <div style="margin-left: auto; font-size: 13px; color: #B8C2CC">For: NEA / town council planners · Data as of June 2026</div>
+  </header>
+
+  <main style="max-width: 1376px; margin: 0 auto; padding: 28px 32px; display: flex; flex-direction: column; gap: 24px">
+    <div>
+      <h1 style="margin: 0 0 6px; font-size: 28px; font-weight: 700">Which hawker centre closures would hurt seniors most?</h1>
+      <p style="margin: 0; font-size: 15px; color: #4A5562">Access measured block by block at a senior's walking pace, not by area averages.</p>
+    </div>
+
+    <section aria-label="Headline numbers" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px">
+      <div style="background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 18px 20px">
+        <div style="font-size: 13px; color: #4A5562">Operating hawker centres</div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 30px; font-weight: 500; margin-top: 6px">122</div>
+      </div>
+      <div style="background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 18px 20px">
+        <div style="font-size: 13px; color: #4A5562">Residents aged 65+</div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 30px; font-weight: 500; margin-top: 6px">825,320</div>
+      </div>
+      <div style="background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 18px 20px">
+        <div style="font-size: 13px; color: #4A5562">Seniors beyond a 15-min walk (est.)</div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 30px; font-weight: 500; margin-top: 6px; color: #A33A0B">[N]</div>
+      </div>
+      <div style="background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 18px 20px">
+        <div style="font-size: 13px; color: #4A5562">Centres closed for works right now</div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 30px; font-weight: 500; margin-top: 6px">[N]</div>
+      </div>
+    </section>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+      <section aria-label="Map" style="flex: 999 1 640px; min-width: 0; background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+          <h2 style="margin: 0; font-size: 17px; font-weight: 600">Map</h2>
+          <div role="group" aria-label="Map view" style="margin-left: auto; display: flex; border: 1px solid #C5CDD5; border-radius: 8px; overflow: hidden">
+            <button type="button" style="font: inherit; font-size: 14px; padding: 10px 14px; border: 0; background: #FFFFFF; color: #4A5562; min-height: 44px">Area average: centres per 10k</button>
+            <button type="button" aria-pressed="true" style="font: inherit; font-size: 14px; padding: 10px 14px; border: 0; background: #0B5E5E; color: #FFFFFF; font-weight: 600; min-height: 44px">Block level: senior access</button>
+          </div>
+        </div>
+        <div style="position: relative; height: 470px; border-radius: 8px; background: #EEF1F4; overflow: hidden">
+          <svg aria-hidden="true" viewBox="0 0 800 470" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
+            <path d="M70 250 C120 150 260 110 380 120 C500 128 640 150 720 210 C760 260 730 330 640 360 C520 400 360 400 240 370 C140 345 50 320 70 250 Z" fill="#DCE3E9" stroke="#C5CDD5" stroke-width="2"></path>
+            <g fill="#1F6FB2"><circle cx="380" cy="230" r="6"></circle><circle cx="300" cy="260" r="6"></circle><circle cx="460" cy="200" r="6"></circle><circle cx="520" cy="270" r="6"></circle><circle cx="230" cy="220" r="6"></circle><circle cx="610" cy="240" r="6"></circle></g>
+            <g fill="#F2B880"><rect x="420" y="300" width="9" height="9"></rect><rect x="436" y="312" width="9" height="9"></rect><rect x="160" y="290" width="9" height="9"></rect><rect x="560" y="320" width="9" height="9"></rect></g>
+            <g fill="#A33A0B"><rect x="660" y="300" width="9" height="9"></rect><rect x="676" y="290" width="9" height="9"></rect><rect x="120" y="270" width="9" height="9"></rect></g>
+            <g fill="#8FB8D8"><rect x="340" y="200" width="9" height="9"></rect><rect x="360" y="252" width="9" height="9"></rect><rect x="480" y="230" width="9" height="9"></rect><rect x="280" y="236" width="9" height="9"></rect></g>
+          </svg>
+          <div style="position: absolute; left: 16px; top: 16px; background: #FFFFFF; border: 1px solid #C5CDD5; border-radius: 6px; padding: 8px 12px; font-size: 13px; color: #4A5562">Wireframe. Real map: AI/BI dashboard map of HDB blocks + centres</div>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 16px; font-size: 13px; color: #34404D">
+          <div style="display: flex; align-items: center; gap: 6px"><span style="width: 12px; height: 12px; border-radius: 50%; background: #1F6FB2; display: inline-block"></span>Hawker centre</div>
+          <div style="display: flex; align-items: center; gap: 6px"><span style="width: 12px; height: 12px; background: #8FB8D8; display: inline-block"></span>T1 safe</div>
+          <div style="display: flex; align-items: center; gap: 6px"><span style="width: 12px; height: 12px; background: #F2B880; display: inline-block"></span>T3 at risk</div>
+          <div style="display: flex; align-items: center; gap: 6px"><span style="width: 12px; height: 12px; background: #A33A0B; display: inline-block"></span>T4 cliff: no centre within reach</div>
+        </div>
+        <div style="background: #FFF4E8; border: 1px solid #F2C9A0; border-radius: 8px; padding: 12px 14px; font-size: 14px; color: #5A2A08">
+          <strong>Area averages hide this:</strong> [Planning area] rates "well served" at [N] centres per 10k, yet [N] seniors (est.) live in T4 blocks.
+        </div>
+      </section>
+
+      <section aria-label="Closure risk ranking" style="flex: 1 1 420px; min-width: 0; background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+        <h2 style="margin: 0; font-size: 17px; font-weight: 600">If this centre closed, seniors cut off (est.)</h2>
+        <p style="margin: 0; font-size: 13px; color: #4A5562">Senior pace 1.0 m/s · range across 10 / 15 / 20 min</p>
+        <div style="overflow-x: auto">
+          <table style="width: 100%; border-collapse: collapse; font-size: 14px">
+            <thead>
+              <tr style="text-align: left; color: #4A5562; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em">
+                <th style="padding: 8px 6px; border-bottom: 1px solid #DDE2E7">#</th>
+                <th style="padding: 8px 6px; border-bottom: 1px solid #DDE2E7">Centre</th>
+                <th style="padding: 8px 6px; border-bottom: 1px solid #DDE2E7; text-align: right">Seniors</th>
+                <th style="padding: 8px 6px; border-bottom: 1px solid #DDE2E7">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td style="padding: 10px 6px; border-bottom: 1px solid #EEF1F4">1</td><td style="padding: 10px 6px; border-bottom: 1px solid #EEF1F4"><a href="Simulator.dc.html">Kim Keat Palm, Toa Payoh Lor 7</a></td><td style="padding: 10px 6px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">[N]–[N]</td><td style="padding: 10px 6px; border-bottom: 1px solid #EEF1F4"><span style="background: #A33A0B; color: #FFFFFF; font-size: 12px; padding: 3px 8px; border-radius: 4px">Closed now</span></td></tr>
+              <tr><td style="padding: 10px 6px; border-bottom: 1px solid #EEF1F4">2</td><td style="padding: 10px 6px; border-bottom: 1px solid #EEF1F4">Clementi West St 2 Blk 726</td><td style="padding: 10px 6px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">[N]–[N]</td><td style="padding: 10px 6px; border-bottom: 1px solid #EEF1F4"><span style="background: #A33A0B; color: #FFFFFF; font-size: 12px; padding: 3px 8px; border-radius: 4px">Closed now</span></td></tr>
+              <tr><td style="padding: 10px 6px; border-bottom: 1px solid #EEF1F4">3</td><td style="padding: 10px 6px; border-bottom: 1px solid #EEF1F4">Telok Blangah Rise Blk 36</td><td style="padding: 10px 6px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">[N]–[N]</td><td style="padding: 10px 6px; border-bottom: 1px solid #EEF1F4"><span style="background: #FFF4E8; color: #5A2A08; border: 1px solid #F2C9A0; font-size: 12px; padding: 3px 8px; border-radius: 4px">From 1 Nov</span></td></tr>
+              <tr><td style="padding: 10px 6px; border-bottom: 1px solid #EEF1F4">4</td><td style="padding: 10px 6px; border-bottom: 1px solid #EEF1F4">[Centre]</td><td style="padding: 10px 6px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">[N]–[N]</td><td style="padding: 10px 6px; border-bottom: 1px solid #EEF1F4; color: #4A5562">Open</td></tr>
+              <tr><td style="padding: 10px 6px; border-bottom: 1px solid #EEF1F4">5</td><td style="padding: 10px 6px; border-bottom: 1px solid #EEF1F4">[Centre]</td><td style="padding: 10px 6px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">[N]–[N]</td><td style="padding: 10px 6px; border-bottom: 1px solid #EEF1F4; color: #4A5562">Open</td></tr>
+              <tr><td style="padding: 10px 6px">6</td><td style="padding: 10px 6px">[Centre]</td><td style="padding: 10px 6px; text-align: right; font-family: 'IBM Plex Mono', monospace">[N]–[N]</td><td style="padding: 10px 6px; color: #4A5562">Open</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <a href="Simulator.dc.html" style="align-self: flex-start; background: #0B5E5E; color: #FFFFFF; text-decoration: none; font-weight: 600; font-size: 14px; padding: 12px 16px; border-radius: 8px">Simulate a closure</a>
+      </section>
+    </div>
+
+    <section aria-label="Closures over time" style="background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 20px; display: flex; flex-direction: column; gap: 10px">
+      <h2 style="margin: 0; font-size: 17px; font-weight: 600">Closures over time, 2024–2026</h2>
+      <p style="margin: 0; font-size: 13px; color: #4A5562">Renovations (Repairs &amp; Redecoration, weeks to months) vs routine cleaning (1–3 days), by month</p>
+      <div style="height: 120px; border-radius: 8px; background: #EEF1F4; display: flex; align-items: flex-end; gap: 6px; padding: 12px">
+        <div style="flex: 1; height: 30%; background: #1F6FB2; border-radius: 3px 3px 0 0"></div><div style="flex: 1; height: 55%; background: #1F6FB2; border-radius: 3px 3px 0 0"></div><div style="flex: 1; height: 40%; background: #1F6FB2; border-radius: 3px 3px 0 0"></div><div style="flex: 1; height: 70%; background: #1F6FB2; border-radius: 3px 3px 0 0"></div><div style="flex: 1; height: 45%; background: #1F6FB2; border-radius: 3px 3px 0 0"></div><div style="flex: 1; height: 60%; background: #1F6FB2; border-radius: 3px 3px 0 0"></div><div style="flex: 1; height: 35%; background: #1F6FB2; border-radius: 3px 3px 0 0"></div><div style="flex: 1; height: 80%; background: #1F6FB2; border-radius: 3px 3px 0 0"></div><div style="flex: 1; height: 50%; background: #1F6FB2; border-radius: 3px 3px 0 0"></div><div style="flex: 1; height: 65%; background: #1F6FB2; border-radius: 3px 3px 0 0"></div><div style="flex: 1; height: 40%; background: #1F6FB2; border-radius: 3px 3px 0 0"></div><div style="flex: 1; height: 55%; background: #1F6FB2; border-radius: 3px 3px 0 0"></div>
+      </div>
+      <div style="font-size: 13px; color: #4A5562">Wireframe bars. Real chart: one bar per month from the closure_events Gold table.</div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1180}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

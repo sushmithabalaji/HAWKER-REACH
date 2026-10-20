@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Action plan</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F4F5F7}
+a{color:#0B5E5E}a:hover{color:#073F3F}
+</style>
+</helmet>
+<div style="font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #16202A; background: #F4F5F7; min-height: 1040px; display: flex; flex-wrap: wrap; align-items: stretch">
+
+  <nav aria-label="App sections" style="flex: 1 1 232px; max-width: 100%; background: #16202A; color: #E6EAEE; padding: 22px 14px; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px">
+    <div style="font-weight: 700; font-size: 20px; color: #FFFFFF; padding: 0 10px 18px">HawkerReach</div>
+    <div style="font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #8C99A6; padding: 6px 10px">Planner workflow</div>
+    <a href="App1Queue.dc.html" style="color: #E6EAEE; text-decoration: none; font-size: 14px; padding: 11px 12px; border-radius: 6px">① Closure queue</a>
+    <a href="App2Impact.dc.html" style="color: #E6EAEE; text-decoration: none; font-size: 14px; padding: 11px 12px; border-radius: 6px">② Impact</a>
+    <a href="App3Timing.dc.html" style="color: #E6EAEE; text-decoration: none; font-size: 14px; padding: 11px 12px; border-radius: 6px">③ Conflicts &amp; what-if</a>
+    <a href="App4Action.dc.html" style="color: #16202A; background: #FFFFFF; font-weight: 600; text-decoration: none; font-size: 14px; padding: 11px 12px; border-radius: 6px">④ Action plan</a>
+    <div style="font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #8C99A6; padding: 18px 10px 6px">More</div>
+    <a href="Community.dc.html" style="color: #E6EAEE; text-decoration: none; font-size: 14px; padding: 11px 12px; border-radius: 6px">Community list (AACs)</a>
+    <a href="OnePage.dc.html" style="color: #E6EAEE; text-decoration: none; font-size: 14px; padding: 11px 12px; border-radius: 6px">Network overview</a>
+    <a href="OnePage.dc.html" style="color: #E6EAEE; text-decoration: none; font-size: 14px; padding: 11px 12px; border-radius: 6px">How sure are we?</a>
+    <a href="OnePage.dc.html" style="color: #E6EAEE; text-decoration: none; font-size: 14px; padding: 11px 12px; border-radius: 6px">Ask Genie ↗</a>
+    <div style="margin-top: auto; font-size: 12px; color: #8C99A6; padding: 18px 10px 0">Data: NEA, HDB, URA, SingStat (June 2026)</div>
+  </nav>
+
+  <main style="flex: 999 1 760px; min-width: 0; padding: 28px 32px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px">
+    <div style="display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: flex-end">
+      <div style="flex: 1 1 420px">
+        <a href="App3Timing.dc.html" style="font-size: 13px; text-decoration: none">← Conflicts &amp; what-if</a>
+        <h1 style="margin: 6px 0 6px; font-size: 28px; font-weight: 700">Action plan: Kim Keat Palm closure</h1>
+        <p style="margin: 0; font-size: 15px; color: #4A5562">14 Sep – 13 Dec 2026 · generated from the impact and conflict checks</p>
+      </div>
+      <button type="button" style="font: inherit; font-size: 14px; font-weight: 600; background: #0B5E5E; color: #FFFFFF; border: 0; border-radius: 8px; padding: 12px 18px; min-height: 44px">Download plan (PDF)</button>
+    </div>
+
+    <section aria-label="Actions" style="background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 20px; display: flex; flex-direction: column; gap: 4px">
+      <h2 style="margin: 0 0 10px; font-size: 18px; font-weight: 600">What to do, and who does it</h2>
+
+      <div style="display: grid; grid-template-columns: 32px minmax(0, 1fr) 190px; gap: 12px; align-items: start; padding: 14px 4px; border-top: 1px solid #EEF1F4">
+        <input type="checkbox" id="a1" style="width: 22px; height: 22px; margin: 2px 0 0">
+        <label for="a1" style="font-size: 15px"><strong>Move Lor 5 Blk 75 cleaning</strong> off 7–9 Nov, to 14–16 Dec<div style="font-size: 13px; color: #4A5562; margin-top: 4px">Kim Keat's nearest backup (460 m) would otherwise close too. From the conflict check.</div></label>
+        <span style="font-size: 12px; font-weight: 600; background: #EEF5F5; color: #0B5E5E; padding: 5px 8px; border-radius: 4px; justify-self: start">NEA · hawker centres</span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 32px minmax(0, 1fr) 190px; gap: 12px; align-items: start; padding: 14px 4px; border-top: 1px solid #EEF1F4">
+        <input type="checkbox" id="a2" style="width: 22px; height: 22px; margin: 2px 0 0">
+        <label for="a2" style="font-size: 15px"><strong>Move Vista Market cleaning</strong> off 16–19 Nov<div style="font-size: 13px; color: #4A5562; margin-top: 4px">Only 10 stalls; the smallest backup.</div></label>
+        <span style="font-size: 12px; font-weight: 600; background: #EEF5F5; color: #0B5E5E; padding: 5px 8px; border-radius: 4px; justify-self: start">NEA · hawker centres</span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 32px minmax(0, 1fr) 190px; gap: 12px; align-items: start; padding: 14px 4px; border-top: 1px solid #EEF1F4">
+        <input type="checkbox" id="a3" style="width: 22px; height: 22px; margin: 2px 0 0">
+        <label for="a3" style="font-size: 15px"><strong>Extra cleaning and waste collection</strong> at [N] neighbours, until 13 Dec<div style="font-size: 13px; color: #4A5562; margin-top: 4px">Food waste up more than 20% (est. [N]–[N] kg/week).</div></label>
+        <span style="font-size: 12px; font-weight: 600; background: #F4F5F7; color: #34404D; padding: 5px 8px; border-radius: 4px; justify-self: start">Centre manager / town council</span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 32px minmax(0, 1fr) 190px; gap: 12px; align-items: start; padding: 14px 4px; border-top: 1px solid #EEF1F4">
+        <input type="checkbox" id="a4" style="width: 22px; height: 22px; margin: 2px 0 0">
+        <label for="a4" style="font-size: 15px"><strong>Send the affected-block list</strong> ([N] blocks, [N] seniors est.)<div style="font-size: 13px; color: #4A5562; margin-top: 4px">For meal support and befriending checks during the closure.</div></label>
+        <span style="font-size: 12px; font-weight: 600; background: #FFF4E8; color: #5A2A08; padding: 5px 8px; border-radius: 4px; justify-self: start">Town council · AACs</span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 32px minmax(0, 1fr) 190px; gap: 12px; align-items: start; padding: 14px 4px; border-top: 1px solid #EEF1F4; color: #6B7785">
+        <input type="checkbox" id="a5" disabled style="width: 22px; height: 22px; margin: 2px 0 0">
+        <label for="a5" style="font-size: 15px">Community interim centre<div style="font-size: 13px; margin-top: 4px">Not needed: closures under a year use relocation to nearby vacant stalls instead.</div></label>
+        <span style="font-size: 12px; padding: 5px 8px; justify-self: start">Not applicable</span>
+      </div>
+    </section>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: stretch">
+      <section aria-label="Who to check on" style="flex: 3 1 460px; min-width: 0; background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+          <h2 style="margin: 0; font-size: 17px; font-weight: 600">Who to check on (preview)</h2>
+          <a href="Community.dc.html" style="margin-left: auto; font-size: 13px; font-weight: 600">Full list →</a>
+        </div>
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px">
+          <thead><tr style="text-align: left; color: #4A5562; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em"><th style="padding: 8px 6px; border-bottom: 1px solid #DDE2E7">Block</th><th style="padding: 8px 6px; border-bottom: 1px solid #DDE2E7; text-align: right">Seniors (est.)</th><th style="padding: 8px 6px; border-bottom: 1px solid #DDE2E7; text-align: right">Rental flats</th><th style="padding: 8px 6px; border-bottom: 1px solid #DDE2E7">Nearest open centre</th></tr></thead>
+          <tbody>
+            <tr><td style="padding: 9px 6px; border-bottom: 1px solid #EEF1F4">Blk [##] Toa Payoh Lor 7</td><td style="padding: 9px 6px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">[N]</td><td style="padding: 9px 6px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">[N]</td><td style="padding: 9px 6px; border-bottom: 1px solid #EEF1F4">Lor 5 Blk 75 · [N] min</td></tr>
+            <tr><td style="padding: 9px 6px; border-bottom: 1px solid #EEF1F4">Blk [##] Toa Payoh Lor 7</td><td style="padding: 9px 6px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">[N]</td><td style="padding: 9px 6px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">[N]</td><td style="padding: 9px 6px; border-bottom: 1px solid #EEF1F4">Lor 8 Blk 210 · [N] min</td></tr>
+            <tr><td style="padding: 9px 6px">Blk [##] [Street]</td><td style="padding: 9px 6px; text-align: right; font-family: 'IBM Plex Mono', monospace">[N]</td><td style="padding: 9px 6px; text-align: right; font-family: 'IBM Plex Mono', monospace">[N]</td><td style="padding: 9px 6px">Vista Mkt · [N] min</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section aria-label="How sure are we" style="flex: 2 1 320px; min-width: 0; background: #FFFFFF; border: 1px dashed #9AA6B2; border-radius: 10px; padding: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: #34404D">
+        <h2 style="margin: 0 0 4px; font-size: 16px; font-weight: 700; color: #16202A">How sure is this plan?</h2>
+        <div><strong>Real:</strong> closure dates, distances, stall counts (NEA).</div>
+        <div><strong>Estimated:</strong> seniors per block (SingStat 2026 + flat mix).</div>
+        <div><strong>Modelled:</strong> diner shifts and waste; no footfall data exists.</div>
+        <div><strong>Checked:</strong> ranking holds at 10 / 15 / 20 min: [yes/no].</div>
+      </section>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1040}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Closure simulator</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F4F5F7}
+a{color:#0B5E5E}a:hover{color:#073F3F}
+</style>
+</helmet>
+<div style="font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #16202A; background: #F4F5F7; min-height: 1320px; box-sizing: border-box">
+  <header style="background: #16202A; color: #FFFFFF; padding: 16px 32px; display: flex; flex-wrap: wrap; align-items: center; gap: 24px">
+    <div style="font-weight: 700; font-size: 20px; letter-spacing: -0.01em">HawkerReach</div>
+    <nav aria-label="Dashboard tabs" style="display: flex; flex-wrap: wrap; gap: 4px">
+      <a href="Main.dc.html" style="color: #E6EAEE; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-size: 14px">Network overview</a>
+      <a href="Simulator.dc.html" style="color: #16202A; background: #FFFFFF; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 14px">Closure simulator</a>
+      <a href="Community.dc.html" style="color: #E6EAEE; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-size: 14px">Community list</a>
+    </nav>
+    <div style="margin-left: auto; font-size: 13px; color: #B8C2CC">For: NEA / town council planners</div>
+  </header>
+
+  <main style="max-width: 1376px; margin: 0 auto; padding: 28px 32px; display: flex; flex-direction: column; gap: 24px">
+    <section aria-label="Scenario" style="background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 18px 20px; display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end">
+      <div style="display: flex; flex-direction: column; gap: 6px; flex: 2 1 320px">
+        <label for="centre" style="font-size: 13px; color: #4A5562">Close this centre</label>
+        <select id="centre" style="font: inherit; font-size: 15px; padding: 10px 12px; border: 1px solid #C5CDD5; border-radius: 8px; min-height: 44px; background: #FFFFFF"><option>Kim Keat Palm Market and Food Centre (Toa Payoh Lor 7 Blk 22)</option></select>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px; flex: 1 1 180px">
+        <label for="pace" style="font-size: 13px; color: #4A5562">Walking pace</label>
+        <select id="pace" style="font: inherit; font-size: 15px; padding: 10px 12px; border: 1px solid #C5CDD5; border-radius: 8px; min-height: 44px; background: #FFFFFF"><option>Senior · 1.0 m/s</option><option>Typical · 1.2 m/s</option><option>Brisk · 1.4 m/s</option></select>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px; flex: 1 1 180px">
+        <label for="mins" style="font-size: 13px; color: #4A5562">Max walk</label>
+        <select id="mins" style="font: inherit; font-size: 15px; padding: 10px 12px; border: 1px solid #C5CDD5; border-radius: 8px; min-height: 44px; background: #FFFFFF"><option>15 minutes</option><option>10 minutes</option><option>20 minutes</option></select>
+      </div>
+      <div style="flex: 1 1 260px; font-size: 14px; color: #34404D; background: #FFF4E8; border: 1px solid #F2C9A0; border-radius: 8px; padding: 10px 12px">Real closure: Repairs &amp; Redecoration, 14 Sep – 13 Dec 2026 · 61 cooked-food stalls</div>
+    </section>
+
+    <section aria-label="Impact" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px">
+      <div style="background: #FFFFFF; border: 1px solid #DDE2E7; border-top: 4px solid #A33A0B; border-radius: 10px; padding: 18px 20px">
+        <div style="font-size: 13px; color: #4A5562">Seniors cut off (est.)</div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 32px; font-weight: 500; margin-top: 6px; color: #A33A0B">[N]</div>
+        <div style="font-size: 13px; color: #4A5562; margin-top: 4px">Range [N]–[N] at 10–20 min</div>
+      </div>
+      <div style="background: #FFFFFF; border: 1px solid #DDE2E7; border-top: 4px solid #1F6FB2; border-radius: 10px; padding: 18px 20px">
+        <div style="font-size: 13px; color: #4A5562">Daily diners shifted (modelled)</div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 32px; font-weight: 500; margin-top: 6px">[N]</div>
+        <div style="font-size: 13px; color: #4A5562; margin-top: 4px">to [N] nearby centres</div>
+      </div>
+      <div style="background: #FFFFFF; border: 1px solid #DDE2E7; border-top: 4px solid #C2410C; border-radius: 10px; padding: 18px 20px">
+        <div style="font-size: 13px; color: #4A5562">Centres pushed over capacity</div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 32px; font-weight: 500; margin-top: 6px">[N]</div>
+        <div style="font-size: 13px; color: #4A5562; margin-top: 4px">diners per stall above [threshold]</div>
+      </div>
+      <div style="background: #FFFFFF; border: 1px solid #DDE2E7; border-top: 4px solid #6B7785; border-radius: 10px; padding: 18px 20px">
+        <div style="font-size: 13px; color: #4A5562">Extra food waste (est.)</div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 32px; font-weight: 500; margin-top: 6px">[N]–[N] t</div>
+        <div style="font-size: 13px; color: #4A5562; margin-top: 4px">over the closure period</div>
+      </div>
+    </section>
+
+    <section aria-label="Before and after" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px">
+      <div style="background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+        <h2 style="margin: 0; font-size: 16px; font-weight: 600">Before: Kim Keat Palm open</h2>
+        <div style="height: 300px; border-radius: 8px; background: #EEF1F4; overflow: hidden">
+          <svg aria-hidden="true" viewBox="0 0 600 300" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
+            <circle cx="300" cy="150" r="110" fill="none" stroke="#1F6FB2" stroke-width="2" stroke-dasharray="6 6"></circle>
+            <circle cx="300" cy="150" r="9" fill="#1F6FB2"></circle><circle cx="470" cy="90" r="7" fill="#1F6FB2"></circle><circle cx="140" cy="230" r="7" fill="#1F6FB2"></circle><circle cx="500" cy="230" r="7" fill="#1F6FB2"></circle>
+            <g fill="#8FB8D8"><rect x="250" y="110" width="10" height="10"></rect><rect x="330" y="120" width="10" height="10"></rect><rect x="280" y="190" width="10" height="10"></rect><rect x="350" y="180" width="10" height="10"></rect><rect x="230" y="160" width="10" height="10"></rect><rect x="320" y="80" width="10" height="10"></rect></g>
+          </svg>
+        </div>
+        <div style="font-size: 13px; color: #4A5562">All nearby blocks within 15 min at senior pace</div>
+      </div>
+      <div style="background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+        <h2 style="margin: 0; font-size: 16px; font-weight: 600">After: Kim Keat Palm closed</h2>
+        <div style="height: 300px; border-radius: 8px; background: #EEF1F4; overflow: hidden">
+          <svg aria-hidden="true" viewBox="0 0 600 300" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
+            <line x1="292" y1="142" x2="308" y2="158" stroke="#A33A0B" stroke-width="4"></line><line x1="308" y1="142" x2="292" y2="158" stroke="#A33A0B" stroke-width="4"></line>
+            <circle cx="470" cy="90" r="11" fill="#C2410C"></circle><circle cx="140" cy="230" r="7" fill="#1F6FB2"></circle><circle cx="500" cy="230" r="10" fill="#C2410C"></circle>
+            <path d="M300 150 L462 96" stroke="#C2410C" stroke-width="2" stroke-dasharray="4 4"></path><path d="M300 150 L492 226" stroke="#C2410C" stroke-width="2" stroke-dasharray="4 4"></path>
+            <g fill="#A33A0B"><rect x="250" y="110" width="10" height="10"></rect><rect x="280" y="190" width="10" height="10"></rect><rect x="230" y="160" width="10" height="10"></rect></g>
+            <g fill="#F2B880"><rect x="330" y="120" width="10" height="10"></rect><rect x="350" y="180" width="10" height="10"></rect><rect x="320" y="80" width="10" height="10"></rect></g>
+          </svg>
+        </div>
+        <div style="font-size: 13px; color: #4A5562">Dark squares: blocks with no centre in reach. Orange dots: neighbours taking the diners.</div>
+      </div>
+    </section>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+      <section aria-label="Neighbours under pressure" style="flex: 1 1 520px; min-width: 0; background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+        <h2 style="margin: 0; font-size: 17px; font-weight: 600">Where the diners go</h2>
+        <p style="margin: 0; font-size: 13px; color: #4A5562">Diners per stall, before → after (modelled). Closer centres take more.</p>
+        <div style="display: flex; flex-direction: column; gap: 12px">
+          <div style="display: grid; grid-template-columns: minmax(0, 220px) minmax(0, 1fr) 90px; gap: 12px; align-items: center; font-size: 14px"><div>Toa Payoh Lor 5 Blk 75 · 36 stalls</div><div style="height: 14px; background: #EEF1F4; border-radius: 3px; position: relative"><div style="position: absolute; left: 0; top: 0; bottom: 0; width: 55%; background: #8FB8D8; border-radius: 3px"></div><div style="position: absolute; left: 0; top: 0; bottom: 0; width: 92%; border: 2px solid #C2410C; border-radius: 3px; box-sizing: border-box"></div></div><div style="font-family: 'IBM Plex Mono', monospace; text-align: right">[N]→[N]</div></div>
+          <div style="display: grid; grid-template-columns: minmax(0, 220px) minmax(0, 1fr) 90px; gap: 12px; align-items: center; font-size: 14px"><div>Toa Payoh Lor 8 Blk 210 · 80 stalls</div><div style="height: 14px; background: #EEF1F4; border-radius: 3px; position: relative"><div style="position: absolute; left: 0; top: 0; bottom: 0; width: 50%; background: #8FB8D8; border-radius: 3px"></div><div style="position: absolute; left: 0; top: 0; bottom: 0; width: 71%; border: 2px solid #C2410C; border-radius: 3px; box-sizing: border-box"></div></div><div style="font-family: 'IBM Plex Mono', monospace; text-align: right">[N]→[N]</div></div>
+          <div style="display: grid; grid-template-columns: minmax(0, 220px) minmax(0, 1fr) 90px; gap: 12px; align-items: center; font-size: 14px"><div>Toa Payoh Lor 4 Blk 93 · 28 stalls</div><div style="height: 14px; background: #EEF1F4; border-radius: 3px; position: relative"><div style="position: absolute; left: 0; top: 0; bottom: 0; width: 45%; background: #8FB8D8; border-radius: 3px"></div><div style="position: absolute; left: 0; top: 0; bottom: 0; width: 64%; border: 2px solid #C2410C; border-radius: 3px; box-sizing: border-box"></div></div><div style="font-family: 'IBM Plex Mono', monospace; text-align: right">[N]→[N]</div></div>
+          <div style="display: grid; grid-template-columns: minmax(0, 220px) minmax(0, 1fr) 90px; gap: 12px; align-items: center; font-size: 14px"><div>Toa Payoh Lor 4 Blk 74 · 10 stalls</div><div style="height: 14px; background: #EEF1F4; border-radius: 3px; position: relative"><div style="position: absolute; left: 0; top: 0; bottom: 0; width: 40%; background: #8FB8D8; border-radius: 3px"></div><div style="position: absolute; left: 0; top: 0; bottom: 0; width: 52%; border: 2px solid #C2410C; border-radius: 3px; box-sizing: border-box"></div></div><div style="font-family: 'IBM Plex Mono', monospace; text-align: right">[N]→[N]</div></div>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 16px; font-size: 13px; color: #34404D">
+          <div style="display: flex; align-items: center; gap: 6px"><span style="width: 14px; height: 10px; background: #8FB8D8; display: inline-block"></span>Before</div>
+          <div style="display: flex; align-items: center; gap: 6px"><span style="width: 14px; height: 10px; border: 2px solid #C2410C; box-sizing: border-box; display: inline-block"></span>After closure</div>
+        </div>
+      </section>
+
+      <section aria-label="Best interim market sites" style="flex: 1 1 420px; min-width: 0; background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+        <h2 style="margin: 0; font-size: 17px; font-weight: 600">What can we do? Best interim market sites</h2>
+        <p style="margin: 0; font-size: 13px; color: #4A5562">Ranked by cut-off seniors brought back within reach</p>
+        <ol style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 10px; font-size: 14px">
+          <li><strong>[Site A]</strong> near [blocks] · reconnects <span style="font-family: 'IBM Plex Mono', monospace">[N]</span> seniors</li>
+          <li><strong>[Site B]</strong> near [blocks] · reconnects <span style="font-family: 'IBM Plex Mono', monospace">[N]</span> seniors</li>
+          <li><strong>[Site C]</strong> near [blocks] · reconnects <span style="font-family: 'IBM Plex Mono', monospace">[N]</span> seniors</li>
+        </ol>
+        <div style="font-size: 13px; color: #34404D; background: #EEF5F5; border-radius: 8px; padding: 10px 12px">Precedent: NEA built Bukit Timah Interim Hawker Centre while Bukit Timah Market is redeveloped (to 2029).</div>
+        <a href="Community.dc.html" style="align-self: flex-start; background: #0B5E5E; color: #FFFFFF; text-decoration: none; font-weight: 600; font-size: 14px; padding: 12px 16px; border-radius: 8px">See affected blocks for town council / AACs</a>
+      </section>
+    </div>
+
+    <section aria-label="Assumptions" style="background: #FFFFFF; border: 1px dashed #9AA6B2; border-radius: 10px; padding: 16px 20px; display: flex; flex-wrap: wrap; gap: 8px 28px; font-size: 13px; color: #34404D">
+      <strong style="width: 100%; font-size: 14px; color: #16202A">How sure are we?</strong>
+      <div>Walking only: a deliberate worst case</div>
+      <div>Seniors per block estimated from SingStat June 2026 + flat mix</div>
+      <div>Diners are modelled; no footfall data exists</div>
+      <div>Waste per meal: [cited source], shown as a range</div>
+      <div>Ranking holds at 10 / 15 / 20 min: [yes/no]</div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1320}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

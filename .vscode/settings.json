@@ -1,0 +1,8 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+  "python.terminal.activateEnvironment": true,
+  "terminal.integrated.env.osx": {
+    "DATABRICKS_CONFIG_PROFILE": "hawkerreach",
+    "DATABRICKS_WAREHOUSE_ID": "a8c31c5b693a27fd"
+  }
+}
