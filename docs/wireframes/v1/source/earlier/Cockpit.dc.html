@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Closure cockpit</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F4F5F7}
+a{color:#0B5E5E}a:hover{color:#073F3F}
+@keyframes ckRipple{from{transform:scale(0.12);opacity:0.85}to{transform:scale(1);opacity:0}}
+.ck-ripple{animation:ckRipple 2.4s ease-out infinite}
+@media (prefers-reduced-motion: reduce){.ck-ripple{animation:none;opacity:0.35}}
+</style>
+</helmet>
+<div style="font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #16202A; background: #F4F5F7; min-height: 1320px; box-sizing: border-box">
+  <header style="background: #16202A; color: #FFFFFF; padding: 16px 32px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 24px">
+    <div style="font-weight: 700; font-size: 20px">HawkerReach</div>
+    <div style="font-size: 15px; color: #D5DCE3">Closure cockpit</div>
+    <div style="margin-left: auto; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 12px; color: #B8C2CC">
+      <span>Every number is tagged:</span>
+      <span style="font-size: 11px; font-weight: 700; background: #DDF1EE; color: #0B5E5E; padding: 3px 7px; border-radius: 4px">REAL</span>
+      <span style="font-size: 11px; font-weight: 700; background: #FFE9D2; color: #8A3A08; padding: 3px 7px; border-radius: 4px">ESTIMATE</span>
+      <span style="font-size: 11px; font-weight: 700; background: #E6EAEE; color: #34404D; padding: 3px 7px; border-radius: 4px">PREVIEW</span>
+      <span style="font-size: 11px; font-weight: 700; background: #F3E5F5; color: #5B2A6E; padding: 3px 7px; border-radius: 4px">NEEDS PIPELINE</span>
+    </div>
+  </header>
+
+  <div style="max-width: 1440px; margin: 0 auto; padding: 22px 32px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px">
+    <div style="display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: flex-end">
+      <div style="flex: 1 1 520px">
+        <h1 style="margin: 0 0 6px; font-size: 28px; font-weight: 700">{{headline}}</h1>
+        <p style="margin: 0; font-size: 15px; color: #4A5562">{{subline}}</p>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <span id="shade" style="font-size: 13px; color: #4A5562">Shade neighbourhoods by</span>
+        <div role="group" aria-labelledby="shade" style="display: flex; flex-wrap: wrap; border: 1px solid #C5CDD5; border-radius: 8px; overflow: hidden; background: #FFFFFF">
+          <sc-for list="{{shades}}" as="b" hint-placeholder-count="3">
+            <button type="button" aria-pressed="{{b.pressed}}" onClick="{{b.pick}}" style="{{b.style}}">{{b.label}}</button>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+      <section aria-label="Map" style="flex: 0 1 940px; min-width: 0; background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 18px; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px">
+        <div style="overflow-x: auto">
+          <div style="position: relative; width: 900px; height: 560px; overflow: hidden; border-radius: 8px; background: #F7FAFC">
+            <div style="{{layerStyle}}">
+              <svg aria-hidden="true" width="900" height="520" viewBox="0 0 900 520" style="position: absolute; left: 0; top: 0; overflow: visible">
+                <path d="{{outline}}" fill="#E9EDF0" stroke="#FFFFFF" stroke-width="1" vector-effect="non-scaling-stroke"></path>
+              </svg>
+              <sc-for list="{{zones}}" as="s" hint-placeholder-count="20">
+                <svg aria-hidden="true" width="900" height="520" viewBox="0 0 900 520" style="position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none">
+                  <path d="{{s.path}}" fill="{{s.fill}}" fill-opacity="{{s.op}}" stroke="{{s.stroke}}" stroke-width="{{s.sw}}" vector-effect="non-scaling-stroke" onClick="{{s.pick}}" style="pointer-events: visiblePainted; cursor: pointer"></path>
+                </svg>
+              </sc-for>
+              <sc-if value="{{hasSel}}" hint-placeholder-val="{{false}}">
+                <div style="{{catchStyle}}"></div>
+                <sc-for list="{{ripples}}" as="r" hint-placeholder-count="3"><div class="ck-ripple" style="{{r.style}}"></div></sc-for>
+                <sc-for list="{{lines}}" as="l" hint-placeholder-count="4"><div style="{{l.style}}"></div></sc-for>
+              </sc-if>
+              <sc-for list="{{centres}}" as="c" hint-placeholder-count="20">
+                <button type="button" aria-label="{{c.aria}}" onClick="{{c.pick}}" style="{{c.dotStyle}}"></button>
+              </sc-for>
+              <sc-for list="{{labels}}" as="t" hint-placeholder-count="4"><div style="{{t.style}}">{{t.text}}</div></sc-for>
+            </div>
+            <sc-if value="{{zoomed}}" hint-placeholder-val="{{false}}">
+              <button type="button" onClick="{{reset}}" style="position: absolute; right: 12px; top: 12px; font: inherit; font-size: 13px; font-weight: 600; background: #FFFFFF; color: #16202A; border: 1px solid #C5CDD5; border-radius: 8px; padding: 10px 14px; min-height: 44px">← Whole island</button>
+            </sc-if>
+            <div style="position: absolute; left: 12px; bottom: 12px; background: rgba(255,255,255,0.94); border: 1px solid #DDE2E7; border-radius: 8px; padding: 8px 12px; font-size: 12px; color: #34404D; max-width: 420px">{{mapHint}}</div>
+          </div>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; font-size: 12px; color: #34404D">
+          <sc-if value="{{shadeOn}}" hint-placeholder-val="{{true}}">
+            <strong style="font-weight: 600">{{legendTitle}}</strong>
+            <sc-for list="{{legend}}" as="g" hint-placeholder-count="5"><span style="display: flex; align-items: center; gap: 5px"><span style="{{g.swatch}}"></span>{{g.label}}</span></sc-for>
+          </sc-if>
+          <span style="display: flex; align-items: center; gap: 5px"><span style="width: 9px; height: 9px; border-radius: 50%; background: #1F6FB2; border: 1px solid #FFFFFF; display: inline-block"></span>Hawker centre (click to close)</span>
+          <span style="display: flex; align-items: center; gap: 5px"><span style="width: 12px; height: 12px; border-radius: 50%; background: #C2410C; display: inline-block"></span>Takes its diners</span>
+          <span style="display: flex; align-items: center; gap: 5px"><span style="width: 12px; height: 12px; border-radius: 50%; background: #FFFFFF; border: 2px solid #0B5E5E; box-sizing: border-box; display: inline-block"></span>Could renovate at the same time</span>
+        </div>
+      </section>
+
+      <aside style="flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+
+        <sc-if value="{{hasZone}}" hint-placeholder-val="{{false}}">
+          <section style="background: #FFFFFF; border: 2px solid #16202A; border-radius: 10px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
+            <div style="display: flex; align-items: flex-start; gap: 10px">
+              <div style="flex: 1 1 auto"><div style="font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: #4A5562">Neighbourhood</div><div style="font-size: 19px; font-weight: 700">{{zone.name}}</div><div style="font-size: 13px; color: #4A5562">{{zone.pa}} · {{zone.blocks}} HDB blocks</div></div>
+              <span style="{{zone.chip}}">{{zone.band}}</span>
+              <button type="button" aria-label="Close neighbourhood details" onClick="{{clearZone}}" style="font: inherit; font-size: 18px; line-height: 1; background: #FFFFFF; border: 1px solid #C5CDD5; border-radius: 8px; width: 44px; height: 44px; color: #16202A">×</button>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+              <div style="background: #F4F5F7; border-radius: 8px; padding: 10px 12px"><div style="font-size: 12px; color: #4A5562">Aged 65+ <span style="font-size: 10px; font-weight: 700; color: #0B5E5E">REAL</span></div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 20px">{{zone.s65F}} <span style="font-size: 12px; color: #4A5562">{{zone.p65}}%</span></div></div>
+              <div style="background: #F4F5F7; border-radius: 8px; padding: 10px 12px"><div style="font-size: 12px; color: #4A5562">Aged 75+ <span style="font-size: 10px; font-weight: 700; color: #0B5E5E">REAL</span></div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 20px">{{zone.s75F}} <span style="font-size: 12px; color: #4A5562">{{zone.p75}}%</span></div></div>
+              <div style="background: #F4F5F7; border-radius: 8px; padding: 10px 12px; grid-column: 1 / span 2"><div style="font-size: 12px; color: #4A5562">Blocks more than 15 min from a hawker centre, senior pace <span style="font-size: 10px; font-weight: 700; color: #34404D">PREVIEW</span></div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 20px; color: #A33A0B">{{zone.t34}}%</div></div>
+            </div>
+            <sc-if value="{{zone.hasNear}}" hint-placeholder-val="{{false}}"><div style="background: #FFF4E8; border-radius: 8px; padding: 10px 12px; font-size: 13px; color: #5A2A08"><strong>Closure nearby:</strong> {{zone.near}}</div></sc-if>
+            <div style="font-size: 13px"><strong>Tell:</strong> AACs and town council serving {{zone.pa}}. Start with the oldest blocks (75+).</div>
+            <a href="Community.dc.html" style="align-self: flex-start; background: #0B5E5E; color: #FFFFFF; text-decoration: none; font-weight: 600; font-size: 14px; padding: 11px 14px; border-radius: 8px">Blocks to check on →</a>
+          </section>
+        </sc-if>
+
+        <sc-if value="{{noSel}}" hint-placeholder-val="{{true}}">
+          <section style="background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 16px 18px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+            <div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 24px">122</div><div style="font-size: 12px; color: #4A5562">hawker centres open</div></div>
+            <div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 24px">825,320</div><div style="font-size: 12px; color: #4A5562">residents aged 65+</div></div>
+            <div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 24px; color: #A33A0B">3</div><div style="font-size: 12px; color: #4A5562">renovations now or soon</div></div>
+            <div style="grid-column: 1 / span 3; font-size: 11px; color: #0B5E5E; font-weight: 700">REAL · NEA, SingStat June 2026</div>
+          </section>
+          <section style="background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
+            <h2 style="margin: 0; font-size: 16px; font-weight: 700">Start with a real closure</h2>
+            <sc-for list="{{quick}}" as="q" hint-placeholder-count="3">
+              <button type="button" onClick="{{q.pick}}" style="font: inherit; text-align: left; background: #FFFFFF; border: 1px solid #C5CDD5; border-radius: 8px; padding: 11px 14px; min-height: 44px; color: #16202A"><strong style="display: block; font-size: 14px">{{q.name}}</strong><span style="font-size: 12px; color: #A33A0B">{{q.note}}</span></button>
+            </sc-for>
+          </section>
+          <section style="background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px">
+            <div style="display: flex; align-items: center; gap: 8px"><h2 style="margin: 0; font-size: 16px; font-weight: 700">Most vulnerable neighbourhoods</h2><span style="font-size: 10px; font-weight: 700; background: #E6EAEE; color: #34404D; padding: 2px 6px; border-radius: 4px">PREVIEW</span></div>
+            <p style="margin: 0; font-size: 12px; color: #4A5562">Old population + far from a hawker centre</p>
+            <sc-for list="{{top}}" as="t" hint-placeholder-count="6">
+              <button type="button" onClick="{{t.pick}}" style="font: inherit; display: flex; gap: 10px; align-items: center; text-align: left; background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 8px; padding: 8px 12px; min-height: 44px; color: #16202A">
+                <span style="flex: 1 1 auto; min-width: 0"><strong style="font-size: 14px">{{t.name}}</strong> <span style="font-size: 12px; color: #4A5562">· {{t.pa}}</span><span style="display: block; font-size: 12px; color: #4A5562">{{t.p65}}% aged 65+ · {{t.t34}}% of blocks far</span></span>
+                <span style="{{t.chip}}">{{t.v}}</span>
+              </button>
+            </sc-for>
+          </section>
+        </sc-if>
+
+        <sc-if value="{{hasSel}}" hint-placeholder-val="{{false}}">
+          <section style="background: #16202A; color: #FFFFFF; border-radius: 10px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px">
+            <div style="font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: #F2B880">Closed</div>
+            <div style="font-size: 20px; font-weight: 700">{{sel.name}}</div>
+            <div style="font-size: 13px; color: #D5DCE3">{{sel.pa}} · {{sel.stalls}} cooked-food stalls</div>
+            <div style="font-size: 13px; color: #F2B880; margin-top: 2px">{{sel.when}}</div>
+          </section>
+
+          <section style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+            <sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+              <div style="background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px">
+                <span style="{{k.tagStyle}}">{{k.tag}}</span>
+                <div style="font-family: 'IBM Plex Mono', monospace; font-size: 24px; color: {{k.color}}">{{k.value}}</div>
+                <div style="font-size: 12px; color: #4A5562">{{k.label}}</div>
+              </div>
+            </sc-for>
+          </section>
+
+          <section style="background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px">
+            <div style="display: flex; align-items: center; gap: 8px"><h2 style="margin: 0; font-size: 15px; font-weight: 700">① Seniors most exposed</h2><span style="font-size: 10px; font-weight: 700; background: #E6EAEE; color: #34404D; padding: 2px 6px; border-radius: 4px">PREVIEW</span></div>
+            <sc-if value="{{noExposed}}" hint-placeholder-val="{{false}}"><div style="font-size: 13px; color: #4A5562">No large HDB neighbourhoods inside the ripple.</div></sc-if>
+            <sc-for list="{{exposed}}" as="e" hint-placeholder-count="3">
+              <button type="button" onClick="{{e.pick}}" style="font: inherit; display: flex; gap: 10px; align-items: center; text-align: left; background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 8px; padding: 8px 12px; min-height: 44px; color: #16202A">
+                <span style="flex: 1 1 auto; min-width: 0"><strong style="font-size: 14px">{{e.name}}</strong><span style="display: block; font-size: 12px; color: #4A5562">{{e.s65F}} aged 65+ ({{e.p65}}%) · {{e.t34}}% of blocks far</span></span>
+                <span style="{{e.chip}}">{{e.v}}</span>
+              </button>
+            </sc-for>
+          </section>
+
+          <section style="background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
+            <div style="display: flex; align-items: center; gap: 8px"><h2 style="margin: 0; font-size: 15px; font-weight: 700">② Where diners go, and the waste</h2><span style="font-size: 10px; font-weight: 700; background: #FFE9D2; color: #8A3A08; padding: 2px 6px; border-radius: 4px">ESTIMATE</span></div>
+            <sc-for list="{{neighbours}}" as="n" hint-placeholder-count="4">
+              <div style="display: grid; grid-template-columns: minmax(0, 1fr) 44px; gap: 4px 10px; align-items: center; font-size: 13px">
+                <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis"><strong>{{n.name}}</strong> <span style="color: #4A5562">· {{n.km}} · {{n.stalls}} stalls</span></div>
+                <div style="font-family: 'IBM Plex Mono', monospace; text-align: right; color: #A33A0B">{{n.share}}</div>
+                <div style="grid-column: 1 / span 2; height: 7px; background: #EEF1F4; border-radius: 4px"><div style="{{n.barStyle}}"></div></div>
+                <div style="grid-column: 1 / span 2; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12px; color: #4A5562"><span>{{n.wasteText}}</span><sc-if value="{{n.flag}}" hint-placeholder-val="{{false}}"><span style="font-size: 11px; font-weight: 700; background: #FFF4E8; color: #A33A0B; border: 1px solid #F2C9A0; padding: 1px 6px; border-radius: 4px">Extra cleaning</span></sc-if></div>
+              </div>
+            </sc-for>
+          </section>
+
+          <section style="background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 16px 18px; display: flex; flex-direction: column; gap: 6px">
+            <div style="display: flex; align-items: center; gap: 8px"><h2 style="margin: 0; font-size: 15px; font-weight: 700">③ Could renovate at the same time</h2><span style="font-size: 10px; font-weight: 700; background: #DDF1EE; color: #0B5E5E; padding: 2px 6px; border-radius: 4px">REAL DATES</span></div>
+            <p style="margin: 0; font-size: 12px; color: #4A5562">Outside the ripple (2.5–7 km), so no shared diners</p>
+            <sc-for list="{{candidates}}" as="k" hint-placeholder-count="4">
+              <div style="display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-top: 1px solid #EEF1F4">
+                <div style="flex: 1 1 auto; min-width: 0"><div style="font-size: 13px; font-weight: 600">{{k.name}} <span style="font-weight: 400; color: #4A5562">· {{k.km}}</span></div><div style="font-size: 12px; color: #4A5562">{{k.text}}</div></div>
+                <span style="{{k.tagStyle}}">{{k.tag}}</span>
+              </div>
+            </sc-for>
+          </section>
+
+          <section style="background: #EEF5F5; border: 1px solid #BFDCD8; border-radius: 10px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
+            <h2 style="margin: 0; font-size: 15px; font-weight: 700">④ Action plan</h2>
+            <sc-for list="{{actions}}" as="a" hint-placeholder-count="3">
+              <div style="display: flex; gap: 10px; align-items: flex-start; font-size: 13px">
+                <span style="flex: none; font-family: 'IBM Plex Mono', monospace; font-weight: 600; color: #0B5E5E">{{a.n}}</span>
+                <span style="flex: 1 1 auto">{{a.text}}</span>
+                <span style="flex: none; font-size: 11px; font-weight: 600; background: #FFFFFF; color: #0B5E5E; border: 1px solid #BFDCD8; padding: 3px 7px; border-radius: 4px; white-space: nowrap">{{a.owner}}</span>
+              </div>
+            </sc-for>
+          </section>
+        </sc-if>
+      </aside>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1320}}'>
+const CK_OUTLINE = "M727 321 L639 346 L636 335 L620 338 L610 314 L611 294 L592 274 L595 269 L615 271 L649 252 L677 277 L698 281 L727 321Z M239 321 L242 286 L193 294 L191 319 L162 328 L167 351 L187 348 L187 339 L190 334 L191 349 L198 350 L198 343 L191 336 L190 334 L215 345 L219 321 L239 321Z M340 252 L322 190 L308 196 L273 241 L274 258 L331 285 L334 264 L326 256 L340 252Z M472 440 L446 433 L446 423 L421 424 L429 421 L424 417 L410 425 L398 413 L402 382 L417 365 L466 365 L484 404 L503 411 L502 428 L491 416 L491 426 L478 414 L448 423 L448 429 L472 422 L485 434 L472 440Z M348 169 L310 172 L334 220 L340 251 L355 266 L383 251 L361 227 L348 169Z M395 253 L375 251 L374 260 L355 266 L340 252 L326 256 L334 264 L329 285 L351 297 L342 312 L369 328 L373 318 L382 329 L386 323 L396 336 L399 330 L404 335 L425 306 L437 278 L408 267 L395 253Z M437 161 L404 117 L343 130 L350 183 L366 235 L408 267 L437 278 L446 268 L470 267 L473 257 L459 243 L437 240 L441 227 L454 224 L455 193 L435 189 L437 161Z M764 162 L746 172 L757 192 L749 201 L759 208 L729 248 L742 268 L766 279 L757 305 L769 312 L767 326 L782 321 L825 330 L866 228 L827 209 L811 209 L817 202 L798 172 L764 162Z M293 139 L280 167 L283 176 L265 192 L297 211 L322 190 L306 172 L305 142 L293 139Z M351 297 L297 269 L304 304 L295 331 L305 334 L314 353 L324 347 L334 366 L341 307 L351 297Z M563 174 L546 175 L554 198 L546 225 L577 282 L596 267 L596 255 L587 252 L603 235 L620 198 L610 189 L581 189 L563 174Z M243 351 L222 355 L219 321 L239 321 L239 302 L252 299 L242 264 L256 261 L256 242 L298 267 L304 304 L295 330 L314 353 L255 349 L224 333 L245 350 L243 351Z M256 261 L256 242 L229 236 L212 221 L181 257 L155 273 L149 287 L158 294 L213 294 L242 286 L239 302 L252 299 L242 264 L256 261Z M669 148 L646 155 L628 178 L641 190 L713 221 L728 244 L736 242 L759 208 L749 201 L757 192 L749 177 L732 188 L698 184 L685 174 L681 159 L672 164 L677 155 L669 148Z M193 294 L149 287 L135 294 L99 346 L133 372 L148 359 L137 337 L145 336 L156 356 L163 354 L162 328 L192 317 L193 294Z M621 107 L599 114 L573 147 L602 153 L628 178 L662 143 L621 107Z M369 327 L342 312 L338 362 L333 365 L324 347 L317 351 L326 361 L321 368 L344 382 L338 393 L313 378 L300 388 L341 413 L353 392 L373 404 L357 431 L371 440 L388 411 L396 416 L404 404 L406 376 L418 365 L430 367 L433 356 L409 349 L392 325 L382 329 L373 318 L369 327Z M594 120 L593 108 L550 86 L528 106 L509 144 L573 147 L594 120Z M444 12 L406 11 L383 25 L395 39 L401 36 L409 53 L449 79 L473 58 L466 47 L495 29 L474 20 L465 30 L468 20 L455 12 L445 28 L448 18 L444 25 L445 15 L437 20 L444 12Z M577 147 L511 147 L504 155 L514 156 L516 167 L560 173 L581 189 L610 189 L620 198 L635 185 L607 156 L577 147Z M570 268 L546 225 L553 181 L516 167 L521 212 L513 240 L520 263 L554 261 L570 268Z M525 289 L488 328 L497 336 L508 322 L524 346 L537 341 L530 361 L570 358 L568 342 L552 332 L551 309 L525 289Z M258 48 L213 58 L186 82 L200 103 L197 112 L210 125 L231 121 L237 127 L256 127 L286 97 L275 64 L258 48Z M909 87 L939 95 L961 112 L967 135 L976 142 L949 223 L965 274 L843 172 L831 147 L857 143 L860 127 L828 132 L818 112 L820 99 L842 79 L872 69 L887 70 L909 87Z M656 110 L652 102 L667 93 L712 114 L787 111 L798 118 L806 142 L756 141 L716 151 L697 130 L661 115 L656 110Z M472 266 L440 271 L426 303 L470 314 L488 328 L524 289 L481 292 L472 266Z M544 70 L523 45 L515 47 L531 78 L544 70Z M527 81 L510 45 L516 40 L508 35 L495 29 L466 47 L508 93 L523 101 L515 96 L527 81Z M446 433 L492 443 L496 447 L479 469 L465 474 L459 470 L457 464 L454 466 L447 454 L420 437 L413 430 L429 432 L436 430 L446 433Z M336 69 L287 57 L285 72 L274 69 L286 89 L278 105 L283 133 L305 142 L306 172 L348 169 L336 69Z M554 261 L472 266 L481 292 L537 294 L577 282 L570 268 L554 261Z M78 244 L66 248 L72 258 L67 274 L42 310 L45 321 L53 313 L35 356 L39 382 L22 397 L13 420 L19 427 L11 427 L24 438 L17 457 L24 457 L24 462 L11 462 L11 503 L17 512 L84 529 L117 515 L113 506 L34 506 L34 491 L99 491 L99 473 L34 473 L34 459 L75 459 L88 454 L88 442 L34 442 L34 428 L86 428 L80 391 L94 391 L100 383 L89 348 L116 325 L111 320 L135 294 L114 282 L103 263 L78 244Z M225 366 L222 355 L223 366 L208 368 L191 387 L193 395 L176 404 L168 396 L193 367 L168 370 L107 404 L126 460 L153 492 L144 502 L139 493 L144 504 L180 469 L171 434 L160 423 L169 413 L180 423 L188 449 L228 432 L209 418 L212 413 L220 411 L246 430 L267 417 L252 406 L265 411 L280 404 L258 388 L249 370 L225 366Z M186 82 L148 99 L145 122 L125 138 L127 146 L120 179 L77 243 L103 263 L114 282 L135 294 L149 287 L155 273 L181 257 L214 219 L248 207 L283 176 L292 139 L283 133 L278 105 L255 127 L237 127 L231 121 L211 125 L197 112 L200 103 L186 82Z M385 29 L341 53 L338 45 L328 63 L336 69 L342 107 L364 96 L389 104 L421 67 L401 36 L385 29Z M461 342 L446 347 L459 351 L468 365 L481 365 L484 352 L461 342Z M524 346 L508 322 L494 333 L492 349 L504 357 L508 343 L524 346Z M468 365 L460 358 L470 376 L501 377 L484 361 L468 365Z M521 420 L532 404 L516 393 L503 413 L521 420Z M884 242 L866 228 L863 233 L881 241 L886 252 L884 242Z M865 238 L862 240 L829 318 L845 318 L845 309 L867 315 L865 300 L841 298 L865 238Z M620 338 L613 323 L579 332 L567 340 L570 358 L555 359 L551 367 L562 380 L586 362 L639 346 L636 335 L620 338Z M538 344 L518 350 L508 344 L511 348 L496 370 L498 386 L488 388 L484 404 L505 412 L530 371 L538 344Z M560 382 L550 367 L555 359 L528 362 L529 372 L545 387 L560 382Z M545 387 L523 372 L516 393 L532 404 L545 387Z M504 357 L483 350 L483 361 L496 369 L504 357Z M497 339 L470 315 L453 331 L469 331 L467 339 L488 350 L497 339Z M470 333 L456 333 L446 344 L458 340 L475 353 L485 351 L467 339 L470 333Z M486 374 L469 377 L482 401 L499 382 L486 374Z M741 267 L718 224 L663 198 L661 231 L649 252 L677 277 L698 281 L728 321 L769 312 L757 305 L766 279 L741 267Z M455 335 L455 326 L470 315 L426 303 L404 335 L420 356 L463 365 L459 351 L446 347 L445 339 L455 335Z M275 257 L273 236 L297 211 L290 206 L265 192 L212 221 L275 257Z M448 79 L423 61 L389 104 L364 96 L342 107 L343 130 L404 117 L446 123 L453 93 L448 79Z M513 239 L456 214 L437 240 L459 243 L473 266 L482 259 L520 263 L513 239Z M514 156 L437 161 L435 189 L454 191 L456 215 L495 222 L513 239 L521 211 L514 156Z M567 340 L613 323 L611 294 L592 274 L537 294 L551 309 L552 332 L567 340Z M637 187 L621 196 L603 235 L591 242 L587 252 L596 255 L598 270 L615 271 L626 261 L631 265 L660 233 L663 198 L637 187Z M519 99 L473 58 L451 78 L446 123 L411 121 L432 159 L453 164 L502 156 L534 100 L519 99Z";
+const CK_HC = [["Commonwealth Crescent Market",401,336,39,"Queenstown","Central",0,2004,0,0],["Tiong Bahru Market",464,380,83,"Bukit Merah","Central",2025,2006,0,0],["Golden Mile Food Centre",528,344,112,"Kallang","Central",0,2002,0,0],["Dunman Food Centre",604,331,30,"Marine Parade","Central",0,2002,0,0],["Beo Crescent Market",455,372,32,"Bukit Merah","Central",2024,2010,0,0],["Newton Food Centre",479,326,83,"Newton","Central",0,2006,0,0],["Adam Road Food Centre",428,302,32,"Novena","Central",0,2002,0,0],["Kallang Estate Fresh",568,335,16,"Geylang","Central",0,2003,0,0],["People's Park Food Centre",485,380,87,"Outram","Central",0,2005,0,0],["North Bridge Road Market",528,339,37,"Kallang","Central",0,2005,0,0],["Holland Village",390,328,21,"Queenstown","Central",0,2005,0,0],["Chomp Chomp Food Centre",533,222,36,"Serangoon","North-East",2025,2004,0,0],["Yuhua Village",276,263,60,"Jurong East","West",0,2006,0,0],["Jurong West Street 52 Blk 505",237,251,60,"Jurong West","West",2024,2009,0,0],["50A Marine Terrace",632,338,24,"Marine Parade","Central",0,2008,0,0],["84 Marine Parade Central",613,345,55,"Marine Parade","Central",0,0,0,0],["Kampung Admiralty Hawker Centre",401,70,43,"Woodlands","North",0,0,2017,0],["Market Street Hawker Centre",500,382,53,"Downtown Core","Central",0,0,2021,0],["Marsiling Lane Blk 20/21",354,63,52,"Woodlands","North",0,2009,0,0],["Marsiling Mall Hawker Centre",360,83,70,"Woodlands","North",0,0,2017,0],["Mei Chin Road Market",406,364,47,"Queenstown","Central",0,2009,0,0],["New Upper Changi Road Blk 208B",661,300,70,"Bedok","East",0,0,2014,0],["New Upper Changi Road Blk 58",682,302,48,"Bedok","East",0,2008,0,0],["Old Airport Road Food Centre",572,334,168,"Geylang","Central",2024,2007,0,0],["Pasir Ris Central Hawker Centre",703,203,42,"Pasir Ris","East",0,0,2017,0],["Albert Centre",508,348,86,"Rochor","Central",2025,2009,0,0],["Redhill Market",437,374,0,"Bukit Merah","Central",2025,2005,0,0],["Redhill Food Centre",437,375,96,"Bukit Merah","Central",2025,2005,0,0],["Sims Vista",559,316,66,"Geylang","Central",0,2006,0,0],["Chinatown Complex Market",486,386,226,"Outram","Central",0,2008,0,0],["Taman Jurong",243,281,122,"Jurong West","West",0,2005,0,0],["Tampines Round",689,259,45,"Tampines","East",0,2006,0,0],["Teban Gardens",286,308,28,"Jurong East","West",0,2008,0,0],["Telok Blangah Food Centre",415,403,40,"Bukit Merah","Central",0,2005,0,0],["Telok Blangah Market",416,402,0,"Bukit Merah","Central",0,2011,0,0],["Telok Blangah Rise Market",445,404,24,"Bukit Merah","Central",2026,2010,0,0],["Toa Payoh Vista Market",504,281,10,"Toa Payoh","Central",0,2004,0,0],["Toa Payoh West Market",490,274,40,"Toa Payoh","Central",2025,2003,0,0],["11 Telok Blangah Crescent",437,395,56,"Bukit Merah","Central",2024,2010,0,0],["Blk 6 Tanjong Pagar Plaza",486,397,52,"Outram","Central",2024,2013,0,0],["Toa Payoh Lorong 4 Blk 93",499,273,28,"Toa Payoh","Central",0,2009,0,0],["Kim Keat Palm",514,279,61,"Toa Payoh","Central",2026,2004,0,0],["Toa Payoh Lorong 5 Blk 75",506,278,36,"Toa Payoh","Central",0,2012,0,0],["Shunfu Mart",474,246,31,"Bishan","Central",0,0,0,0],["Kebun Baru",478,216,10,"Ang Mo Kio","North-East",2024,2010,0,0],["Teck Ghee Square",511,225,40,"Ang Mo Kio","North-East",2026,2011,0,0],["Chong Boon",513,214,39,"Ang Mo Kio","North-East",2024,2002,0,0],["Cheng San",509,204,50,"Ang Mo Kio","North-East",2024,2004,0,0],["Mayflower Market",478,201,40,"Ang Mo Kio","North-East",0,2008,0,0],["Ang Mo Kio 628 Market",481,188,52,"Ang Mo Kio","North-East",2025,2009,0,0],["Ang Mo Kio Blk 724",493,206,45,"Ang Mo Kio","North-East",2024,2008,0,0],["Kebun Baru Food Centre",480,216,29,"Ang Mo Kio","North-East",2024,2003,0,0],["Bedok North Street 1 Blk 216",666,296,82,"Bedok","East",0,2008,0,0],["Kaki Bukit 511",661,284,42,"Bedok","East",0,2004,0,0],["Bedok North Street 3 Blk 538",649,286,40,"Bedok","East",0,2010,0,0],["85 Fengshan Centre",678,286,72,"Bedok","East",0,2012,0,0],["Bedok Reservoir Road Blk 630",628,284,36,"Bedok","East",0,2006,0,0],["Bedok South Road Blk 16",671,309,64,"Bedok","East",0,2012,0,0],["Bendemeer",526,312,88,"Kallang","Central",0,2004,0,0],["Tekka Centre",501,338,119,"Rochor","Central",0,2009,0,0],["Boon Lay Place Food Village",226,260,72,"Jurong West","West",2025,2004,0,0],["Blk 117 Aljunied",574,309,79,"Geylang","Central",0,2005,0,0],["Bukit Merah Central Food Centre",434,383,57,"Bukit Merah","Central",0,0,0,0],["Blk 115 Bukit Merah View",444,379,84,"Bukit Merah","Central",0,2012,0,0],["Alexandra Village Food Centre",409,377,88,"Bukit Merah","Central",2025,2010,0,0],["Pek Kio",500,318,50,"Kallang","Central",2024,2003,0,0],["Bukit Panjang Hawker Centre",345,195,28,"Bukit Panjang","West",0,0,2015,0],["Changi Village Blk 2 and 3",776,172,87,"Changi","East",2026,2012,0,0],["80 Circuit Road",574,294,16,"Geylang","Central",0,2003,0,0],["Circuit Road Blk 79/79A",570,297,106,"Geylang","Central",2025,2010,0,0],["Ci Yuan Hawker Centre",566,199,40,"Hougang","North-East",0,0,2015,0],["Circuit Road Blk 89",571,303,40,"Geylang","Central",2024,2009,0,0],["Clementi Ave 2 Blk 353",342,321,18,"Clementi","West",0,2012,0,0],["Clementi Ave 3 Blk 448",329,323,51,"Clementi","West",2026,2010,0,0],["Clementi West Street 2 Blk 726",328,342,60,"Clementi","West",2026,2009,0,0],["Empress Road",411,318,40,"Bukit Timah","Central",0,2008,0,0],["Eunos Crescent Blk 4A",608,309,42,"Geylang","Central",0,2012,0,0],["Blk 69 Geylang Bahru",540,307,78,"Kallang","Central",0,0,0,0],["Geylang Serai Market",596,316,63,"Geylang","Central",2024,2009,0,0],["Ghim Moh Road Blk 20",376,328,72,"Queenstown","Central",2024,0,0,0],["Haig Road",591,320,72,"Geylang","Central",2025,2010,0,0],["Havelock Road Cooked Food Centre",459,374,30,"Bukit Merah","Central",0,2007,0,0],["Holland Drive",386,334,45,"Queenstown","Central",0,2014,0,0],["Hawker Centre @ Our Tampines Hub",681,244,42,"Tampines","East",0,0,2016,0],["Kovan Hougang",572,232,66,"Hougang","North-East",0,2011,0,0],["Jalan Batu Blk 4A",568,345,36,"Kallang","Central",0,2012,0,0],["Hougang 105 Hainanese Village",580,242,51,"Hougang","North-East",0,2005,0,0],["Blk 112 Jalan Bukit Merah",452,390,22,"Bukit Merah","Central",2025,2013,0,0],["ABC Brickworks Market/Food Centre",416,376,96,"Bukit Merah","Central",2026,2006,0,0],["Kukoh 21 Food Centre",480,374,21,"Outram","Central",2025,2010,0,0],["Jurong West Hawker Centre",194,268,39,"Jurong West","West",0,0,2017,0],["Yuhua Market and Hawker Centre",263,259,56,"Jurong East","West",2024,2002,0,0],["Toa Payoh Lorong 8 Blk 210",509,270,80,"Toa Payoh","Central",2025,2011,0,0],["Blk 17 Upper Boon Keng",543,320,84,"Kallang","Central",0,2009,0,0],["Ayer Rajah Market",318,326,0,"Clementi","West",0,0,0,0],["Ayer Rajah Food Centre",320,326,80,"Clementi","West",0,2002,0,0],["Hong Lim Food Centre and Market",492,379,103,"Outram","Central",0,2011,0,0],["Whampoa Food Centre Blk 90",510,304,80,"Novena","Central",0,2007,0,0],["Whampoa Market Blk 91/92",508,303,52,"Novena","Central",0,2007,0,0],["Yishun Park Hawker Centre",490,100,45,"Yishun","North",2024,0,2017,0],["Chong Pang",457,87,56,"Yishun","North",0,2003,0,0],["Margaret Drive Hawker Centre",409,355,38,"Queenstown","Central",0,0,2022,0],["Anchorvale Village Hawker Centre",577,156,36,"Sengkang","North-East",0,0,2023,0],["Fernvale Hawker Centre & Market",554,167,28,"Sengkang","North-East",0,0,2022,0],["One Punggol Hawker Centre",610,132,34,"Punggol","North-East",0,0,2022,0],["Bukit Canberra Hawker Centre",446,54,44,"Sembawang","North",0,0,2022,0],["Punggol Coast Hawker Centre",617,121,40,"Punggol","North-East",0,0,2024,0],["Senja Hawker Centre",322,176,28,"Bukit Panjang","West",0,0,2022,0],["Buangkok Hawker Centre",585,184,38,"Sengkang","North-East",0,0,2023,0],["Bukit Batok West Hawker Centre",284,239,22,"Bukit Batok","West",0,0,2024,0],["Woodleigh Village Hawker Centre",544,270,40,"Toa Payoh","Central",0,0,2024,0],["Bukit Timah Interim (to 2029)",350,268,78,"Bukit Timah","Central",0,0,2024,1],["Telok Ayer Food Centre",493,392,134,"Downtown Core","Central",0,2003,0,0],["Pasir Panjang Food Centre",383,398,45,"Queenstown","Central",2025,2002,0,0],["Bedok Food Centre",711,309,32,"Bedok","East",2024,2005,0,0],["Zion Riverside Food Centre",462,365,32,"Tanglin","Central",0,2003,0,0],["Kim Hua Market",490,389,103,"Downtown Core","Central",0,0,0,0],["Teck Ghee Court",496,222,32,"Ang Mo Kio","North-East",2025,2002,0,0],["East Coast Lagoon Food Village",670,336,63,"Bedok","East",0,2003,0,0],["Serangoon Garden Market",533,224,46,"Serangoon","North-East",2025,2002,0,0],["Jalan Leban Food Centre",458,205,36,"Ang Mo Kio","North-East",0,2003,0,0],["Tanglin Halt Market",396,349,28,"Queenstown","Central",0,2003,0,0],["Berseh Food Centre",514,335,66,"Rochor","Central",2025,2004,0,0]];
+const CK_SZ = [["Depot Road","Bukit Merah",4180,1050,550,25.1,13.2,26,19,14,38,"","M435 390L403 382L403 384L435 390Z"],["Chinatown","Outram",9300,2180,1080,23.4,11.6,24,0,3,22,"","M488 380L479 390L483 402L489 399L490 387L495 391L498 386L488 380Z"],["Tiong Bahru","Bukit Merah",11170,2640,1320,23.6,11.8,96,0,4,23,"","M472 383L457 376L458 392L472 383Z"],["Tiong Bahru Station","Bukit Merah",12670,3010,1480,23.8,11.7,47,0,8,23,"Telok Blangah Rise Blk 36 (1 Nov–31 Dec)","M457 376L451 374L447 386L455 390L457 376Z"],["Pearl's Hill","Outram",4200,1810,830,43.1,19.8,21,0,4,50,"","M491 377L479 372L470 380L481 385L491 377Z"],["Henderson Hill","Bukit Merah",10360,3250,1560,31.4,15.1,36,0,5,45,"","M447 386L452 369L439 368L438 382L447 386Z"],["Redhill","Bukit Merah",7770,1690,750,21.8,9.7,32,0,4,19,"","M438 382L439 368L431 367L429 380L438 382Z"],["Alexandra Hill","Bukit Merah",12100,3610,1600,29.8,13.2,54,0,5,40,"","M426 384L431 367L418 365L403 382L426 384Z"],["Bukit Ho Swee","Bukit Merah",12330,3930,1860,31.9,15.1,58,0,4,47,"","M467 365L452 365L451 374L470 378L467 365Z"],["Telok Blangah Rise","Bukit Merah",10160,3490,1720,34.4,16.9,32,0,5,49,"Telok Blangah Rise Blk 36 (1 Nov–31 Dec)","M457 401L447 393L446 401L439 401L446 410L457 401Z"],["Everton Park","Bukit Merah",6260,1900,950,30.4,15.2,31,32,11,58,"","M484 405L479 390L458 400L465 405L484 405Z"],["Telok Blangah Way","Bukit Merah",8030,2530,1190,31.5,14.8,34,0,5,46,"Telok Blangah Rise Blk 36 (1 Nov–31 Dec)","M447 393L435 389L433 393L446 401L447 393Z"],["Kampong Tiong Bahru","Bukit Merah",7820,2620,1240,33.5,15.9,33,3,4,50,"Telok Blangah Rise Blk 36 (1 Nov–31 Dec)","M447 386L445 392L458 400L468 398L447 386Z"],["Telok Blangah Drive","Bukit Merah",17780,4320,2130,24.3,12.0,71,0,8,26,"","M435 390L404 387L404 405L422 408L435 390Z"],["Commonwealth","Queenstown",6320,1930,970,30.5,15.3,41,0,4,43,"","M405 336L400 331L394 337L402 350L405 336Z"],["Dover","Queenstown",7740,2040,1110,26.4,14.3,28,68,19,66,"","M360 337L344 330L342 342L366 355L374 339L366 333L360 337Z"],["Clementi West","Clementi",10530,3190,1400,30.3,13.3,33,0,6,42,"Clementi West St 2 Blk 726 (14 Sep–27 Dec)","M331 345L317 328L313 329L335 367L331 345Z"],["Clementi Woods","Clementi",14680,3590,1730,24.5,11.8,40,0,10,26,"Clementi West St 2 Blk 726 (14 Sep–27 Dec)","M345 326L336 326L327 337L336 365L345 326Z"],["Tanglin Halt","Queenstown",5960,1100,580,18.5,9.7,40,0,5,14,"","M402 350L383 334L398 362L402 350Z"],["Tanjong Rhu","Kallang",3260,1120,530,34.4,16.3,16,0,2,49,"","M532 361L571 358L571 347L562 336L544 337L537 341L532 361Z"],["Little India","Rochor",2670,820,380,30.7,14.2,11,0,4,44,"","M508 343L514 334L509 329L502 340L508 343Z"],["Margaret Drive","Queenstown",21380,4440,2110,20.8,9.9,84,39,14,37,"","M406 337L402 350L417 366L431 367L433 356L410 349L406 337Z"],["Mei Chin","Queenstown",10840,3200,1470,29.5,13.6,67,0,5,39,"","M410 374L417 366L402 350L398 362L410 374Z"],["Macpherson","Geylang",26140,6260,2600,23.9,9.9,117,0,5,24,"","M565 307L582 304L578 283L558 287L565 307Z"],["Kim Keat","Toa Payoh",10360,2470,1010,23.8,9.7,40,0,10,23,"Kim Keat Palm (14 Sep–13 Dec)","M525 288L524 282L513 282L509 287L512 292L525 288Z"],["Bedok North","Bedok",68290,19000,8090,27.8,11.8,239,0,6,37,"","M698 281L656 279L639 285L653 291L655 303L704 290L698 281Z"],["Toa Payoh Central","Toa Payoh",24750,5680,2640,22.9,10.7,93,15,8,28,"Kim Keat Palm (14 Sep–13 Dec)","M500 277L476 282L481 292L511 292L500 277Z"],["Kampong Ubi","Geylang",13570,2800,890,20.6,6.6,62,89,19,61,"","M582 304L612 298L592 274L578 283L582 304Z"],["Sennett","Toa Payoh",11860,1090,400,9.2,3.4,43,9,11,8,"","M554 275L541 274L537 294L558 287L554 275Z"],["Potong Pasir","Toa Payoh",8520,2910,1290,34.2,15.1,45,82,19,90,"Kim Keat Palm (14 Sep–13 Dec)","M526 275L525 289L537 294L540 280L526 275Z"],["Pei Chun","Toa Payoh",9540,2710,1260,28.4,13.2,40,0,5,38,"Kim Keat Palm (14 Sep–13 Dec)","M524 274L513 270L507 274L513 282L524 282L524 274Z"],["Boon Teck","Toa Payoh",13070,3430,1560,26.2,11.9,48,0,3,32,"Kim Keat Palm (14 Sep–13 Dec)","M506 287L513 280L502 270L500 276L506 287Z"],["Farrer Park","Rochor",2160,560,230,25.9,10.6,12,0,6,31,"","M502 340L509 323L498 337L502 340Z"],["Ang Mo Kio Town Centre","Ang Mo Kio",2640,750,370,28.4,14.0,31,0,4,38,"","M497 212L495 197L489 195L491 212L497 212Z"],["Kebun Bahru","Ang Mo Kio",18340,5480,2480,29.9,13.5,66,0,7,41,"","M489 195L467 199L466 207L491 212L489 195Z"],["Ghim Moh","Queenstown",12850,3380,1870,26.3,14.6,42,0,5,32,"","M380 324L370 320L366 333L382 334L380 324Z"],["Lavender","Kallang",5470,1720,750,31.4,13.7,26,8,9,49,"","M528 337L527 331L515 316L509 329L519 338L528 337Z"],["Clementi North","Clementi",30050,7290,3590,24.3,11.9,105,35,12,43,"","M339 326L345 326L342 313L332 304L320 303L339 326Z"],["Geylang East","Geylang",18830,5060,2280,26.9,12.1,86,0,5,34,"","M604 331L613 323L612 298L582 304L585 318L578 326L579 333L604 331Z"],["Teban Gardens","Jurong East",16790,4270,1860,25.4,11.1,63,11,11,35,"","M295 330L304 306L276 296L269 327L287 342L298 342L306 335L295 330Z"],["Geylang Bahru","Kallang",10040,2900,1270,28.9,12.6,33,0,4,38,"","M540 319L551 310L537 294L533 299L540 319Z"],["Clementi Central","Clementi",11490,3040,1420,26.5,12.4,58,0,4,33,"Clementi West St 2 Blk 726 (14 Sep–27 Dec)","M327 336L336 326L326 312L316 328L327 336Z"],["Kampong Java","Kallang",6530,1990,960,30.5,14.7,30,0,4,43,"","M498 337L515 316L507 311L493 318L489 329L498 337Z"],["Boon Keng","Kallang",11850,3010,1370,25.4,11.6,34,0,4,29,"","M541 329L550 324L552 310L539 319L541 329Z"],["Marine Parade","Marine Parade",17890,5400,2910,30.2,16.3,78,0,5,42,"","M638 342L637 335L613 343L610 338L594 346L597 355L638 342Z"],["Kembangan","Bedok",20990,6220,2480,29.6,11.8,80,52,16,66,"","M653 291L639 285L612 298L610 315L655 303L653 291Z"],["Sunset Way","Clementi",2970,930,460,31.3,15.5,21,100,21,95,"","M351 297L329 284L328 302L342 313L351 297Z"],["Anak Bukit","Bukit Timah",5010,1580,710,31.5,14.2,21,0,7,46,"","M342 254L326 257L334 264L328 271L329 284L351 297L359 271L342 254Z"],["Bedok South","Bedok",27740,8320,3870,30.0,14.0,111,22,7,52,"","M671 321L684 320L720 306L704 290L664 302L671 321Z"],["Hong Kah North","Bukit Batok",22830,5550,1690,24.3,7.4,104,97,22,74,"","M295 237L303 233L297 212L284 224L295 237Z"],["Kovan","Hougang",3560,1090,420,30.6,11.8,12,100,18,93,"","M558 240L582 219L580 216L553 211L547 226L558 240Z"],["Chong Boon","Ang Mo Kio",23810,7130,3310,29.9,13.9,81,0,5,41,"","M522 211L499 212L505 229L514 239L522 211Z"],["Serangoon Garden","Serangoon",17450,5520,2210,31.6,12.7,77,84,18,89,"","M548 238L553 211L536 206L522 211L514 239L528 242L548 238Z"],["Hougang Central","Hougang",3220,830,260,25.8,8.1,22,100,26,80,"","M591 210L583 204L574 214L582 219L591 210Z"],["Pasir Ris Drive","Pasir Ris",48170,9900,3130,20.6,6.5,261,85,25,59,"","M733 218L726 201L705 200L706 219L722 230L733 218Z"],["Tampines North","Tampines",36540,2370,770,6.5,2.1,139,100,27,50,"","M694 228L706 219L664 198L662 229L694 228Z"],["Cheng San","Ang Mo Kio",26010,7090,3180,27.3,12.2,88,0,6,35,"","M517 197L495 197L499 212L522 211L517 197Z"],["Jelebu","Bukit Panjang",22040,5130,1770,23.3,8.0,90,44,14,43,"","M331 209L343 202L344 195L329 188L322 191L331 209Z"],["Keat Hong","Choa Chu Kang",32360,3590,1050,11.1,3.2,113,100,46,54,"","M300 209L308 197L287 187L278 193L285 198L283 205L300 209Z"],["Bendemeer","Kallang",31830,7920,3450,24.9,10.8,120,0,9,27,"","M526 289L507 311L521 322L530 309L535 311L537 294L526 289Z"],["Balestier","Novena",20210,5170,2400,25.6,11.9,113,19,11,40,"Kim Keat Palm (14 Sep–13 Dec)","M525 291L483 291L484 307L491 303L503 313L525 291Z"],["Serangoon Central","Serangoon",17290,5680,2230,32.9,12.9,80,100,25,98,"","M556 242L548 233L547 239L525 247L543 258L556 242Z"],["Bishan East","Bishan",24700,6810,2740,27.6,11.1,135,73,19,72,"","M520 262L514 239L505 229L493 262L520 262Z"],["Tampines West","Tampines",79310,16000,5140,20.2,6.5,349,62,17,47,"","M694 267L685 255L683 240L676 238L676 229L662 229L650 253L678 277L694 267Z"],["Brickworks","Bukit Batok",29550,2820,980,9.5,3.3,102,1,8,4,"","M294 233L284 224L273 238L276 250L297 245L294 233Z"],["Serangoon North","Serangoon",14770,3220,1010,21.8,6.8,63,100,23,69,"","M553 211L553 192L544 193L537 206L553 211Z"],["Guilin","Bukit Batok",7100,1720,630,24.2,8.9,31,100,25,75,"","M320 246L307 224L307 232L303 230L295 237L297 245L305 251L320 246Z"],["Wenya","Jurong West",7790,900,310,11.6,4.0,30,100,28,55,"","M212 255L235 238L212 221L196 240L212 255Z"],["Tampines East","Tampines",114020,27590,9030,24.2,7.9,498,81,28,65,"","M722 229L706 219L695 228L676 229L676 238L683 240L685 255L694 267L716 249L728 251L735 258L722 229Z"],["Lorong Ah Soo","Hougang",21980,6560,2730,29.8,12.4,101,26,9,53,"","M582 244L586 229L582 219L553 245L563 248L582 244Z"],["Joo Seng","Toa Payoh",4440,1230,580,27.7,13.1,23,100,22,86,"","M569 268L552 271L558 287L578 283L569 268Z"],["Lorong 8 Toa Payoh","Toa Payoh",6480,2100,1020,32.4,15.7,23,0,4,48,"Kim Keat Palm (14 Sep–13 Dec)","M521 263L507 263L505 272L524 273L521 263Z"],["Toh Guan","Jurong East",13790,3230,950,23.4,6.9,56,100,20,72,"","M300 292L299 267L291 263L281 276L300 292Z"],["Simei","Tampines",21040,5300,1850,25.2,8.8,96,94,27,75,"","M723 266L728 251L716 249L681 278L698 281L704 290L723 266Z"],["Boon Lay Place","Jurong West",28250,4890,1820,17.3,6.4,95,2,10,13,"","M219 269L232 264L224 247L210 256L219 269Z"],["Bukit Batok East","Bukit Batok",11500,3210,1100,27.9,9.6,57,100,41,87,"","M315 259L322 257L320 246L307 248L315 259Z"],["Bukit Batok West","Bukit Batok",13970,3250,1070,23.3,7.7,66,52,15,47,"","M291 263L291 246L276 250L275 258L291 263Z"],["Bukit Batok Central","Bukit Batok",25230,5780,2100,22.9,8.3,106,93,26,67,"","M315 259L299 246L291 246L289 254L296 259L315 259Z"],["Upper Paya Lebar","Serangoon",8240,2630,1050,31.9,12.7,37,100,23,97,"","M570 268L553 245L541 264L554 261L570 268Z"],["Tai Seng","Hougang",10160,2350,840,23.1,8.3,44,32,12,37,"","M580 248L558 248L578 283L592 274L584 268L580 248Z"],["Yuhua West","Jurong East",14600,4030,1630,27.6,11.2,63,2,8,37,"","M271 266L275 258L256 243L256 261L271 266Z"],["Braddell","Toa Payoh",7970,2340,1080,29.4,13.6,33,0,5,39,"Kim Keat Palm (14 Sep–13 Dec)","M500 277L507 263L493 262L497 268L492 277L500 277Z"],["Bidadari","Toa Payoh",12350,920,270,7.4,2.2,60,22,9,12,"","M562 267L541 264L541 274L562 267Z"],["Taman Jurong","Jurong West",30940,5630,1940,18.2,6.3,132,16,8,21,"","M252 300L244 260L232 264L237 288L242 287L239 303L252 300Z"],["Toa Payoh West","Toa Payoh",12200,3180,1570,26.1,12.9,49,0,5,31,"","M497 265L482 260L472 267L476 282L492 276L497 265Z"],["Kaki Bukit","Bedok",31660,8510,3010,26.9,9.5,135,27,10,47,"","M639 285L637 260L632 265L626 261L615 272L596 269L592 274L612 298L639 285Z"],["Yuhua East","Jurong East",20130,5550,2280,27.6,11.3,81,5,10,38,"","M276 283L278 278L291 263L275 258L268 273L276 283Z"],["Bukit Batok South","Bukit Batok",12210,2310,610,18.9,5.0,39,100,40,65,"","M326 257L311 262L294 258L291 263L331 285L328 271L334 264L326 257Z"],["Jurong West Central","Jurong West",58830,9390,2840,16.0,4.8,234,41,14,30,"","M209 280L219 269L210 256L190 270L193 280L209 280Z"],["Bedok Reservoir","Bedok",15840,3930,1480,24.8,9.3,66,11,12,33,"","M680 279L650 253L637 260L639 285L680 279Z"],["Lower Seletar","Yishun",12740,1000,340,7.8,2.7,45,91,23,48,"","M511 95L493 113L481 114L478 124L459 130L455 145L462 158L467 162L510 152L510 140L522 130L524 113L535 100L528 102L511 95Z"],["Northshore","Punggol",25710,2890,960,11.2,3.7,98,48,15,29,"","M622 107L606 110L595 121L619 131L623 118L629 118L622 107Z"],["Pasir Ris Central","Pasir Ris",22740,4180,1300,18.4,5.7,129,32,13,30,"","M706 195L695 192L677 205L706 219L706 195Z"],["Gombak","Bukit Batok",5910,1230,560,20.8,9.5,17,100,34,67,"","M334 218L322 191L308 197L297 212L303 230L307 232L310 223L309 226L321 227L324 219L334 218Z"],["Hougang East","Hougang",21100,4550,1520,21.6,7.2,87,75,21,56,"","M607 190L586 190L586 204L592 209L607 190Z"],["Kangkar","Hougang",20830,5080,2050,24.4,9.8,82,100,30,76,"","M587 227L609 201L609 189L582 219L587 227Z"],["Holland Drive","Queenstown",11630,3670,2060,31.6,17.7,41,0,6,47,"","M397 340L386 323L382 334L394 343L397 340Z"],["Hougang West","Hougang",39950,10810,3630,27.1,9.1,174,19,12,44,"","M586 193L577 186L578 195L561 204L554 202L553 211L574 214L586 204L586 193Z"],["Bangkit","Bukit Panjang",18090,4850,1720,26.8,9.5,72,1,7,34,"","M350 181L340 193L351 210L357 208L350 181Z"],["Peng Siang","Choa Chu Kang",30780,5450,1690,17.7,5.5,122,100,52,63,"","M285 198L278 193L287 187L283 177L265 192L283 205L285 198Z"],["Pasir Ris West","Pasir Ris",26070,4370,1310,16.8,5.0,266,100,29,61,"","M683 204L697 189L676 176L664 198L683 204Z"],["Yio Chu Kang West","Ang Mo Kio",17920,5080,2080,28.3,11.6,56,0,7,37,"","M489 194L483 174L468 188L475 196L489 194Z"],["Sengkang Town Centre","Sengkang",54360,8780,2770,16.2,5.1,221,80,20,50,"","M597 184L607 156L592 150L583 177L597 184Z"],["Anchorvale","Sengkang",42510,5910,2020,13.9,4.8,172,26,12,20,"","M591 153L574 148L563 166L583 177L591 153Z"],["Fernvale","Sengkang",56080,7070,2530,12.6,4.5,215,21,10,16,"","M562 173L574 148L538 148L538 174L562 173Z"],["Punggol Field","Punggol",41950,6120,2140,14.6,5.1,182,100,32,58,"","M638 163L613 144L607 156L629 178L638 163Z"],["Yew Tee","Choa Chu Kang",33910,5570,1580,16.4,4.7,131,100,47,61,"","M293 139L286 156L304 157L305 142L293 139Z"],["Trafalgar","Hougang",41390,7650,2420,18.5,5.8,170,34,13,31,"","M563 175L546 175L553 182L554 202L561 204L579 194L577 186L563 175Z"],["Teck Whye","Choa Chu Kang",23510,5520,1920,23.5,8.2,95,100,25,72,"","M322 191L306 172L305 184L297 193L308 197L322 191Z"],["Choa Chu Kang Central","Choa Chu Kang",12780,2870,960,22.5,7.5,63,100,38,69,"","M305 184L306 172L294 171L283 177L288 188L297 193L305 184Z"],["Fajar","Bukit Panjang",25640,4560,1510,17.8,5.9,108,75,20,51,"","M350 181L349 169L342 169L334 189L340 193L350 181Z"],["Senja","Bukit Panjang",23030,3560,1170,15.5,5.1,80,2,7,11,"","M322 191L329 169L310 172L322 191Z"],["Saujana","Bukit Panjang",22190,3850,1060,17.4,4.8,84,42,13,33,"","M327 188L342 172L342 169L329 169L325 184L327 188Z"],["Compassvale","Sengkang",15390,2120,820,13.8,5.3,83,0,7,6,"","M597 184L579 176L563 166L561 174L582 189L594 191L597 184Z"],["Choa Chu Kang North","Choa Chu Kang",25420,4340,1240,17.1,4.9,124,100,42,62,"","M288 157L281 167L283 177L294 171L307 172L304 157L288 157Z"],["Rivervale","Sengkang",53790,10030,3110,18.6,5.8,210,100,35,65,"","M629 178L607 156L603 178L594 191L629 178Z"],["Yunnan","Jurong West",57340,10760,3460,18.8,6.0,244,48,15,39,"","M191 273L210 256L196 240L169 268L184 280L193 280L191 273Z"],["Hong Kah","Jurong West",45160,11570,4370,25.6,9.7,174,22,11,41,"","M256 261L256 243L248 239L235 238L224 247L232 264L256 261Z"],["Khatib","Yishun",9490,2620,850,27.6,9.0,44,100,30,86,"","M470 104L451 100L446 123L457 129L470 109L470 104Z"],["Yishun South","Yishun",37150,7970,2710,21.5,7.3,158,79,23,57,"","M488 104L482 96L470 104L459 130L478 124L488 104Z"],["Woodlands East","Woodlands",92550,12240,3480,13.2,3.8,347,38,13,25,"","M409 83L423 61L406 49L385 58L391 68L390 82L409 83Z"],["Sembawang Central","Sembawang",30200,4620,1330,15.3,4.4,119,34,12,26,"","M436 68L447 60L441 46L424 55L423 61L436 68Z"],["Sembawang East","Sembawang",21280,1640,530,7.7,2.5,85,100,23,51,"","M463 65L473 59L464 43L453 54L463 65Z"],["Matilda","Punggol",42570,4430,1660,10.4,3.9,180,89,20,49,"","M607 156L613 144L586 134L574 144L607 156Z"],["Waterway East","Punggol",47790,4840,1730,10.1,3.6,214,82,26,45,"","M648 154L619 131L613 144L638 163L648 154Z"],["Crawford","Kallang",6940,2760,1270,39.8,18.3,28,0,3,50,"","M532 341L519 338L525 347L532 341Z"],["Park","Tengah",9720,760,190,7.8,2.0,54,78,19,41,"","M281 211L270 208L246 220L253 221L251 225L267 226L276 234L284 225L278 221L281 211Z"],["Plantation","Tengah",13310,1180,340,8.9,2.6,66,91,19,48,"","M275 257L276 234L270 228L256 243L275 257Z"],["Garden","Tengah",9220,720,180,7.8,2.0,47,100,28,52,"","M258 241L270 228L268 227L251 225L246 239L258 241Z"],["North Coast","Woodlands",10860,2730,1070,25.1,9.9,34,6,11,31,"","M395 39L384 26L342 53L338 45L339 53L329 63L337 71L349 67L358 48L395 39Z"],["Punggol Town Centre","Punggol",20430,1780,630,8.7,3.1,75,44,13,24,"","M613 144L619 131L595 121L586 134L613 144Z"],["Aljunied","Geylang",28300,7520,3240,26.6,11.4,126,0,5,33,"","M583 307L563 305L551 310L552 332L568 341L580 337L583 307Z"],["Woodlands South","Woodlands",34250,4880,1530,14.2,4.5,132,100,26,58,"","M407 85L377 80L373 97L390 105L407 85Z"],["Woodgrove","Woodlands",28650,4790,1420,16.7,5.0,123,40,12,31,"","M377 80L338 87L343 107L355 99L373 97L377 80Z"],["Yishun East","Yishun",71620,10040,3170,14.0,4.4,276,41,14,28,"","M493 113L510 95L491 76L477 90L490 101L488 111L493 113Z"],["Admiralty","Sembawang",13220,1970,680,14.9,5.1,57,7,10,12,"","M457 32L446 32L438 40L447 60L464 43L457 32Z"],["Sembawang North","Sembawang",25110,3630,1070,14.5,4.3,87,86,21,51,"","M424 55L441 46L438 40L446 32L426 22L419 25L424 55Z"],["Yishun West","Yishun",43310,10970,3830,25.3,8.8,153,21,11,39,"","M470 104L470 85L461 66L452 79L453 97L470 104Z"],["Northland","Yishun",25970,5910,1900,22.8,7.3,101,100,24,70,"","M471 89L491 76L473 59L461 66L471 89Z"],["Midview","Woodlands",33280,4650,1410,14.0,4.2,140,93,22,54,"","M392 79L385 58L370 68L378 73L377 80L392 79Z"],["Woodlands West","Woodlands",36090,6900,2360,19.1,6.5,137,8,11,20,"","M338 87L367 79L359 69L362 63L355 56L351 65L337 71L337 82L338 87Z"],["Sembawang Springs","Sembawang",4850,730,210,15.1,4.3,32,69,17,43,"","M449 80L461 66L453 54L436 68L449 80Z"],["Upper Thomson","Bishan",11250,3450,1460,30.7,13.0,51,41,14,65,"","M485 224L457 214L454 225L441 228L437 240L460 244L474 257L473 266L478 263L485 224Z"],["Shangri-La","Ang Mo Kio",17690,4390,1920,24.8,10.9,67,0,6,27,"","M491 213L466 207L462 214L486 221L491 213Z"],["Townsville","Ang Mo Kio",19450,5750,2800,29.6,14.4,71,0,8,40,"","M505 222L491 212L486 221L505 229L505 222Z"],["Marymount","Bishan",21080,5030,1820,23.9,8.6,103,70,17,59,"","M493 260L505 229L486 221L478 263L493 260Z"]];
+
+const HC = CK_HC.map((r, i) => ({ id: i, name: r[0], x: r[1], y: r[2], stalls: r[3], pa: r[4], region: r[5], last: r[6], hup: r[7], opened: r[8], interim: r[9] }));
+const SZ = CK_SZ.map((r, i) => {
+  const nums = (r[12].match(/-?\d+/g) || []).map(Number); let sx = 0, sy = 0, k = 0;
+  for (let j = 0; j + 1 < nums.length; j += 2) { sx += nums[j]; sy += nums[j + 1]; k++; }
+  return { id: i, name: r[0], pa: r[1], pop: r[2], s65: r[3], s75: r[4], p65: r[5], p75: r[6], blocks: r[7], t34: r[8], med: r[9], v: r[10], near: r[11], path: r[12], cx: k ? sx / k : 450, cy: k ? sy / k : 260 };
+});
+const PXKM = 18, NOW = 2026, RIPPLE_KM = 2.5, FAR_KM = 7;
+const REAL_CLOSURES = { 'Kim Keat Palm': { when: 'Renovation 14 Sep – 13 Dec 2026 · NEA schedule', end: '13 Dec' }, 'Clementi West Street 2 Blk 726': { when: 'Renovation 14 Sep – 27 Dec 2026 · NEA schedule', end: '27 Dec' }, 'Telok Blangah Rise Market': { when: 'Renovation 1 Nov – 31 Dec 2026 · NEA schedule', end: '31 Dec' } };
+const RAMP = ['#FFF4E8', '#F9D2A8', '#F2A66B', '#D9692E', '#A33A0B'];
+const SHADES = {
+  v: { label: 'Vulnerability', title: 'Vulnerability (preview)', cuts: [20, 40, 60, 80], labels: ['0–20', '20–40', '40–60', '60–80', '80+'], get: s => s.v },
+  p65: { label: '% aged 65+', title: 'HDB residents aged 65+ (real)', cuts: [15, 20, 25, 30], labels: ['<15%', '15–20', '20–25', '25–30', '30%+'], get: s => s.p65 },
+  off: { label: 'None', title: '', cuts: [], labels: [], get: s => 0 }
+};
+const TAGS = {
+  real: 'align-self: flex-start; font-size: 10px; font-weight: 700; background: #DDF1EE; color: #0B5E5E; padding: 2px 6px; border-radius: 4px',
+  est: 'align-self: flex-start; font-size: 10px; font-weight: 700; background: #FFE9D2; color: #8A3A08; padding: 2px 6px; border-radius: 4px',
+  prev: 'align-self: flex-start; font-size: 10px; font-weight: 700; background: #E6EAEE; color: #34404D; padding: 2px 6px; border-radius: 4px',
+  pipe: 'align-self: flex-start; font-size: 10px; font-weight: 700; background: #F3E5F5; color: #5B2A6E; padding: 2px 6px; border-radius: 4px'
+};
+const STATUS_TAG = {
+  due: 'flex: none; font-size: 11px; font-weight: 700; background: #0B5E5E; color: #FFFFFF; padding: 4px 8px; border-radius: 4px; white-space: nowrap',
+  unk: 'flex: none; font-size: 11px; font-weight: 600; background: #FFF4E8; color: #5A2A08; padding: 4px 8px; border-radius: 4px; white-space: nowrap',
+  ok: 'flex: none; font-size: 11px; font-weight: 600; background: #EEF1F4; color: #34404D; padding: 4px 8px; border-radius: 4px; white-space: nowrap'
+};
+function status(c) {
+  if (c.last >= 2024) return { rank: 2, tag: 'Not due', tone: 'ok', text: 'Renovated ' + c.last + ' · next due ~' + (c.last + 6) + '–' + (c.last + 8) };
+  if (c.opened >= 2014) { const y = NOW - c.opened; return y >= 6 ? { rank: 0, tag: 'Looks due', tone: 'due', text: 'Opened ' + c.opened + ' · ' + y + ' yrs, no renovation on record' } : { rank: 2, tag: 'Not due', tone: 'ok', text: 'Opened ' + c.opened + ' · ' + y + ' yrs old' }; }
+  return { rank: 1, tag: 'Check with NEA', tone: 'unk', text: c.hup ? 'Last big upgrade ' + c.hup + ' · recent renovations not public' : 'No renewal date on record' };
+}
+const fmt = n => Math.round(n).toLocaleString('en-SG');
+const band = v => v >= 80 ? 'Very high' : v >= 60 ? 'High' : v >= 40 ? 'Medium' : 'Low';
+const chip = v => 'flex: none; font-family: IBM Plex Mono, monospace; font-size: 12px; font-weight: 600; padding: 4px 8px; border-radius: 4px; background: ' + (v >= 60 ? '#A33A0B' : v >= 40 ? '#F2A66B' : '#F9D2A8') + '; color: ' + (v >= 60 ? '#FFFFFF' : '#3A1A04');
+const shortName = n => n.length > 26 ? n.slice(0, 25) + '…' : n;
+
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { sel: null, zone: null, shade: 'v' }; }
+  renderVals() {
+    const { shade } = this.state;
+    const sel = this.state.sel == null ? null : HC[this.state.sel];
+    const zone = this.state.zone == null ? null : SZ[this.state.zone];
+    const SH = SHADES[shade];
+    const R = RIPPLE_KM * PXKM;
+    const z = sel ? 4 : zone ? 3 : 1;
+    const fx = sel ? sel.x : zone ? zone.cx : 0, fy = sel ? sel.y : zone ? zone.cy : 0;
+    const km = (a, b) => Math.hypot(a.x - b.x, a.y - b.y) / PXKM;
+    const binOf = v => { let i = 0; while (i < SH.cuts.length && v >= SH.cuts[i]) i++; return i; };
+
+    let neighbours = [], candidates = [], nbMap = {}, candMap = {}, inRipple = {};
+    if (sel) {
+      SZ.forEach(s => { if (Math.hypot(s.cx - sel.x, s.cy - sel.y) <= R) inRipple[s.id] = true; });
+      const near = HC.filter(c => c.id !== sel.id && c.stalls > 0 && km(c, sel) <= RIPPLE_KM).map(c => { const d = Math.max(km(c, sel), 0.3); return { c: c, d: km(c, sel), w: c.stalls / (d * d) }; });
+      const total = near.reduce((s, n) => s + n.w, 0) || 1;
+      const weekWaste = sel.stalls * 2.5 * 7;
+      neighbours = near.sort((a, b) => b.w - a.w).slice(0, 4).map(n => {
+        const share = Math.round(n.w / total * 100); nbMap[n.c.id] = share;
+        const extra = share / 100 * weekWaste, pct = Math.round(extra / (n.c.stalls * 2.5 * 7) * 100);
+        return { id: n.c.id, name: shortName(n.c.name), full: n.c.name, km: n.d.toFixed(1) + ' km', stalls: n.c.stalls, share: share + '%', pct: pct,
+          wasteText: '+' + fmt(extra) + ' kg food waste/week (+' + pct + '%)', flag: pct > 20,
+          barStyle: 'height: 7px; width: ' + share + '%; background: #C2410C; border-radius: 4px' };
+      });
+      candidates = HC.filter(c => c.id !== sel.id && !c.interim && c.stalls > 0 && km(c, sel) > RIPPLE_KM && km(c, sel) <= FAR_KM)
+        .map(c => ({ c: c, d: km(c, sel), s: status(c) })).sort((a, b) => a.s.rank - b.s.rank || a.d - b.d).slice(0, 4)
+        .map(k => { candMap[k.c.id] = k.s.tone; return { name: shortName(k.c.name), full: k.c.name, km: k.d.toFixed(1) + ' km', text: k.s.text, tag: k.s.tag, tone: k.s.tone, tagStyle: STATUS_TAG[k.s.tone] }; });
+    }
+
+    const zones = SZ.map(s => {
+      const isZone = zone && s.id === zone.id, inR = !!inRipple[s.id];
+      return { id: s.id, path: s.path, fill: shade === 'off' ? '#DDE3E8' : RAMP[binOf(SH.get(s))],
+        op: sel && !inR ? 0.35 : 1, stroke: isZone ? '#16202A' : inR ? '#34404D' : '#FFFFFF', sw: isZone ? 3 : inR ? 1.2 : 0.8,
+        pick: () => this.setState({ zone: s.id }) };
+    });
+    if (zone) { const i = zones.findIndex(q => q.id === zone.id); zones.push(zones.splice(i, 1)[0]); }
+
+    const centres = HC.map(c => {
+      let s = 7, bg = '#1F6FB2', bc = '#FFFFFF', bw = 1;
+      if (sel && c.id === sel.id) { s = 16; bg = '#A33A0B'; bw = 2; }
+      else if (nbMap[c.id] != null) { s = 9 + nbMap[c.id] * 0.15; bg = '#C2410C'; }
+      else if (candMap[c.id]) { s = 11; bg = candMap[c.id] === 'due' ? '#0B5E5E' : '#FFFFFF'; bc = '#0B5E5E'; bw = 2; }
+      s = s / z; bw = bw / z;
+      return { aria: 'Close ' + c.name, pick: () => this.setState({ sel: c.id, zone: null }),
+        dotStyle: 'position: absolute; left: ' + (c.x - s / 2) + 'px; top: ' + (c.y - s / 2) + 'px; width: ' + s + 'px; height: ' + s + 'px; padding: 0; border-radius: 50%; border: ' + bw + 'px solid ' + bc + '; background: ' + bg + '; box-sizing: border-box; cursor: pointer' };
+    });
+
+    const lab = (c, s, w, t) => ({ text: t, style: 'position: absolute; left: ' + (c.x + s / 2 + 3 / z) + 'px; top: ' + (c.y - 7 / z) + 'px; font-size: ' + 11 / z + 'px; font-weight: ' + w + '; white-space: nowrap; color: #16202A; text-shadow: 0 0 ' + 3 / z + 'px #FFFFFF, 0 0 ' + 3 / z + 'px #FFFFFF, 0 0 ' + 3 / z + 'px #FFFFFF; pointer-events: none' });
+    const labels = [];
+    let lines = [], ripples = [], catchStyle = '';
+    if (sel) {
+      labels.push(lab(sel, 16 / z, 700, sel.name + ' · closed'));
+      neighbours.forEach(n => labels.push(lab(HC[n.id], 12 / z, 600, n.name + ' ' + n.share)));
+      lines = neighbours.map(n => { const c = HC[n.id]; const dx = c.x - sel.x, dy = c.y - sel.y, th = (1.5 + parseInt(n.share, 10) / 14) / z;
+        return { style: 'position: absolute; left: ' + sel.x + 'px; top: ' + (sel.y - th / 2) + 'px; width: ' + Math.hypot(dx, dy) + 'px; height: ' + th + 'px; background: #C2410C; opacity: 0.85; transform-origin: 0 50%; transform: rotate(' + Math.atan2(dy, dx) * 180 / Math.PI + 'deg); border-radius: ' + th + 'px; pointer-events: none' }; });
+      ripples = [0, 0.8, 1.6].map(d => ({ style: 'position: absolute; left: ' + (sel.x - R) + 'px; top: ' + (sel.y - R) + 'px; width: ' + 2 * R + 'px; height: ' + 2 * R + 'px; border-radius: 50%; border: ' + 2 / z + 'px solid #C2410C; box-sizing: border-box; pointer-events: none; animation-delay: ' + d + 's' }));
+      catchStyle = 'position: absolute; left: ' + (sel.x - R) + 'px; top: ' + (sel.y - R) + 'px; width: ' + 2 * R + 'px; height: ' + 2 * R + 'px; border-radius: 50%; border: ' + 1.5 / z + 'px dashed #C2410C; box-sizing: border-box; pointer-events: none';
+    }
+
+    const exposedAll = sel ? SZ.filter(s => inRipple[s.id]).sort((a, b) => b.v - a.v) : [];
+    const seniorsAround = exposedAll.reduce((t, s) => t + s.s65, 0);
+    const exposed = exposedAll.slice(0, 4).map(s => ({ name: s.name, s65F: fmt(s.s65), p65: s.p65, t34: s.t34, v: s.v, chip: chip(s.v), pick: () => this.setState({ zone: s.id }) }));
+    const flagged = neighbours.filter(n => n.flag);
+    const real = sel ? REAL_CLOSURES[sel.name] : null;
+
+    const kpis = sel ? [
+      { tag: 'REAL', tagStyle: TAGS.real, value: fmt(seniorsAround), color: '#16202A', label: 'HDB seniors (65+) in neighbourhoods around it' },
+      { tag: 'NEEDS PIPELINE', tagStyle: TAGS.pipe, value: '[N]', color: '#A33A0B', label: 'Seniors losing a walkable centre' },
+      { tag: 'ESTIMATE', tagStyle: TAGS.est, value: flagged.length + ' of ' + neighbours.length, color: '#C2410C', label: 'Neighbours taking +20% or more' },
+      { tag: 'ESTIMATE', tagStyle: TAGS.est, value: fmt(sel.stalls * 2 * 7) + '–' + fmt(sel.stalls * 3 * 7), color: '#16202A', label: 'kg food waste/week moving to neighbours' }
+    ] : [];
+
+    const actions = [];
+    if (sel) {
+      const keep = neighbours.slice(0, 2).map(n => n.name).join(' and ');
+      if (keep) actions.push({ text: 'Keep ' + keep + ' open until ' + (real ? real.end : 'this closure ends') + '. Move any cleaning dates.', owner: 'NEA' });
+      if (flagged.length) actions.push({ text: 'Extra cleaning and waste collection at ' + flagged.map(n => n.name).join(', ') + '.', owner: 'Centre manager / TC' });
+      if (exposedAll.length) { const pas = Array.from(new Set(exposedAll.slice(0, 3).map(s => s.pa))).join(', ');
+        actions.push({ text: 'Tell AACs in ' + pas + '. Start with ' + exposedAll[0].name + ' (' + exposedAll[0].p65 + '% aged 65+).', owner: 'AACs · TC' }); }
+      const due = candidates.find(k => k.tone === 'due');
+      if (due) actions.push({ text: 'Consider renovating ' + due.name + ' in the same window. It shares no diners.', owner: 'NEA' });
+      actions.forEach((a, i) => { a.n = String(i + 1); });
+    }
+
+    const ranked = SZ.slice().sort((a, b) => b.v - a.v);
+    const find = n => HC.findIndex(c => c.name === n);
+    const quick = [['Kim Keat Palm', 'Kim Keat Palm, Toa Payoh', 'Closed now · 14 Sep – 13 Dec'], ['Clementi West Street 2 Blk 726', 'Clementi West St 2 Blk 726', 'Closed now · 14 Sep – 27 Dec'], ['Telok Blangah Rise Market', 'Telok Blangah Rise Blk 36', 'From 1 Nov · to 31 Dec']]
+      .map(q => { const id = find(q[0]); return { name: q[1], note: q[2], pick: () => this.setState({ sel: id, zone: null }) }; });
+
+    const zoneOut = zone ? { name: zone.name, pa: zone.pa, blocks: zone.blocks, s65F: fmt(zone.s65), s75F: fmt(zone.s75), p65: zone.p65, p75: zone.p75, t34: zone.t34, near: zone.near, hasNear: !!zone.near, band: band(zone.v) + ' · ' + zone.v, chip: chip(zone.v) } : { name: '', pa: '', blocks: 0, s65F: '', s75F: '', p65: 0, p75: 0, t34: 0, near: '', hasNear: false, band: '', chip: '' };
+
+    return {
+      headline: sel ? sel.name + ' closes. Who is affected?' : 'Close a hawker centre. See who is affected.',
+      subline: sel ? 'Seniors around it, where its diners go, what to renovate alongside it, and what to do.' : 'Click any blue dot to close that centre. Click any shaded area to see its seniors.',
+      mapHint: sel ? 'Dashed ring = 2.5 km. Outlined neighbourhoods are inside it. Click one for its seniors.' : zone ? 'Click a blue dot to close a hawker centre nearby.' : 'Shaded areas are HDB neighbourhoods (subzones). Dots are hawker centres.',
+      outline: CK_OUTLINE, zones: zones, centres: centres, labels: labels, lines: lines, ripples: ripples, catchStyle: catchStyle,
+      layerStyle: 'position: absolute; left: 0; top: 20px; width: 900px; height: 520px; transform-origin: 0 0; transform: translate(' + (z > 1 ? 450 - z * fx : 0) + 'px, ' + (z > 1 ? 260 - z * fy : 0) + 'px) scale(' + z + '); transition: transform 700ms ease',
+      shades: Object.keys(SHADES).map(k => ({ label: SHADES[k].label, pressed: k === shade ? 'true' : 'false', pick: () => this.setState({ shade: k }), style: 'font: inherit; font-size: 13px; padding: 10px 14px; border: 0; min-height: 44px; ' + (k === shade ? 'background: #0B5E5E; color: #FFFFFF; font-weight: 600' : 'background: #FFFFFF; color: #34404D') })),
+      shadeOn: shade !== 'off', legendTitle: SH.title,
+      legend: SH.labels.map((l, i) => ({ label: l, swatch: 'width: 14px; height: 12px; background: ' + RAMP[i] + '; border: 1px solid #D5DCE3; display: inline-block' })),
+      hasSel: !!sel, noSel: !sel, zoomed: !!(sel || zone), hasZone: !!zone, zone: zoneOut,
+      sel: sel ? { name: sel.name, pa: sel.pa, stalls: sel.stalls, when: real ? real.when : 'What-if: not on NEA’s current schedule' } : { name: '', pa: '', stalls: 0, when: '' },
+      kpis: kpis, exposed: exposed, noExposed: !!sel && exposed.length === 0, neighbours: neighbours, candidates: candidates, actions: actions, quick: quick,
+      top: ranked.slice(0, 6).map(s => ({ name: s.name, pa: s.pa, p65: s.p65, t34: s.t34, v: s.v, chip: chip(s.v), pick: () => this.setState({ zone: s.id }) })),
+      reset: () => this.setState({ sel: null, zone: null }), clearZone: () => this.setState({ zone: null })
+    };
+  }
+}
+</script>
+</body>
+</html>

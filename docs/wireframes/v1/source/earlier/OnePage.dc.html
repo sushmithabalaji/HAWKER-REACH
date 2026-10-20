@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>HawkerReach one-page dashboard</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F4F5F7}
+a{color:#0B5E5E}a:hover{color:#073F3F}
+</style>
+</helmet>
+<div style="font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #16202A; background: #F4F5F7; min-height: 2060px; box-sizing: border-box">
+
+  <header style="background: #16202A; color: #FFFFFF; padding: 16px 32px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px">
+    <div style="font-weight: 700; font-size: 22px; letter-spacing: -0.01em">HawkerReach</div>
+    <div style="font-size: 16px; color: #D5DCE3">Hawker centre closure stress test</div>
+    <div style="margin-left: auto; font-size: 13px; color: #B8C2CC">For NEA and town council planners · Data: NEA, HDB, URA, SingStat (June 2026)</div>
+  </header>
+
+  <div style="max-width: 1440px; margin: 0 auto; padding: 24px 32px; display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; box-sizing: border-box">
+
+    <main style="flex: 999 1 860px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+
+      <section aria-label="Scenario" style="background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 16px 18px; display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end">
+        <div style="display: flex; flex-direction: column; gap: 6px; flex: 3 1 300px">
+          <label for="c" style="font-size: 13px; color: #4A5562">Hawker centre to close</label>
+          <select id="c" style="font: inherit; font-size: 15px; padding: 10px 12px; border: 1px solid #C5CDD5; border-radius: 8px; min-height: 44px; background: #FFFFFF"><option>Kim Keat Palm Market and Food Centre (Toa Payoh Lor 7 Blk 22)</option></select>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px; flex: 1 1 170px">
+          <label for="pa" style="font-size: 13px; color: #4A5562">Planning area</label>
+          <select id="pa" style="font: inherit; font-size: 15px; padding: 10px 12px; border: 1px solid #C5CDD5; border-radius: 8px; min-height: 44px; background: #FFFFFF"><option>Toa Payoh</option></select>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <span id="thr" style="font-size: 13px; color: #4A5562">Max walk</span>
+          <div role="group" aria-labelledby="thr" style="display: flex; border: 1px solid #C5CDD5; border-radius: 8px; overflow: hidden">
+            <button type="button" style="font: inherit; font-size: 14px; padding: 10px 14px; border: 0; background: #FFFFFF; color: #34404D; min-height: 44px">10 min</button>
+            <button type="button" aria-pressed="true" style="font: inherit; font-size: 14px; padding: 10px 14px; border: 0; background: #0B5E5E; color: #FFFFFF; font-weight: 600; min-height: 44px">15 min</button>
+            <button type="button" style="font: inherit; font-size: 14px; padding: 10px 14px; border: 0; background: #FFFFFF; color: #34404D; min-height: 44px">20 min</button>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px; flex: 1 1 170px">
+          <label for="pace" style="font-size: 13px; color: #4A5562">Walking pace</label>
+          <select id="pace" style="font: inherit; font-size: 15px; padding: 10px 12px; border: 1px solid #C5CDD5; border-radius: 8px; min-height: 44px; background: #FFFFFF"><option>Senior · 1.0 m/s</option><option>Typical · 1.2 m/s</option><option>Brisk · 1.4 m/s</option></select>
+        </div>
+      </section>
+
+      <div style="background: #16202A; color: #FFFFFF; border-radius: 10px; padding: 14px 18px; display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; font-size: 14px">
+        <span style="background: #C2410C; color: #FFFFFF; font-weight: 700; font-size: 12px; letter-spacing: 0.05em; padding: 4px 8px; border-radius: 4px">CLOSED NOW</span>
+        <span><strong>Kim Keat Palm</strong> · Repairs &amp; Redecoration · 14 Sep – 13 Dec 2026 (13 weeks) · 61 cooked-food stalls</span>
+        <span style="margin-left: auto; color: #B8C2CC">Source: NEA closure schedule</span>
+      </div>
+
+      <section aria-label="Impact summary" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px">
+        <div style="background: #FFFFFF; border: 1px solid #DDE2E7; border-top: 4px solid #A33A0B; border-radius: 10px; padding: 16px 18px">
+          <div style="font-size: 13px; color: #4A5562">Seniors losing a walkable centre</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 30px; margin-top: 6px; color: #A33A0B">[N]</div>
+          <div style="font-size: 12px; color: #4A5562; margin-top: 4px">est. · range [N]–[N] at 10–20 min</div>
+        </div>
+        <div style="background: #FFFFFF; border: 1px solid #DDE2E7; border-top: 4px solid #C2410C; border-radius: 10px; padding: 16px 18px">
+          <div style="font-size: 13px; color: #4A5562">Neighbours pushed over capacity</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 30px; margin-top: 6px">[N] <span style="font-size: 16px; color: #4A5562">of 4</span></div>
+          <div style="font-size: 12px; color: #4A5562; margin-top: 4px">modelled diners per stall</div>
+        </div>
+        <div style="background: #FFFFFF; border: 1px solid #DDE2E7; border-top: 4px solid #1F6FB2; border-radius: 10px; padding: 16px 18px">
+          <div style="font-size: 13px; color: #4A5562">Diners shifted per week</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 30px; margin-top: 6px">[N]</div>
+          <div style="font-size: 12px; color: #4A5562; margin-top: 4px">modelled · no footfall data exists</div>
+        </div>
+        <div style="background: #FFFFFF; border: 1px solid #DDE2E7; border-top: 4px solid #6B7785; border-radius: 10px; padding: 16px 18px">
+          <div style="font-size: 13px; color: #4A5562">Extra food waste per week</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 30px; margin-top: 6px">[N]–[N] <span style="font-size: 16px; color: #4A5562">kg</span></div>
+          <div style="font-size: 12px; color: #4A5562; margin-top: 4px">est. range · [cited per-meal figure]</div>
+        </div>
+      </section>
+
+      <section aria-label="Area averages hide the cliff" style="background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 18px 20px; display: flex; flex-direction: column; gap: 14px">
+        <h2 style="margin: 0; font-size: 18px; font-weight: 700">Same area, two answers</h2>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px">
+          <div style="background: #EEF5F5; border-radius: 8px; padding: 16px 18px; display: flex; flex-direction: column; gap: 6px">
+            <div style="font-size: 13px; font-weight: 600; color: #0B5E5E; text-transform: uppercase; letter-spacing: 0.04em">Area-average view</div>
+            <div style="font-size: 15px">Toa Payoh has <strong style="font-family: 'IBM Plex Mono', monospace">0.47</strong> hawker centres per 10,000 residents, above the national <strong style="font-family: 'IBM Plex Mono', monospace">0.29</strong>.</div>
+            <div style="font-size: 20px; font-weight: 700; color: #0B5E5E">Verdict: well served</div>
+          </div>
+          <div style="background: #FFF4E8; border-radius: 8px; padding: 16px 18px; display: flex; flex-direction: column; gap: 6px">
+            <div style="font-size: 13px; font-weight: 600; color: #A33A0B; text-transform: uppercase; letter-spacing: 0.04em">Block-level senior view</div>
+            <div style="font-size: 15px">With Kim Keat Palm closed, <strong style="font-family: 'IBM Plex Mono', monospace">[N]</strong> seniors (est.) in <strong style="font-family: 'IBM Plex Mono', monospace">[N]</strong> blocks have no centre within 15 min at 1.0 m/s.</div>
+            <div style="font-size: 20px; font-weight: 700; color: #A33A0B">Verdict: [N] seniors at risk</div>
+          </div>
+        </div>
+      </section>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: stretch">
+        <section aria-label="Impact map" style="flex: 3 1 480px; min-width: 0; background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px">
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+            <h2 style="margin: 0; font-size: 17px; font-weight: 600">Who is cut off, and where the diners go</h2>
+            <div role="group" aria-label="Map view" style="margin-left: auto; display: flex; border: 1px solid #C5CDD5; border-radius: 8px; overflow: hidden">
+              <button type="button" style="font: inherit; font-size: 13px; padding: 10px 12px; border: 0; background: #FFFFFF; color: #34404D; min-height: 44px">Before</button>
+              <button type="button" aria-pressed="true" style="font: inherit; font-size: 13px; padding: 10px 12px; border: 0; background: #0B5E5E; color: #FFFFFF; font-weight: 600; min-height: 44px">After closure</button>
+            </div>
+          </div>
+          <div style="height: 380px; border-radius: 8px; background: #EEF1F4; overflow: hidden">
+            <svg aria-hidden="true" viewBox="0 0 640 380" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
+              <g fill="#8FB8D8"><rect x="120" y="80" width="11" height="11"></rect><rect x="150" y="110" width="11" height="11"></rect><rect x="470" y="70" width="11" height="11"></rect><rect x="500" y="120" width="11" height="11"></rect><rect x="520" y="250" width="11" height="11"></rect><rect x="140" y="280" width="11" height="11"></rect><rect x="420" y="300" width="11" height="11"></rect></g>
+              <g fill="#CFE0EC"><rect x="230" y="140" width="11" height="11"></rect><rect x="390" y="120" width="11" height="11"></rect><rect x="380" y="250" width="11" height="11"></rect></g>
+              <g fill="#F2B880"><rect x="270" y="230" width="11" height="11"></rect><rect x="350" y="150" width="11" height="11"></rect><rect x="250" y="190" width="11" height="11"></rect></g>
+              <g fill="#A33A0B"><rect x="300" y="170" width="11" height="11"></rect><rect x="335" y="205" width="11" height="11"></rect><rect x="290" y="210" width="11" height="11"></rect></g>
+              <g stroke="#C2410C" stroke-width="2" stroke-dasharray="5 4" fill="none"><path d="M320 190 L210 120"></path><path d="M320 190 L440 110"></path><path d="M320 190 L460 250"></path><path d="M320 190 L200 290"></path></g>
+              <circle cx="320" cy="190" r="15" fill="#FFFFFF" stroke="#A33A0B" stroke-width="3"></circle><path d="M313 183 L327 197 M327 183 L313 197" stroke="#A33A0B" stroke-width="3"></path>
+              <circle cx="210" cy="120" r="10" fill="#C2410C"></circle><circle cx="440" cy="110" r="13" fill="#1F6FB2"></circle><circle cx="460" cy="250" r="8" fill="#C2410C"></circle><circle cx="200" cy="290" r="9" fill="#1F6FB2"></circle>
+              <g font-family="IBM Plex Sans, sans-serif" font-size="12" fill="#16202A"><text x="335" y="178">Kim Keat Palm (closed)</text><text x="150" y="104">Lor 5 Blk 75</text><text x="452" y="102">Lor 8 Blk 210</text><text x="472" y="254">Lor 4 Blk 74 (Vista)</text><text x="140" y="315">Lor 4 Blk 93</text></g>
+            </svg>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 12px; color: #34404D">
+            <span style="display: flex; align-items: center; gap: 6px"><span style="width: 11px; height: 11px; background: #8FB8D8; display: inline-block"></span>T1 safe ≤10 min</span>
+            <span style="display: flex; align-items: center; gap: 6px"><span style="width: 11px; height: 11px; background: #CFE0EC; border: 1px solid #8FB8D8; display: inline-block"></span>T2 10–15 min</span>
+            <span style="display: flex; align-items: center; gap: 6px"><span style="width: 11px; height: 11px; background: #F2B880; display: inline-block"></span>T3 15–20 min</span>
+            <span style="display: flex; align-items: center; gap: 6px"><span style="width: 11px; height: 11px; background: #A33A0B; display: inline-block"></span>T4 cliff &gt;20 min</span>
+            <span style="display: flex; align-items: center; gap: 6px"><span style="width: 11px; height: 11px; border-radius: 50%; background: #C2410C; display: inline-block"></span>Neighbour over capacity</span>
+          </div>
+          <div style="font-size: 12px; color: #4A5562">Schematic. Real map: AI/BI point map of HDB blocks coloured by tier, centres as markers.</div>
+        </section>
+
+        <section aria-label="Neighbours" style="flex: 2 1 340px; min-width: 0; background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px">
+          <h2 style="margin: 0; font-size: 17px; font-weight: 600">Neighbours absorbing the diners</h2>
+          <p style="margin: 0; font-size: 12px; color: #4A5562">Distance is straight line from Kim Keat Palm. Diners per stall modelled.</p>
+          <div style="overflow-x: auto">
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px">
+              <thead><tr style="text-align: left; color: #4A5562; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em"><th style="padding: 8px 6px; border-bottom: 1px solid #DDE2E7">Centre</th><th style="padding: 8px 6px; border-bottom: 1px solid #DDE2E7; text-align: right">Dist.</th><th style="padding: 8px 6px; border-bottom: 1px solid #DDE2E7; text-align: right">Stalls</th><th style="padding: 8px 6px; border-bottom: 1px solid #DDE2E7; text-align: right">Load</th></tr></thead>
+              <tbody>
+                <tr><td style="padding: 10px 6px; border-bottom: 1px solid #EEF1F4">Toa Payoh Lor 5 Blk 75</td><td style="padding: 10px 6px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">460 m</td><td style="padding: 10px 6px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">36</td><td style="padding: 10px 6px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace; color: #A33A0B">+[N]%</td></tr>
+                <tr><td style="padding: 10px 6px; border-bottom: 1px solid #EEF1F4">Toa Payoh Vista Market, Lor 4 Blk 74</td><td style="padding: 10px 6px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">560 m</td><td style="padding: 10px 6px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">10</td><td style="padding: 10px 6px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace; color: #A33A0B">+[N]%</td></tr>
+                <tr><td style="padding: 10px 6px; border-bottom: 1px solid #EEF1F4">Toa Payoh Lor 8 Blk 210</td><td style="padding: 10px 6px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">610 m</td><td style="padding: 10px 6px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">80</td><td style="padding: 10px 6px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">+[N]%</td></tr>
+                <tr><td style="padding: 10px 6px">Toa Payoh Lor 4 Blk 93</td><td style="padding: 10px 6px; text-align: right; font-family: 'IBM Plex Mono', monospace">900 m</td><td style="padding: 10px 6px; text-align: right; font-family: 'IBM Plex Mono', monospace">28</td><td style="padding: 10px 6px; text-align: right; font-family: 'IBM Plex Mono', monospace">+[N]%</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="background: #FFF4E8; border-radius: 8px; padding: 10px 12px; font-size: 13px; color: #5A2A08">Watch: Vista Market has only 10 stalls, so a small share of Kim Keat's diners could swamp it.</div>
+        </section>
+      </div>
+
+      <section aria-label="Sensitivity" style="background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px">
+          <h2 style="margin: 0; font-size: 17px; font-weight: 600">Does it hold if we change the threshold?</h2>
+          <span style="font-size: 13px; color: #4A5562">Share of the area's seniors (est.) with a centre in reach, senior pace</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px">
+          <div style="display: flex; flex-direction: column; gap: 8px"><div style="font-size: 14px; font-weight: 600">Within 10 min</div><div style="display: grid; grid-template-columns: 52px minmax(0, 1fr) 54px; gap: 8px; align-items: center; font-size: 12px"><span>Before</span><div style="height: 12px; background: #EEF1F4; border-radius: 3px"><div style="height: 12px; width: 70%; background: #1F6FB2; border-radius: 3px"></div></div><span style="font-family: 'IBM Plex Mono', monospace">[N]%</span><span>After</span><div style="height: 12px; background: #EEF1F4; border-radius: 3px"><div style="height: 12px; width: 52%; background: #C2410C; border-radius: 3px"></div></div><span style="font-family: 'IBM Plex Mono', monospace">[N]%</span></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px"><div style="font-size: 14px; font-weight: 600">Within 15 min</div><div style="display: grid; grid-template-columns: 52px minmax(0, 1fr) 54px; gap: 8px; align-items: center; font-size: 12px"><span>Before</span><div style="height: 12px; background: #EEF1F4; border-radius: 3px"><div style="height: 12px; width: 88%; background: #1F6FB2; border-radius: 3px"></div></div><span style="font-family: 'IBM Plex Mono', monospace">[N]%</span><span>After</span><div style="height: 12px; background: #EEF1F4; border-radius: 3px"><div style="height: 12px; width: 74%; background: #C2410C; border-radius: 3px"></div></div><span style="font-family: 'IBM Plex Mono', monospace">[N]%</span></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px"><div style="font-size: 14px; font-weight: 600">Within 20 min</div><div style="display: grid; grid-template-columns: 52px minmax(0, 1fr) 54px; gap: 8px; align-items: center; font-size: 12px"><span>Before</span><div style="height: 12px; background: #EEF1F4; border-radius: 3px"><div style="height: 12px; width: 96%; background: #1F6FB2; border-radius: 3px"></div></div><span style="font-family: 'IBM Plex Mono', monospace">[N]%</span><span>After</span><div style="height: 12px; background: #EEF1F4; border-radius: 3px"><div style="height: 12px; width: 90%; background: #C2410C; border-radius: 3px"></div></div><span style="font-family: 'IBM Plex Mono', monospace">[N]%</span></div></div>
+        </div>
+        <div style="font-size: 12px; color: #4A5562">Bar lengths illustrative until the pipeline runs.</div>
+      </section>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: stretch">
+        <section aria-label="Interim market options" style="flex: 1 1 380px; min-width: 0; background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px">
+          <h2 style="margin: 0; font-size: 17px; font-weight: 600">What can we do? Interim market sites</h2>
+          <p style="margin: 0; font-size: 12px; color: #4A5562">Candidate locations ranked by cut-off seniors brought back within 15 min</p>
+          <ol style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 10px; font-size: 14px">
+            <li><strong>[Site A]</strong>, e.g. open space near Blk [##] · reconnects <span style="font-family: 'IBM Plex Mono', monospace">[N]</span> seniors</li>
+            <li><strong>[Site B]</strong> · reconnects <span style="font-family: 'IBM Plex Mono', monospace">[N]</span> seniors</li>
+            <li><strong>[Site C]</strong> · reconnects <span style="font-family: 'IBM Plex Mono', monospace">[N]</span> seniors</li>
+          </ol>
+          <div style="background: #EEF5F5; border-radius: 8px; padding: 10px 12px; font-size: 13px; color: #16202A">Precedent: NEA built the Bukit Timah Interim Hawker Centre while Bukit Timah Market is redeveloped (to 2029).</div>
+        </section>
+
+        <section aria-label="Who to check on" style="flex: 1 1 380px; min-width: 0; background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px">
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+            <h2 style="margin: 0; font-size: 17px; font-weight: 600">Who to check on</h2>
+            <span style="font-size: 12px; background: #EEF5F5; color: #0B5E5E; padding: 3px 8px; border-radius: 4px; font-weight: 600">For town council / AACs</span>
+          </div>
+          <table style="width: 100%; border-collapse: collapse; font-size: 13px">
+            <thead><tr style="text-align: left; color: #4A5562; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em"><th style="padding: 8px 6px; border-bottom: 1px solid #DDE2E7">Block</th><th style="padding: 8px 6px; border-bottom: 1px solid #DDE2E7; text-align: right">Seniors (est.)</th><th style="padding: 8px 6px; border-bottom: 1px solid #DDE2E7; text-align: right">Rental flats</th><th style="padding: 8px 6px; border-bottom: 1px solid #DDE2E7; text-align: right">Walk now</th></tr></thead>
+            <tbody>
+              <tr><td style="padding: 9px 6px; border-bottom: 1px solid #EEF1F4">Blk [##] Toa Payoh Lor 7</td><td style="padding: 9px 6px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">[N]</td><td style="padding: 9px 6px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">[N]</td><td style="padding: 9px 6px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">[N] min</td></tr>
+              <tr><td style="padding: 9px 6px; border-bottom: 1px solid #EEF1F4">Blk [##] Toa Payoh Lor 7</td><td style="padding: 9px 6px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">[N]</td><td style="padding: 9px 6px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">[N]</td><td style="padding: 9px 6px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">[N] min</td></tr>
+              <tr><td style="padding: 9px 6px">Blk [##] [Street]</td><td style="padding: 9px 6px; text-align: right; font-family: 'IBM Plex Mono', monospace">[N]</td><td style="padding: 9px 6px; text-align: right; font-family: 'IBM Plex Mono', monospace">[N]</td><td style="padding: 9px 6px; text-align: right; font-family: 'IBM Plex Mono', monospace">[N] min</td></tr>
+            </tbody>
+          </table>
+          <button type="button" style="align-self: flex-start; font: inherit; font-size: 14px; font-weight: 600; background: #0B5E5E; color: #FFFFFF; border: 0; border-radius: 8px; padding: 12px 16px; min-height: 44px">Download full block list (CSV)</button>
+        </section>
+      </div>
+
+      <section aria-label="Across the network" style="background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 18px 20px; display: flex; flex-direction: column; gap: 16px">
+        <h2 style="margin: 0; font-size: 17px; font-weight: 600">Across the network</h2>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px">
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <div style="font-size: 14px; font-weight: 600">Closures that would hurt most</div>
+            <div style="font-size: 12px; color: #4A5562">Seniors cut off if closed (est.) · order set by the model</div>
+            <ol style="margin: 0; padding-left: 20px; font-size: 13px; display: flex; flex-direction: column; gap: 6px"><li>[Centre] · [N]</li><li>[Centre] · [N]</li><li>[Centre] · [N]</li><li>[Centre] · [N]</li><li>[Centre] · [N]</li></ol>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <div style="font-size: 14px; font-weight: 600">Gaps today</div>
+            <div style="font-size: 12px; color: #4A5562">Planning areas with no operating NEA hawker centre</div>
+            <div style="display: flex; flex-direction: column; gap: 8px; font-size: 13px">
+              <div style="background: #FFF4E8; border-radius: 8px; padding: 10px 12px"><strong>Choa Chu Kang</strong> · 185,520 residents, 30,040 aged 65+ · Yew Tee centre under construction</div>
+              <div style="background: #FFF4E8; border-radius: 8px; padding: 10px 12px"><strong>Tengah</strong> · 34,340 residents · new town, built 2023–2025</div>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <div style="font-size: 14px; font-weight: 600">Long closures for works</div>
+            <div style="font-size: 12px; color: #4A5562">Renovation and other works, by start year · median about 13 weeks</div>
+            <div style="height: 130px; display: flex; align-items: flex-end; gap: 18px; padding: 0 8px; border-bottom: 1px solid #C5CDD5">
+              <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px">18</span><div style="width: 100%; height: 96px; background: #1F6FB2; border-radius: 3px 3px 0 0"></div></div>
+              <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px">18</span><div style="width: 100%; height: 96px; background: #1F6FB2; border-radius: 3px 3px 0 0"></div></div>
+              <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px">7</span><div style="width: 100%; height: 37px; background: #1F6FB2; border-radius: 3px 3px 0 0"></div></div>
+            </div>
+            <div style="display: flex; gap: 18px; padding: 0 8px; font-size: 12px; color: #4A5562"><span style="flex: 1; text-align: center">2024</span><span style="flex: 1; text-align: center">2025</span><span style="flex: 1; text-align: center">2026 (to date)</span></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <aside style="flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+      <section aria-label="Ask Genie" style="background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; align-items: center; gap: 8px">
+          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0B5E5E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M6 18l2.5-2.5M15.5 8.5L18 6"></path></svg>
+          <h2 style="margin: 0; font-size: 17px; font-weight: 700">Ask Genie</h2>
+        </div>
+        <p style="margin: 0; font-size: 13px; color: #4A5562">Plain-English questions on the same tables as this dashboard</p>
+        <div style="background: #F4F5F7; border-radius: 8px; padding: 10px 12px; font-size: 13px">Which closure next quarter cuts off the most seniors?</div>
+        <div style="background: #EEF5F5; border-radius: 8px; padding: 10px 12px; font-size: 13px; color: #16202A">[Genie answer from the closure_scenarios table]</div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <button type="button" style="font: inherit; font-size: 13px; text-align: left; background: #FFFFFF; border: 1px solid #C5CDD5; border-radius: 8px; padding: 10px 12px; min-height: 44px; color: #16202A">Which areas have no centre within 15 min for seniors?</button>
+          <button type="button" style="font: inherit; font-size: 13px; text-align: left; background: #FFFFFF; border: 1px solid #C5CDD5; border-radius: 8px; padding: 10px 12px; min-height: 44px; color: #16202A">What if two Toa Payoh centres close at once?</button>
+          <button type="button" style="font: inherit; font-size: 13px; text-align: left; background: #FFFFFF; border: 1px solid #C5CDD5; border-radius: 8px; padding: 10px 12px; min-height: 44px; color: #16202A">List blocks with the most rental flats affected</button>
+        </div>
+        <label for="ask" style="font-size: 12px; color: #4A5562">Your question</label>
+        <input id="ask" type="text" placeholder="Ask a question…" style="font: inherit; font-size: 14px; padding: 10px 12px; border: 1px solid #C5CDD5; border-radius: 8px; min-height: 44px; box-sizing: border-box; width: 100%">
+      </section>
+
+      <section aria-label="How sure are we" style="background: #FFFFFF; border: 1px dashed #9AA6B2; border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 10px; font-size: 13px; color: #34404D">
+        <h2 style="margin: 0; font-size: 16px; font-weight: 700; color: #16202A">How sure are we?</h2>
+        <div><strong>Measured:</strong> centre locations and stalls (NEA), block locations and flat mix (HDB), residents by age (SingStat June 2026).</div>
+        <div><strong>Estimated:</strong> seniors per block, from subzone age data and flat mix.</div>
+        <div><strong>Modelled:</strong> diners per centre; no footfall data exists.</div>
+        <div><strong>Assumed:</strong> walking only (worst case), senior pace 1.0 m/s [source], waste per meal [source].</div>
+        <div><strong>Checked:</strong> replayed [N] real 2024–2026 renovations.</div>
+      </section>
+    </aside>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2060}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

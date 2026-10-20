@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Conflicts and what-if</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F4F5F7}
+a{color:#0B5E5E}a:hover{color:#073F3F}
+</style>
+</helmet>
+<div style="font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #16202A; background: #F4F5F7; min-height: 1080px; display: flex; flex-wrap: wrap; align-items: stretch">
+
+  <nav aria-label="App sections" style="flex: 1 1 232px; max-width: 100%; background: #16202A; color: #E6EAEE; padding: 22px 14px; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px">
+    <div style="font-weight: 700; font-size: 20px; color: #FFFFFF; padding: 0 10px 18px">HawkerReach</div>
+    <div style="font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #8C99A6; padding: 6px 10px">Planner workflow</div>
+    <a href="App1Queue.dc.html" style="color: #E6EAEE; text-decoration: none; font-size: 14px; padding: 11px 12px; border-radius: 6px">① Closure queue</a>
+    <a href="App2Impact.dc.html" style="color: #E6EAEE; text-decoration: none; font-size: 14px; padding: 11px 12px; border-radius: 6px">② Impact</a>
+    <a href="App3Timing.dc.html" style="color: #16202A; background: #FFFFFF; font-weight: 600; text-decoration: none; font-size: 14px; padding: 11px 12px; border-radius: 6px">③ Conflicts &amp; what-if</a>
+    <a href="App4Action.dc.html" style="color: #E6EAEE; text-decoration: none; font-size: 14px; padding: 11px 12px; border-radius: 6px">④ Action plan</a>
+    <div style="font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #8C99A6; padding: 18px 10px 6px">More</div>
+    <a href="Community.dc.html" style="color: #E6EAEE; text-decoration: none; font-size: 14px; padding: 11px 12px; border-radius: 6px">Community list (AACs)</a>
+    <a href="OnePage.dc.html" style="color: #E6EAEE; text-decoration: none; font-size: 14px; padding: 11px 12px; border-radius: 6px">Network overview</a>
+    <a href="OnePage.dc.html" style="color: #E6EAEE; text-decoration: none; font-size: 14px; padding: 11px 12px; border-radius: 6px">How sure are we?</a>
+    <a href="OnePage.dc.html" style="color: #E6EAEE; text-decoration: none; font-size: 14px; padding: 11px 12px; border-radius: 6px">Ask Genie ↗</a>
+    <div style="margin-top: auto; font-size: 12px; color: #8C99A6; padding: 18px 10px 0">Data: NEA, HDB, URA, SingStat (June 2026)</div>
+  </nav>
+
+  <main style="flex: 999 1 760px; min-width: 0; padding: 28px 32px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px">
+    <div>
+      <a href="App2Impact.dc.html" style="font-size: 13px; text-decoration: none">← Impact</a>
+      <h1 style="margin: 6px 0 6px; font-size: 28px; font-weight: 700">Do nearby closures make it worse?</h1>
+      <p style="margin: 0; font-size: 15px; color: #4A5562">Every centre within 1 km of Kim Keat Palm, against NEA's 2026 closure schedule</p>
+    </div>
+
+    <section aria-label="Closure timeline" style="background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 20px; display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px">
+        <h2 style="margin: 0; font-size: 17px; font-weight: 600">Closure timeline, Sep – Dec 2026</h2>
+        <span style="font-size: 13px; color: #4A5562">Orange = a backup centre is also closed while Kim Keat is shut</span>
+      </div>
+      <div style="display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 0 14px; align-items: center; font-size: 13px">
+        <div></div>
+        <div style="position: relative; height: 22px; font-size: 12px; color: #4A5562">
+          <span style="position: absolute; left: 0%">Sep</span><span style="position: absolute; left: 24.6%">Oct</span><span style="position: absolute; left: 50%">Nov</span><span style="position: absolute; left: 74.6%">Dec</span>
+        </div>
+
+        <div style="padding: 10px 0; font-weight: 600">Kim Keat Palm <span style="font-weight: 400; color: #4A5562">· works</span></div>
+        <div style="position: relative; height: 26px; background: #F4F5F7; border-radius: 4px">
+          <div style="position: absolute; left: 10.7%; width: 74.6%; top: 4px; bottom: 4px; background: #16202A; border-radius: 3px"></div>
+          <div style="position: absolute; left: 40.2%; top: -6px; bottom: -6px; width: 2px; background: #1F6FB2"></div>
+        </div>
+
+        <div style="padding: 10px 0">Lor 5 Blk 75 <span style="color: #4A5562">· 460 m</span></div>
+        <div style="position: relative; height: 26px; background: #F4F5F7; border-radius: 4px">
+          <div style="position: absolute; left: 10.7%; width: 1.2%; top: 4px; bottom: 4px; background: #9AA6B2; border-radius: 2px"></div>
+          <div style="{{lor5Style}}"></div>
+          <div style="position: absolute; left: 40.2%; top: -6px; bottom: -6px; width: 2px; background: #1F6FB2"></div>
+        </div>
+
+        <div style="padding: 10px 0">Vista Mkt, Lor 4 Blk 74 <span style="color: #4A5562">· 560 m</span></div>
+        <div style="position: relative; height: 26px; background: #F4F5F7; border-radius: 4px">
+          <div style="{{vistaStyle}}"></div>
+          <div style="position: absolute; left: 40.2%; top: -6px; bottom: -6px; width: 2px; background: #1F6FB2"></div>
+        </div>
+
+        <div style="padding: 10px 0">Lor 8 Blk 210 <span style="color: #4A5562">· 630 m</span></div>
+        <div style="position: relative; height: 26px; background: #F4F5F7; border-radius: 4px">
+          <div style="position: absolute; left: 33.6%; width: 2.5%; top: 4px; bottom: 4px; background: #9AA6B2; border-radius: 2px"></div>
+          <div style="position: absolute; left: 40.2%; top: -6px; bottom: -6px; width: 2px; background: #1F6FB2"></div>
+        </div>
+
+        <div style="padding: 10px 0">Lor 4 Blk 93 <span style="color: #4A5562">· 910 m</span></div>
+        <div style="position: relative; height: 26px; background: #F4F5F7; border-radius: 4px">
+          <div style="position: absolute; left: 22.1%; width: 1.2%; top: 4px; bottom: 4px; background: #9AA6B2; border-radius: 2px"></div>
+          <div style="position: absolute; left: 40.2%; top: -6px; bottom: -6px; width: 2px; background: #1F6FB2"></div>
+        </div>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 12px; color: #34404D; padding-top: 6px">
+        <span style="display: flex; align-items: center; gap: 6px"><span style="width: 14px; height: 10px; background: #C2410C; display: inline-block"></span>Upcoming conflict, still fixable</span>
+        <span style="display: flex; align-items: center; gap: 6px"><span style="width: 14px; height: 10px; background: #9AA6B2; display: inline-block"></span>Past conflict</span>
+        <span style="display: flex; align-items: center; gap: 6px"><span style="width: 14px; height: 10px; background: #0B5E5E; display: inline-block"></span>Moved by you</span>
+        <span style="display: flex; align-items: center; gap: 6px"><span style="width: 2px; height: 12px; background: #1F6FB2; display: inline-block"></span>Today, 20 Oct</span>
+      </div>
+    </section>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: stretch">
+      <section aria-label="What-if" style="flex: 3 1 460px; min-width: 0; background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+        <h2 style="margin: 0; font-size: 17px; font-weight: 600">What if we move the cleaning?</h2>
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 12px; border: 1px solid #DDE2E7; border-radius: 8px">
+          <div style="flex: 1 1 240px; font-size: 14px"><strong>Lor 5 Blk 75</strong> cleaning, 7–9 Nov<div style="font-size: 12px; color: #4A5562">Kim Keat's nearest backup</div></div>
+          <button type="button" onClick="{{toggleLor5}}" style="font: inherit; font-size: 14px; font-weight: 600; border: 1px solid #0B5E5E; background: {{lor5BtnBg}}; color: {{lor5BtnFg}}; border-radius: 8px; padding: 10px 14px; min-height: 44px">{{lor5Label}}</button>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 12px; border: 1px solid #DDE2E7; border-radius: 8px">
+          <div style="flex: 1 1 240px; font-size: 14px"><strong>Vista Market</strong> cleaning, 16–19 Nov<div style="font-size: 12px; color: #4A5562">Only 10 stalls, easily swamped</div></div>
+          <button type="button" onClick="{{toggleVista}}" style="font: inherit; font-size: 14px; font-weight: 600; border: 1px solid #0B5E5E; background: {{vistaBtnBg}}; color: {{vistaBtnFg}}; border-radius: 8px; padding: 10px 14px; min-height: 44px">{{vistaLabel}}</button>
+        </div>
+        <div style="display: flex; align-items: center; gap: 14px; background: {{resultBg}}; border-radius: 8px; padding: 14px 16px">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 34px; color: {{resultFg}}">{{remaining}}</div>
+          <div style="font-size: 14px; color: #16202A">{{resultText}}</div>
+        </div>
+      </section>
+
+      <section aria-label="Safe to schedule" style="flex: 2 1 340px; min-width: 0; background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+        <h2 style="margin: 0; font-size: 17px; font-weight: 600">Safe to schedule now</h2>
+        <p style="margin: 0; font-size: 13px; color: #4A5562">Centres not absorbing Kim Keat's diners. Works there won't stack on the same residents.</p>
+        <ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; font-size: 14px">
+          <li>[Centre] · [area] · shares 0 blocks</li>
+          <li>[Centre] · [area] · shares 0 blocks</li>
+          <li>[Centre] · [area] · shares 0 blocks</li>
+        </ul>
+        <div style="font-size: 12px; color: #4A5562">Avoid: Lor 5 Blk 75, Vista Market, Lor 8 Blk 210, Lor 4 Blk 93 until 13 Dec.</div>
+        <a href="App4Action.dc.html" style="align-self: flex-start; background: #0B5E5E; color: #FFFFFF; text-decoration: none; font-weight: 600; font-size: 14px; padding: 12px 16px; border-radius: 8px; margin-top: auto">Build the action plan →</a>
+      </section>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1080}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { m5: false, mv: false }; }
+  renderVals() {
+    const { m5, mv } = this.state;
+    const bar = (left, width, color) => 'position: absolute; left: ' + left + '%; width: ' + width + '%; top: 4px; bottom: 4px; background: ' + color + '; border-radius: 2px';
+    const remaining = 2 - (m5 ? 1 : 0) - (mv ? 1 : 0);
+    return {
+      lor5Style: m5 ? bar(85.2, 2.5, '#0B5E5E') : bar(54.9, 2.5, '#C2410C'),
+      vistaStyle: mv ? bar(86.0, 3.3, '#0B5E5E') : bar(62.3, 3.3, '#C2410C'),
+      toggleLor5: () => this.setState({ m5: !m5 }),
+      toggleVista: () => this.setState({ mv: !mv }),
+      lor5Label: m5 ? 'Moved to 14–16 Dec · undo' : 'Move after 13 Dec',
+      vistaLabel: mv ? 'Moved to 15–18 Dec · undo' : 'Move after 13 Dec',
+      lor5BtnBg: m5 ? '#FFFFFF' : '#0B5E5E', lor5BtnFg: m5 ? '#0B5E5E' : '#FFFFFF',
+      vistaBtnBg: mv ? '#FFFFFF' : '#0B5E5E', vistaBtnFg: mv ? '#0B5E5E' : '#FFFFFF',
+      remaining: remaining,
+      resultBg: remaining === 0 ? '#E7F3F1' : '#FFF4E8',
+      resultFg: remaining === 0 ? '#0B5E5E' : '#A33A0B',
+      resultText: remaining === 0 ? 'upcoming conflicts. Every backup centre stays open until Kim Keat reopens.' : 'upcoming conflicts still to fix. On these days Kim Keat’s diners lose their nearest backup too.'
+    };
+  }
+}
+</script>
+</body>
+</html>

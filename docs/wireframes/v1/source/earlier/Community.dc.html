@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Community list</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F4F5F7}
+a{color:#0B5E5E}a:hover{color:#073F3F}
+</style>
+</helmet>
+<div style="font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #16202A; background: #F4F5F7; min-height: 1040px; box-sizing: border-box">
+  <header style="background: #16202A; color: #FFFFFF; padding: 16px 32px; display: flex; flex-wrap: wrap; align-items: center; gap: 24px">
+    <div style="font-weight: 700; font-size: 20px; letter-spacing: -0.01em">HawkerReach</div>
+    <nav aria-label="Dashboard tabs" style="display: flex; flex-wrap: wrap; gap: 4px">
+      <a href="Main.dc.html" style="color: #E6EAEE; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-size: 14px">Network overview</a>
+      <a href="Simulator.dc.html" style="color: #E6EAEE; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-size: 14px">Closure simulator</a>
+      <a href="Community.dc.html" style="color: #16202A; background: #FFFFFF; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 14px">Community list</a>
+    </nav>
+    <div style="margin-left: auto; font-size: 13px; color: #B8C2CC">For: town councils and Active Ageing Centres</div>
+  </header>
+
+  <main style="max-width: 1376px; margin: 0 auto; padding: 28px 32px; display: flex; flex-direction: column; gap: 22px">
+    <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end">
+      <div style="flex: 1 1 520px">
+        <h1 style="margin: 0 0 6px; font-size: 28px; font-weight: 700">Who to check on during this closure</h1>
+        <p style="margin: 0; font-size: 15px; color: #4A5562">Kim Keat Palm Market and Food Centre · closed 14 Sep – 13 Dec 2026</p>
+      </div>
+      <button type="button" style="font: inherit; font-size: 14px; font-weight: 600; background: #0B5E5E; color: #FFFFFF; border: 0; border-radius: 8px; padding: 12px 18px; min-height: 44px">Download list (CSV)</button>
+      <button type="button" style="font: inherit; font-size: 14px; font-weight: 600; background: #FFFFFF; color: #16202A; border: 1px solid #C5CDD5; border-radius: 8px; padding: 12px 18px; min-height: 44px">Print</button>
+    </div>
+
+    <section aria-label="Summary" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px">
+      <div style="background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 16px 20px"><div style="font-size: 13px; color: #4A5562">Blocks affected</div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 28px; margin-top: 4px">[N]</div></div>
+      <div style="background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 16px 20px"><div style="font-size: 13px; color: #4A5562">Seniors in those blocks (est.)</div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 28px; margin-top: 4px; color: #A33A0B">[N]</div></div>
+      <div style="background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 16px 20px"><div style="font-size: 13px; color: #4A5562">Of which in rental-flat blocks</div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 28px; margin-top: 4px">[N]</div></div>
+    </section>
+
+    <section aria-label="Affected blocks" style="background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+      <h2 style="margin: 0; font-size: 17px; font-weight: 600">Blocks that lose their walkable hawker centre</h2>
+      <p style="margin: 0; font-size: 13px; color: #4A5562">Sorted by seniors (est.). Walk times at senior pace, 1.0 m/s.</p>
+      <div style="overflow-x: auto">
+        <table style="width: 100%; min-width: 820px; border-collapse: collapse; font-size: 14px">
+          <thead>
+            <tr style="text-align: left; color: #4A5562; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em">
+              <th style="padding: 10px 8px; border-bottom: 1px solid #DDE2E7">Block</th>
+              <th style="padding: 10px 8px; border-bottom: 1px solid #DDE2E7; text-align: right">Seniors (est.)</th>
+              <th style="padding: 10px 8px; border-bottom: 1px solid #DDE2E7; text-align: right">Rental flats</th>
+              <th style="padding: 10px 8px; border-bottom: 1px solid #DDE2E7">Nearest open centre</th>
+              <th style="padding: 10px 8px; border-bottom: 1px solid #DDE2E7; text-align: right">Walk before</th>
+              <th style="padding: 10px 8px; border-bottom: 1px solid #DDE2E7; text-align: right">Walk now</th>
+              <th style="padding: 10px 8px; border-bottom: 1px solid #DDE2E7">Tier now</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td style="padding: 12px 8px; border-bottom: 1px solid #EEF1F4">Blk [##] Toa Payoh Lor 7</td><td style="padding: 12px 8px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">[N]</td><td style="padding: 12px 8px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">[N]</td><td style="padding: 12px 8px; border-bottom: 1px solid #EEF1F4">Toa Payoh Lor 5 Blk 75</td><td style="padding: 12px 8px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">[N] min</td><td style="padding: 12px 8px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">[N] min</td><td style="padding: 12px 8px; border-bottom: 1px solid #EEF1F4"><span style="background: #A33A0B; color: #FFFFFF; font-size: 12px; padding: 3px 8px; border-radius: 4px">T4 cliff</span></td></tr>
+            <tr><td style="padding: 12px 8px; border-bottom: 1px solid #EEF1F4">Blk [##] Toa Payoh Lor 7</td><td style="padding: 12px 8px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">[N]</td><td style="padding: 12px 8px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">[N]</td><td style="padding: 12px 8px; border-bottom: 1px solid #EEF1F4">Toa Payoh Lor 8 Blk 210</td><td style="padding: 12px 8px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">[N] min</td><td style="padding: 12px 8px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">[N] min</td><td style="padding: 12px 8px; border-bottom: 1px solid #EEF1F4"><span style="background: #A33A0B; color: #FFFFFF; font-size: 12px; padding: 3px 8px; border-radius: 4px">T4 cliff</span></td></tr>
+            <tr><td style="padding: 12px 8px; border-bottom: 1px solid #EEF1F4">Blk [##] [Street]</td><td style="padding: 12px 8px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">[N]</td><td style="padding: 12px 8px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">[N]</td><td style="padding: 12px 8px; border-bottom: 1px solid #EEF1F4">Toa Payoh Lor 4 Blk 93</td><td style="padding: 12px 8px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">[N] min</td><td style="padding: 12px 8px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">[N] min</td><td style="padding: 12px 8px; border-bottom: 1px solid #EEF1F4"><span style="background: #F2B880; color: #3A1A04; font-size: 12px; padding: 3px 8px; border-radius: 4px">T3 at risk</span></td></tr>
+            <tr><td style="padding: 12px 8px; border-bottom: 1px solid #EEF1F4">Blk [##] [Street]</td><td style="padding: 12px 8px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">[N]</td><td style="padding: 12px 8px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">[N]</td><td style="padding: 12px 8px; border-bottom: 1px solid #EEF1F4">Toa Payoh Lor 5 Blk 75</td><td style="padding: 12px 8px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">[N] min</td><td style="padding: 12px 8px; border-bottom: 1px solid #EEF1F4; text-align: right; font-family: 'IBM Plex Mono', monospace">[N] min</td><td style="padding: 12px 8px; border-bottom: 1px solid #EEF1F4"><span style="background: #F2B880; color: #3A1A04; font-size: 12px; padding: 3px 8px; border-radius: 4px">T3 at risk</span></td></tr>
+            <tr><td style="padding: 12px 8px">Blk [##] [Street]</td><td style="padding: 12px 8px; text-align: right; font-family: 'IBM Plex Mono', monospace">[N]</td><td style="padding: 12px 8px; text-align: right; font-family: 'IBM Plex Mono', monospace">[N]</td><td style="padding: 12px 8px">Toa Payoh Lor 8 Blk 210</td><td style="padding: 12px 8px; text-align: right; font-family: 'IBM Plex Mono', monospace">[N] min</td><td style="padding: 12px 8px; text-align: right; font-family: 'IBM Plex Mono', monospace">[N] min</td><td style="padding: 12px 8px"><span style="background: #F2B880; color: #3A1A04; font-size: 12px; padding: 3px 8px; border-radius: 4px">T3 at risk</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section aria-label="Suggested actions" style="background: #EEF5F5; border-radius: 10px; padding: 16px 20px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; color: #16202A">
+      <strong>Suggested actions for this closure</strong>
+      <div>Prioritise befriending calls and meal support for T4 blocks, starting with rental-flat blocks.</div>
+      <div>Share the nearest open centre and walk time with residents in each block.</div>
+      <div style="font-size: 13px; color: #4A5562">Senior counts are estimates from SingStat June 2026 and each block's flat mix, not names or addresses of individuals.</div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1040}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
