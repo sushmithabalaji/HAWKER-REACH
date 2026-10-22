@@ -30,7 +30,9 @@ The spec's owner builds all of its tickets.
 
 ## Decisions
 
-- Walking paces: 1.4 / 1.2 / 1.0 m/s (brisk / typical / senior), as in `04_gold_access`. Page 2's age-group control maps onto these.
+Spec 1's assumptions and decisions are in `ASSUMPTIONS.md`.
+
+- Walking paces: 1.4 / 1.2 / 1.0 m/s (brisk / typical / senior), as in `04_gold_access`. Page 2 has no age-group control in the MVP; seniors walk at 1.0 m/s.
 - Walking distance cutoff: 2 km, as in `silver.dist_matrix`.
 - Diners per centre per day = residents whose nearest centre it is × 0.83 (NEA Perception Survey of Hawker Centre Patrons 2018) × visits per week ÷ 7. Base case 3 visits/week; range 1–5. Tagged ASSUMPTION.
 - The AAC column in the meal-support list is Phase 2 (waits on MSF data).
