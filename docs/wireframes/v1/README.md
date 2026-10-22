@@ -1,7 +1,7 @@
 # HawkerReach wireframe: first draft (v1)
 
 **Live, clickable version:** https://claude.ai/artifact/XhisvM4eC1ecGd19QL2b5D
-**Snapshot taken:** 2026-10-21
+**Snapshot taken:** 2026-10-22 (first taken 2026-10-21; see Changes)
 
 The `.dc.html` files in `source/` are template files from the Claude Design canvas. They contain `{{placeholders}}` and only render inside the artifact, so open the link above to see the screens. The files are kept here so the specs and tickets can quote exact labels, controls and table names.
 
@@ -15,7 +15,7 @@ Question it answers: *if this centre closes, where do its diners go, and what el
 
 1. **Pick an anchor centre** by searching operating NEA centres or clicking one on the map. Up to 5 more centres can be added to "also close at the same time". Closure dates come from the NEA schedule, or the user enters them.
 2. **Where displaced diners go:** a ripple map from the closed centre, with lines showing each neighbour's share and the extra diners it absorbs.
-3. **Can these close together?** Each selected centre gets red, yellow or green, with the reasons, its share of displaced diners, and any blocks left with no centre in range.
+3. **Can these close together?** Each selected centre gets red, yellow or green, with the reasons, its share of displaced diners, and any blocks left with no centre in range. Below the map and verdict sit a one-line takeaway, then six headline numbers, each with its tag and source table.
 4. **Demand dispersion and waste:** extra diners per day per centre and per stall, plus extra waste. Centres over +20% are flagged with suggested actions.
 5. **Good candidates to schedule alongside:** nearby centres with no overlapping closure, showing years since their last major works.
 6. **Assumptions and thresholds** panel.
@@ -58,3 +58,7 @@ Page 1 tags every number **MEASURED**, **MODELLED** or **ASSUMPTION** and shows 
 - Should every estimated number get a small "Modelled" tag, with a single Assumptions panel covering walking paces, time thresholds and senior-count estimates? Page 1 already does this; Page 2 doesn't yet.
 - Can someone follow the flow without being walked through it: pick a centre → see who's cut off → see what to do next? Right now the flow is split across the two pages.
 - Anchor case: Kim Keat Palm's nearest neighbour is only about 460 m away, so in Toa Payoh the story may be overload rather than lost access. The notes say to pick the final anchor after the model runs.
+
+## Changes
+
+- 2026-10-22: Page 1's takeaway and headline numbers moved from the top of the page to below the map. Page order is now controls → map and verdict → takeaway → headline numbers → demand and candidates → assumptions.

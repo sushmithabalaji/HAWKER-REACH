@@ -80,21 +80,6 @@ body{margin:0;background:#F4F5F7}
       </div>
     </section>
 
-    <!-- 2 HEADLINE NUMBERS -->
-    <section aria-label="Headline numbers" style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px">
-      <sc-for list="{{kpis}}" as="k" hint-placeholder-count="6">
-        <div style="background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px">
-          <div style="font-family: 'IBM Plex Mono', monospace; font-size: {{k.size}}; line-height: 1.2; color: {{k.color}}">{{k.value}}</div>
-          <div style="font-size: 12px; color: #34404D; flex: 1 1 auto">{{k.label}}</div>
-          <div><span class="cs-tag" style="{{k.tagStyle}}">{{k.tag}}</span></div>
-          <div class="cs-src">{{k.src}}</div>
-        </div>
-      </sc-for>
-    </section>
-
-    <!-- 3 TAKEAWAY -->
-    <section aria-label="Takeaway" style="background: #16202A; color: #FFFFFF; border-radius: 12px; padding: 14px 20px; font-size: 18px; line-height: 1.45">{{takeaway}}</section>
-
     <!-- 4 MAIN ROW -->
     <div style="display: flex; flex-wrap: nowrap; gap: 16px; align-items: stretch">
       <section aria-label="Map" style="flex: 1 1 auto; min-width: 0; background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 12px; padding: 14px 18px; display: flex; flex-direction: column; gap: 10px">
@@ -154,6 +139,21 @@ body{margin:0;background:#F4F5F7}
         </section>
       </aside>
     </div>
+
+    <!-- 3 TAKEAWAY -->
+    <section aria-label="Takeaway" style="background: #16202A; color: #FFFFFF; border-radius: 12px; padding: 14px 20px; font-size: 18px; line-height: 1.45">{{takeaway}}</section>
+
+    <!-- 2 HEADLINE NUMBERS -->
+    <section aria-label="Headline numbers" style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px">
+      <sc-for list="{{kpis}}" as="k" hint-placeholder-count="6">
+        <div style="background: #FFFFFF; border: 1px solid #DDE2E7; border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: {{k.size}}; line-height: 1.2; color: {{k.color}}">{{k.value}}</div>
+          <div style="font-size: 12px; color: #34404D; flex: 1 1 auto">{{k.label}}</div>
+          <div><span class="cs-tag" style="{{k.tagStyle}}">{{k.tag}}</span></div>
+          <div class="cs-src">{{k.src}}</div>
+        </div>
+      </sc-for>
+    </section>
 
     <!-- 5 BELOW MAP -->
     <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
