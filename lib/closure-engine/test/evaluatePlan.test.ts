@@ -159,6 +159,24 @@ describe("evaluatePlan: plan size", () => {
     );
   });
 
+  it("rejects a centre that isn't in gold.centres", () => {
+    expect(() => evaluatePlan(data, "HC_NOPE", [], assumptions)).toThrow(
+      expect.objectContaining({ code: "unknown-centre" }),
+    );
+    expect(() => evaluatePlan(data, "HC_A", ["HC_NOPE"], assumptions)).toThrow(
+      expect.objectContaining({ code: "unknown-centre" }),
+    );
+  });
+
+  it("rejects the anchor or a centre selected twice", () => {
+    expect(() => evaluatePlan(data, "HC_A", ["HC_A"], assumptions)).toThrow(
+      expect.objectContaining({ code: "duplicate-centre" }),
+    );
+    expect(() => evaluatePlan(data, "HC_A", ["HC_B", "HC_B"], assumptions)).toThrow(
+      expect.objectContaining({ code: "duplicate-centre" }),
+    );
+  });
+
   it("reads the limit from assumptions", () => {
     const limitOf2 = withValues({ "plan.max_extra_centres": 2 });
 
@@ -206,6 +224,21 @@ describe("evaluatePlan: headline tiles", () => {
     const { tiles } = evaluatePlan(data, "HC_A", [], assumptions);
 
     expect(tiles.accessLoss).toMatchObject({ limitMin: 15, senior: 2, typical: 1, brisk: 1, tag: "MODELLED" });
+  });
+
+  it("breaks a tie on extra diners per stall by the lower centre_id", () => {
+    const tied = town(
+      [centre("HC_A"), centre("HC_Z", { stalls: 10 }), centre("HC_M", { stalls: 10 })],
+      [
+        block("B1", [["HC_A", 300], ["HC_Z", 600]], { diners: 50 }),
+        block("B2", [["HC_A", 300], ["HC_M", 600]], { diners: 50 }),
+      ],
+    );
+
+    const result = evaluatePlan(tied, "HC_A", [], assumptions);
+
+    expect(result.tiles.biggestLoad.centre?.centreId).toBe("HC_M");
+    expect(result.receivers.map((r) => r.centreId)).toEqual(["HC_M", "HC_Z"]);
   });
 
   it("has no biggest load when nobody moves", () => {

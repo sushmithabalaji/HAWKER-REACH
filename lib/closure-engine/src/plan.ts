@@ -67,7 +67,7 @@ export interface Tiles {
 
 const PACES: Pace[] = ["senior", "typical", "brisk"];
 
-export type PlanErrorCode = "interim-centre" | "too-many-centres";
+export type PlanErrorCode = "interim-centre" | "too-many-centres" | "unknown-centre" | "duplicate-centre";
 
 /** A plan the page must not evaluate; `message` is safe to show the planner. */
 export class PlanError extends Error {
@@ -100,21 +100,27 @@ export function evaluatePlan(
     throw new PlanError("too-many-centres", `Up to ${maxSelected} at once. Remove one to add another.`);
   }
   const centres = new Map(data.centres.map((c) => [c.centre_id, c]));
-  for (const id of [anchorId, ...selectedIds]) {
+  const planIds = [anchorId, ...selectedIds];
+  for (const id of planIds) {
     const centre = centres.get(id);
-    if (centre?.is_interim) {
+    if (!centre) throw new PlanError("unknown-centre", `No centre with id ${id}.`);
+    if (centre.is_interim) {
       throw new PlanError("interim-centre", `${centre.name} is an interim centre and can't be closed in a plan.`);
     }
   }
 
+  const closed = new Set(planIds);
+  if (closed.size < planIds.length) {
+    throw new PlanError("duplicate-centre", "Each centre can be in the plan only once.");
+  }
+
   const cutoffM = value(assumptions, "walk.cutoff_m");
-  const closed = new Set([anchorId, ...selectedIds]);
   const extra = new Map<string, number>();
   let displaced = 0;
   const unserved = { blocks: 0, residents: 0, dinersPerDay: 0 };
-  const limitS = value(assumptions, "walk.limit_min") * 60;
+  const limitMin = value(assumptions, "walk.limit_min");
   const limitM = Object.fromEntries(
-    PACES.map((pace) => [pace, value(assumptions, `walk.pace.${pace}`) * limitS]),
+    PACES.map((pace) => [pace, value(assumptions, `walk.pace.${pace}`) * limitMin * 60]),
   ) as Record<Pace, number>;
   const accessLoss = Object.fromEntries(
     PACES.map((pace): [Pace, AccessLoss] => [pace, { blocks: 0, seniors: 0, blockIds: [] }]),
@@ -144,21 +150,26 @@ export function evaluatePlan(
   const demand = new Map(data.centreDemand.map((d) => [d.centre_id, d]));
   const receivers = [...extra]
     .map(([centreId, extraDinersPerDay]): Receiver => {
+      const centre = centres.get(centreId)!;
       const baseline = demand.get(centreId)?.baseline_diners_per_day ?? 0;
       return {
         centreId,
-        name: centres.get(centreId)!.name,
+        name: centre.name,
         extraDinersPerDay,
-        extraDinersPerStall: extraDinersPerDay / centres.get(centreId)!.cooked_food_stalls,
+        extraDinersPerStall: extraDinersPerDay / centre.cooked_food_stalls,
         pctOverBaseline: baseline > 0 ? (extraDinersPerDay / baseline) * 100 : "new",
         shareOfDisplaced: extraDinersPerDay / displaced,
       };
     })
-    .sort((a, b) => b.extraDinersPerDay - a.extraDinersPerDay);
+    .sort((a, b) => b.extraDinersPerDay - a.extraDinersPerDay || byCentreId(a, b));
 
-  const limitMin = value(assumptions, "walk.limit_min");
   const biggest = receivers.reduce<Receiver | null>(
-    (worst, r) => (!worst || r.extraDinersPerStall > worst.extraDinersPerStall ? r : worst),
+    (worst, r) =>
+      !worst ||
+      r.extraDinersPerStall > worst.extraDinersPerStall ||
+      (r.extraDinersPerStall === worst.extraDinersPerStall && byCentreId(r, worst) < 0)
+        ? r
+        : worst,
     null,
   );
   const tiles: Tiles = {
@@ -190,7 +201,7 @@ export function evaluatePlan(
 
   const top = receivers[0];
   const takeaway: TakeawayParts = {
-    closedCentreNames: [anchorId, ...selectedIds].map((id) => centres.get(id)?.name ?? id),
+    closedCentreNames: planIds.map((id) => centres.get(id)!.name),
     displacedDinersPerDay: roundTo10(displaced),
     receiverCount: receivers.length,
     topReceiver: top ? { name: top.name, shareOfDisplaced: top.shareOfDisplaced } : null,
@@ -221,10 +232,15 @@ function groupBlocks(rows: BlockOptionRow[], cutoffM: number): Block[] {
   }
   for (const block of blocks.values()) {
     block.options.sort(
-      (a, b) => a.walkM - b.walkM || (a.centreId < b.centreId ? -1 : 1),
+      (a, b) => a.walkM - b.walkM || byCentreId(a, b),
     );
   }
   return [...blocks.values()];
+}
+
+/** `centre_id` ascending, by code point to match Spark's ORDER BY. */
+function byCentreId(a: { centreId: string }, b: { centreId: string }): number {
+  return a.centreId < b.centreId ? -1 : a.centreId > b.centreId ? 1 : 0;
 }
 
 function roundTo10(n: number): number {
