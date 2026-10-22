@@ -2,14 +2,12 @@
 
 Databricks notebooks (`01_ingest` → `04_gold_access`) build bronze, silver and gold tables in the `hawkerreach` catalog. The app in `app/` is a React (Vite) front end with deck.gl maps, served by a small Node (Express) API that reads gold tables through `@databricks/sql`, deployed as a Databricks App. No Python UI frameworks (no Streamlit, Dash or FastAPI). The current `app/app.py` is a Streamlit placeholder that Spec 1 replaces. Overview: `docs/architecture.md`; reasoning: `docs/adr/0001-react-and-node-on-databricks-apps.md`. Screens are in `docs/wireframes/v1/README.md`.
 
-Spec plan, owners and decisions: https://claude.ai/artifact/7uk6RK7GPj3vmKCqhwVhpi
-
 ## Spec owners
 
 | Spec | Owner |
 |---|---|
 | 1 · Seniors & access page (gold `block_access` v2, `subzone_seniors`, app shell, Page 2) | Sushmitha |
-| 2 · Closure scenario model (gold `closure_scenarios`, `neighbour_load`, `closure_conflicts`, `closure_queue`) | Saanvi |
+| 2 · Closure scenario model (gold `block_options`, `centre_demand`, `closure_scenarios`; notebook `05_gold_closures`; see #6) | Saanvi |
 | 3 · Closure scenarios page: ripple and "can these close together?" | Aanya |
 | 4 · Demand, waste and scheduling candidates | Aanya |
 | 5 · Demo readiness | Everyone |
