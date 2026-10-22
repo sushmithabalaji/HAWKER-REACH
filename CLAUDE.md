@@ -30,7 +30,7 @@ The spec's owner builds all of its tickets.
 
 ## Decisions
 
-Spec 1's assumptions and decisions are in `ASSUMPTIONS.md`.
+Spec 1's assumptions and decisions are in `ASSUMPTIONS.md`. Values that more than one spec reads (notebooks and app) live in `assumptions.json` at the repo root; change them there. Each entry has a `status`: `sourced` (outside source or data check), `open` (still needs one) or `decided` (a team or design choice).
 
 - Walking paces: 1.4 / 1.2 / 1.0 m/s (brisk / typical / senior), as in `04_gold_access`. Page 2 has no age-group control in the MVP; seniors walk at 1.0 m/s.
 - Walking distance cutoff: 2 km, as in `silver.dist_matrix`.
