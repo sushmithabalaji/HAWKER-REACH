@@ -161,8 +161,8 @@
     ]
   },
   "access.sensitivity_limits_min": {
-    "name": "Time limits for the sensitivity runs",
-    "value": "10, 15, 20",
+    "name": "Extra time limits for the sensitivity runs (the base limit is walk.limit_min)",
+    "value": "10, 20",
     "unit": "min",
     "tag": "ASSUMPTION",
     "source": "Team decision (ASSUMPTIONS.md, access_sensitivity)",

@@ -1,4 +1,4 @@
-"""Walking-access tiers, shared by 04_gold_access and 05_gold_closures (ASSUMPTIONS.md, Access model).
+"""Walking-access tiers for 04_gold_access; 05_gold_closures should import these rather than compute its own (ASSUMPTIONS.md).
 
 At a time limit, a block's walk to its nearest open centre is:
   T1  a senior (slowest pace) can walk it
@@ -25,18 +25,21 @@ def reach_m(limit_min, paces):
     return tuple(paces[k] * limit_min * 60 for k in PACE_KEYS)
 
 
+def bands(limit_min, paces):
+    """(tier, upper bound in metres) for T1-T3; anything beyond, or no centre, is T4."""
+    return list(zip(("T1", "T2", "T3"), reach_m(limit_min, paces)))
+
+
 def tier_of(walk_m, limit_min, paces):
     if walk_m is None:
         return "T4"
-    for name, bound in zip(("T1", "T2", "T3"), reach_m(limit_min, paces)):
-        if walk_m <= bound:
-            return name
-    return "T4"
+    return next((name for name, bound in bands(limit_min, paces) if walk_m <= bound), "T4")
 
 
 def tier_expr(col, limit_min, paces):
-    """Spark Column version of tier_of, for the same thresholds."""
+    """Spark Column version of tier_of, built from the same bands."""
     from pyspark.sql import functions as F
-    t1, t2, t3 = reach_m(limit_min, paces)
-    return (F.when(col.isNull(), "T4").when(col <= t1, "T1").when(col <= t2, "T2")
-            .when(col <= t3, "T3").otherwise("T4"))
+    expr = F.when(col.isNull(), "T4")
+    for name, bound in bands(limit_min, paces):
+        expr = expr.when(col <= bound, name)
+    return expr.otherwise("T4")
