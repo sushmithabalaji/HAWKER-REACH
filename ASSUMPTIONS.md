@@ -60,7 +60,8 @@ Where this file disagrees with the wireframe, this file wins.
 - HDB residents only, throughout the project.
 - **Super-aged threshold:** ≥ 21% aged 65+, tagged ASSUMPTION, with source "Super-aged threshold: ≥21% aged 65+ (MOH definition; NPTD Population in Brief 2026)". The Assumptions panel notes that our `pct_65p` uses SingStat residents, while the official figure uses citizens.
 - **Multiplier:** subzone % aged 65+ ÷ national HDB % aged 65+.
-- **Small subzones:** under 50 HDB residents get null `pct_65p` and multiplier.
+- **Small subzones:** under 50 HDB residents get null `pct_65p`, multiplier and `is_super_aged`. Subzones with no HDB residents at all get no row in `subzone_seniors` (159 of SingStat's 332 have HDB residents); they still have a shape.
+- **HDB residents and seniors per subzone** are the measured SingStat totals, kept by `02_silver` as `silver.subzone_population`, not sums of the block estimates.
 - **`subzone_id`:** `subzone_id = subzone_c` everywhere.
   - Blocks get `subzone_c` from the silver spatial join.
   - Only the SingStat population joins by name (uppercased and trimmed), mapped once to `subzone_c`. Unmatched names go to `data_quality_log`.
@@ -70,7 +71,7 @@ Where this file disagrees with the wireframe, this file wins.
 - **`block_access`** (one row per block): `block_id`, `block_label` (blk_no + street), `subzone_id`, `pln_area_n`, `lon`, `lat`, `est_seniors`, `nearest_centre_id`, `nearest_walk_m`, `tier_now`, `second_centre_id`, `second_walk_m`, `tier_if_nearest_closes`, `third_centre_id`, `third_walk_m`.
 - **`access_sensitivity`**: one row per (`closed_centre_id`, `limit_min` 10/15/20) for every closable (non-interim) centre, with `seniors_cut_off`, `seniors_no_one_can_walk`, `seniors_already_without`, `seniors_now_worse`, `blocks_cut_off`.
 - **`subzone_seniors`**: `subzone_id`, `subzone_name`, `pln_area_n`, `hdb_residents`, `hdb_seniors`, `pct_65p`, `multiplier`, `is_super_aged`. No geometry.
-- **`subzone_shapes`**: `subzone_id`, `name`, `planning_area`, `geometry`. Built from `silver.subzones` by:
+- **`subzone_shapes`**: `subzone_id`, `name`, `planning_area`, `geometry` (all 332 subzones, about 0.7 MB of GeoJSON). Simplified as one coverage so neighbours share borders. Built from `silver.subzones` by:
   1. `make_valid`
   2. Project to SVY21 (EPSG:3414) and simplify to 15 m, preserving topology
   3. Project back to WGS84
