@@ -1,0 +1,249 @@
+{
+  "diners.eating_share": {
+    "name": "Share of residents who eat at hawker centres",
+    "value": 0.83,
+    "unit": "share",
+    "tag": "ASSUMPTION",
+    "source": "NEA Perception Survey of Hawker Centre Patrons 2018 (adults 18-69, applied to all residents in 2026); the Assumptions panel states this stretch",
+    "status": "sourced",
+    "owner": "Saanvi",
+    "used_by": [
+      "spec2",
+      "spec3",
+      "spec4"
+    ]
+  },
+  "diners.visits_per_week.base": {
+    "name": "Hawker centre visits per week, base case",
+    "value": 3,
+    "unit": "visits/week",
+    "tag": "ASSUMPTION",
+    "source": "Team decision (CLAUDE.md Decisions)",
+    "status": "open",
+    "owner": "Saanvi",
+    "used_by": [
+      "spec2",
+      "spec3",
+      "spec4"
+    ]
+  },
+  "diners.visits_per_week.min": {
+    "name": "Hawker centre visits per week, low end of range",
+    "value": 1,
+    "unit": "visits/week",
+    "tag": "ASSUMPTION",
+    "source": "Team decision (CLAUDE.md Decisions)",
+    "status": "open",
+    "owner": "Saanvi",
+    "used_by": [
+      "spec2",
+      "spec3",
+      "spec4"
+    ]
+  },
+  "diners.visits_per_week.max": {
+    "name": "Hawker centre visits per week, high end of range",
+    "value": 5,
+    "unit": "visits/week",
+    "tag": "ASSUMPTION",
+    "source": "Team decision (CLAUDE.md Decisions)",
+    "status": "open",
+    "owner": "Saanvi",
+    "used_by": [
+      "spec2",
+      "spec3",
+      "spec4"
+    ]
+  },
+  "undercount_factor": {
+    "name": "Possibly under-counted: residents per stall below this share of the median",
+    "value": 0.1,
+    "unit": "share of median",
+    "tag": "ASSUMPTION",
+    "source": "Spec 2 / Spec 3 check on silver: 0.1 flags 18 centres, mostly CBD and Chinatown; can also flag tight clusters",
+    "status": "sourced",
+    "owner": "Saanvi",
+    "used_by": [
+      "spec2",
+      "spec3"
+    ]
+  },
+  "walk.cutoff_m": {
+    "name": "Walking distance cutoff",
+    "value": 2000,
+    "unit": "m",
+    "tag": "ASSUMPTION",
+    "source": "silver.dist_matrix (CLAUDE.md Decisions)",
+    "status": "decided",
+    "owner": "Sushmitha",
+    "used_by": [
+      "spec1",
+      "spec2",
+      "spec3"
+    ]
+  },
+  "walk.pace.brisk": {
+    "name": "Walking pace, brisk",
+    "value": 1.4,
+    "unit": "m/s",
+    "tag": "ASSUMPTION",
+    "source": "04_gold_access; gait-speed source still to find",
+    "status": "open",
+    "owner": "Sushmitha",
+    "used_by": [
+      "spec1",
+      "spec3"
+    ]
+  },
+  "walk.pace.typical": {
+    "name": "Walking pace, typical",
+    "value": 1.2,
+    "unit": "m/s",
+    "tag": "ASSUMPTION",
+    "source": "04_gold_access; gait-speed source still to find",
+    "status": "open",
+    "owner": "Sushmitha",
+    "used_by": [
+      "spec1",
+      "spec3"
+    ]
+  },
+  "walk.pace.senior": {
+    "name": "Walking pace, senior (65+)",
+    "value": 1.0,
+    "unit": "m/s",
+    "tag": "ASSUMPTION",
+    "source": "04_gold_access; gait-speed source still to find",
+    "status": "open",
+    "owner": "Sushmitha",
+    "used_by": [
+      "spec1",
+      "spec2",
+      "spec3"
+    ]
+  },
+  "walk.limit_min": {
+    "name": "Walking time limit",
+    "value": 15,
+    "unit": "min",
+    "tag": "ASSUMPTION",
+    "source": "ASSUMPTIONS.md (Spec 1); source still to find",
+    "status": "open",
+    "owner": "Sushmitha",
+    "used_by": [
+      "spec1",
+      "spec2",
+      "spec3"
+    ]
+  },
+  "access.super_aged_share": {
+    "name": "Super-aged threshold, share of residents aged 65+",
+    "value": 0.21,
+    "unit": "share",
+    "tag": "ASSUMPTION",
+    "source": "MOH definition of a super-aged society; NPTD Population in Brief 2026. Our share uses SingStat HDB residents, the official figure uses citizens",
+    "status": "sourced",
+    "owner": "Sushmitha",
+    "used_by": [
+      "spec1"
+    ]
+  },
+  "access.meal_support_walk_min": {
+    "name": "Walking buddy if the nearest open centre is within this walk at the senior pace",
+    "value": 30,
+    "unit": "min",
+    "tag": "ASSUMPTION",
+    "source": "Team decision (ASSUMPTIONS.md, meal-support rule)",
+    "status": "decided",
+    "owner": "Sushmitha",
+    "used_by": [
+      "spec1"
+    ]
+  },
+  "access.sensitivity_limits_min": {
+    "name": "Extra time limits for the sensitivity runs (the base limit is walk.limit_min)",
+    "value": "10, 20",
+    "unit": "min",
+    "tag": "ASSUMPTION",
+    "source": "Team decision (ASSUMPTIONS.md, access_sensitivity)",
+    "status": "decided",
+    "owner": "Sushmitha",
+    "used_by": [
+      "spec1",
+      "spec2"
+    ]
+  },
+  "access.min_subzone_residents": {
+    "name": "Fewest HDB residents for a subzone to get a % aged 65+ and a multiplier",
+    "value": 50,
+    "unit": "residents",
+    "tag": "ASSUMPTION",
+    "source": "Team decision (ASSUMPTIONS.md, small subzones)",
+    "status": "decided",
+    "owner": "Sushmitha",
+    "used_by": [
+      "spec1"
+    ]
+  },
+  "verdict.access.min_new_blocks": {
+    "name": "Red if at least this many more blocks lose a centre within the limit at senior pace",
+    "value": 1,
+    "unit": "blocks",
+    "tag": "ASSUMPTION",
+    "source": "Spec 3: a joint closure must not cut anyone off who wasn't already",
+    "status": "decided",
+    "owner": "Aanya",
+    "used_by": [
+      "spec3"
+    ]
+  },
+  "verdict.load.yellow_quantile": {
+    "name": "Yellow above this quantile of extra diners per stall caused by single NEA closures",
+    "value": 0.5,
+    "unit": "quantile",
+    "tag": "ASSUMPTION",
+    "source": "Spec 3: benchmark against the single closures NEA already runs",
+    "status": "decided",
+    "owner": "Aanya",
+    "used_by": [
+      "spec3"
+    ]
+  },
+  "verdict.load.red_quantile": {
+    "name": "Red above this quantile of extra diners per stall caused by single NEA closures",
+    "value": 0.75,
+    "unit": "quantile",
+    "tag": "ASSUMPTION",
+    "source": "Spec 3: benchmark against the single closures NEA already runs",
+    "status": "decided",
+    "owner": "Aanya",
+    "used_by": [
+      "spec3"
+    ]
+  },
+  "actions.waste.extra_per_stall_share": {
+    "name": "NEA actions line when extra diners per stall exceed this share of a typical centre's diners per stall",
+    "value": 0.2,
+    "unit": "share",
+    "tag": "ASSUMPTION",
+    "source": "Wireframe v1 (+20% waste flag)",
+    "status": "open",
+    "owner": "Aanya",
+    "used_by": [
+      "spec3",
+      "spec4"
+    ]
+  },
+  "plan.max_extra_centres": {
+    "name": "Most centres that can close alongside the anchor",
+    "value": 5,
+    "unit": "centres",
+    "tag": "ASSUMPTION",
+    "source": "Wireframe v1",
+    "status": "decided",
+    "owner": "Aanya",
+    "used_by": [
+      "spec3"
+    ]
+  }
+}

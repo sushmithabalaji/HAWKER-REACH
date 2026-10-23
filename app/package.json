@@ -21,6 +21,7 @@
     "prebuild": "npm run sync && appkit generate-types --wait",
     "predev": "npm run sync && npm run typegen",
     "sync": "appkit plugin sync --write --silent",
+    "sync:assumptions": "cp ../assumptions.json shared/assumptions.json",
     "typegen": "appkit generate-types",
     "setup": "appkit setup --write"
   },

@@ -1,183 +1,37 @@
-# hawkerreach
+# HawkerReach app
 
-A Databricks App powered by [AppKit](https://developers.databricks.com/docs/appkit/v0/), featuring React, TypeScript, and Tailwind CSS.
+A Databricks App built with [AppKit](https://developers.databricks.com/docs/appkit/v0/) (React + Vite on AppKit's Node server). It reads gold tables in `hawkerreach.gold` through SQL query files. Why AppKit: `docs/adr/0002-appkit-for-the-app.md`.
 
-**Enabled plugins:**
-- **Analytics** -- SQL query execution against Databricks SQL Warehouses
-- **Server** -- Express HTTP server with static file serving and Vite dev mode
-
-## Prerequisites
-
-- Node.js v22+ and npm
-- Databricks CLI (for deployment)
-- Access to a Databricks workspace
-
-## Databricks Authentication
-
-### Local Development
-
-For local development, configure your environment variables by creating a `.env` file:
+## Run it
 
 ```bash
-cp .env.example .env
-```
-
-Edit `.env` and set the environment variables you need:
-
-```env
-DATABRICKS_HOST=https://your-workspace.cloud.databricks.com
-DATABRICKS_APP_PORT=8000
-# ... other environment variables, depending on the plugins you use
-```
-
-### CLI Authentication
-
-The Databricks CLI requires authentication to deploy and manage apps. Configure authentication using one of these methods:
-
-#### OAuth U2M
-
-Interactive browser-based authentication with short-lived tokens:
-
-```bash
-databricks auth login --host https://your-workspace.cloud.databricks.com
-```
-
-This will open your browser to complete authentication. The CLI saves credentials to `~/.databrickscfg`.
-
-#### Configuration Profiles
-
-Use multiple profiles for different workspaces:
-
-```ini
-[DEFAULT]
-host = https://dev-workspace.cloud.databricks.com
-
-[production]
-host = https://prod-workspace.cloud.databricks.com
-client_id = prod-client-id
-client_secret = prod-client-secret
-```
-
-Deploy using a specific profile:
-
-```bash
-databricks bundle deploy --profile production
-```
-
-**Note:** Personal Access Tokens (PATs) are legacy authentication. OAuth is strongly recommended for better security.
-
-## Getting Started
-
-### Install Dependencies
-
-```bash
+cp .env.example .env               # set DATABRICKS_HOST (or DATABRICKS_CONFIG_PROFILE) and DATABRICKS_WAREHOUSE_ID
 npm install
+npm run dev                        # local, against the real warehouse
+databricks apps validate           # typegen, lint, typecheck, build, tests
+databricks apps deploy             # validate, deploy and start the app
 ```
 
-### Development
+Typegen needs a signed-in profile. If `DATABRICKS_CONFIG_PROFILE` points at one you haven't signed in to, typegen goes offline and query results become `unknown`. Run `databricks auth login --profile <name>` first.
 
-Run the app in development mode with hot reload:
+The app's service principal needs gold-only read grants: `Sql/01_app_grants.sql`.
 
-```bash
-npm run dev
-```
+## Where things go
 
-The app will be available at the URL shown in the console output.
+| What | Where |
+|---|---|
+| A page | `client/src/pages/<page>/`, with its component and its `assumptions.ts` |
+| Adding a page to the sidebar and routes | one entry in `client/src/pages/registry.tsx` (`path`, `label`, `element`, `assumptions`) |
+| A read | `config/queries/<page>_<name>.sql`, gold tables only, named parameters. Run `npm run typegen`, then call it with `useAnalyticsQuery('<page>_<name>', params)` |
+| A custom server route | only for what a SQL file can't do, in `server/server.ts`. Check with the shell owner (Spec 1) first |
+| Pure TypeScript both sides use | `shared/` (no React, Express or AppKit imports), imported as `@shared/...` |
+| Shared UI | `client/src/components/shared/`: `TagBadge`, `AssumptionsPanel` |
+| Tests | Vitest, `<name>.test.ts` next to the code. `npm test` |
 
-### Build
+## Tags and the Assumptions panel
 
-Build both client and server for production:
+Every number shown carries a `<TagBadge tag="MEASURED" | "MODELLED" | "ASSUMPTION" />` and a line in its page's Assumptions panel. A page lists its lines in its `assumptions.ts`, either written out (`text`, `tag`, `source`, `status`) or as `{ key: '<assumptions.json key>' }`, which reads name, value, unit, tag and source from `assumptions.json`. A third kind, `{ limitation: '...' }`, is a known limitation of the model and has no tag. Lines with status `open` show their source with "(source still needed)", or "illustrative, unsourced" when there is no source.
 
-```bash
-npm run build
-```
+Lines a spec owns but shows on another spec's page (for example Spec 2's model lines on Page 1) go in `client/src/assumptions/<spec>.ts`. The page that shows them spreads them into its `assumptions` in the registry, so each spec still edits only its own file.
 
-This creates:
-
-- `dist/server.js` - Compiled server bundle
-- `client/dist/` - Bundled client assets
-
-### Production
-
-Run the production build:
-
-```bash
-npm start
-```
-
-## Code Quality
-
-There are a few commands to help you with code quality:
-
-```bash
-# Type checking
-npm run typecheck
-
-# Linting
-npm run lint
-npm run lint:fix
-
-# Formatting
-npm run format
-npm run format:fix
-```
-
-## Deployment with Databricks Asset Bundles
-
-### 1. Configure Bundle
-
-Update `databricks.yml` with your workspace settings:
-
-```yaml
-targets:
-  default:
-    workspace:
-      host: https://your-workspace.cloud.databricks.com
-```
-
-Make sure to replace all placeholder values in `databricks.yml` with your actual resource IDs.
-
-### 2. Deploy
-
-Deploy and start the app with a single command:
-
-```bash
-databricks apps deploy
-```
-
-`databricks apps deploy` validates the project, deploys it, starts the app, and prints its URL.
-
-### Deploy to Production
-
-1. Configure the production target in `databricks.yml`
-2. Deploy to production:
-
-```bash
-databricks apps deploy -t prod
-```
-
-> **Restarting a stopped app:** apps stop after a period of inactivity. To start one again without redeploying, run `databricks apps start <APP_NAME>`.
-
-## Project Structure
-
-```
-* client/          # React frontend
-  * src/           # Source code
-  * public/        # Static assets
-* server/          # Express backend
-  * server.ts      # Server entry point
-  * routes/        # Routes
-* shared/          # Shared types
-* config/          # Configuration
-  * queries/       # SQL query files
-* databricks.yml   # Bundle configuration
-* app.yaml         # App configuration
-* .env.example     # Environment variables example
-```
-
-## Tech Stack
-
-- **Backend**: Node.js, Express
-- **Frontend**: React.js, TypeScript, Vite, Tailwind CSS, React Router
-- **UI Components**: Radix UI, shadcn/ui
-- **Databricks**: AppKit SDK
+`shared/assumptions.json` is a copy of the repo-root `assumptions.json`, because Databricks only uploads `app/` when it builds the app. Edit the root file, then run `npm run sync:assumptions`. A test fails if the copy drifts.
