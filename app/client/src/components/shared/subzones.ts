@@ -5,7 +5,8 @@ export interface SubzoneShapeRow {
   subzone_id: string;
   name: string;
   planning_area: string;
-  geometry: string; // GeoJSON
+  // GeoJSON. Stored as a string, but AppKit's JSON format sends it already parsed.
+  geometry: string | Geometry;
 }
 
 export interface SubzoneProps {
@@ -19,7 +20,7 @@ export function toFeatureCollection(rows: SubzoneShapeRow[]): FeatureCollection<
     type: 'FeatureCollection',
     features: rows.map(({ geometry, ...props }) => ({
       type: 'Feature',
-      geometry: JSON.parse(geometry) as Geometry,
+      geometry: typeof geometry === 'string' ? (JSON.parse(geometry) as Geometry) : geometry,
       properties: props,
     })),
   };
