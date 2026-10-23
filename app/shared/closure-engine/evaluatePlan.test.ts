@@ -443,6 +443,8 @@ describe('evaluatePlan: takeaway parts', () => {
       topReceiver: { name: 'Gamma Food Court', shareOfDisplaced: 0.75 },
       unservedResidents: 60,
       seniorBlocksLosingAccess: 1,
+      // A alone leaves B3 with no centre, so the plan is red; B's card is green.
+      verdict: { status: 'red', counts: { red: 0, yellow: 0, green: 1 } },
     });
   });
 
