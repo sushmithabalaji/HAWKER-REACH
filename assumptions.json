@@ -136,6 +136,55 @@
       "spec3"
     ]
   },
+  "access.super_aged_share": {
+    "name": "Super-aged threshold, share of residents aged 65+",
+    "value": 0.21,
+    "unit": "share",
+    "tag": "ASSUMPTION",
+    "source": "MOH definition of a super-aged society; NPTD Population in Brief 2026. Our share uses SingStat HDB residents, the official figure uses citizens",
+    "status": "sourced",
+    "owner": "Sushmitha",
+    "used_by": [
+      "spec1"
+    ]
+  },
+  "access.meal_support_walk_min": {
+    "name": "Walking buddy if the nearest open centre is within this walk at the senior pace",
+    "value": 30,
+    "unit": "min",
+    "tag": "ASSUMPTION",
+    "source": "Team decision (ASSUMPTIONS.md, meal-support rule)",
+    "status": "decided",
+    "owner": "Sushmitha",
+    "used_by": [
+      "spec1"
+    ]
+  },
+  "access.sensitivity_limits_min": {
+    "name": "Extra time limits for the sensitivity runs (the base limit is walk.limit_min)",
+    "value": "10, 20",
+    "unit": "min",
+    "tag": "ASSUMPTION",
+    "source": "Team decision (ASSUMPTIONS.md, access_sensitivity)",
+    "status": "decided",
+    "owner": "Sushmitha",
+    "used_by": [
+      "spec1",
+      "spec2"
+    ]
+  },
+  "access.min_subzone_residents": {
+    "name": "Fewest HDB residents for a subzone to get a % aged 65+ and a multiplier",
+    "value": 50,
+    "unit": "residents",
+    "tag": "ASSUMPTION",
+    "source": "Team decision (ASSUMPTIONS.md, small subzones)",
+    "status": "decided",
+    "owner": "Sushmitha",
+    "used_by": [
+      "spec1"
+    ]
+  },
   "verdict.access.min_new_blocks": {
     "name": "Red if at least this many more blocks lose a centre within the limit at senior pace",
     "value": 1,
