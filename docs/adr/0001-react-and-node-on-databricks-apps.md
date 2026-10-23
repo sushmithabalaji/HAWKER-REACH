@@ -1,7 +1,7 @@
 # 0001 · React front end with a Node API, deployed as a Databricks App
 
 **Date:** 2026-10-22
-**Status:** Accepted
+**Status:** Superseded in part by [0002](0002-appkit-for-the-app.md): the app uses AppKit query files instead of hand-written `@databricks/sql` routes
 
 ## Context
 

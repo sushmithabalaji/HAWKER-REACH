@@ -1,6 +1,6 @@
 # Architecture
 
-Databricks notebooks turn public data into gold tables; a React app reads those tables through a small Node API, deployed as a Databricks App.
+Databricks notebooks turn public data into gold tables; a Databricks AppKit app (React front end, Node server) reads those tables through SQL query files, deployed as a Databricks App.
 
 ```
 data.gov.sg + SingStat files ─┐
@@ -13,11 +13,11 @@ Databricks (Unity Catalog: hawkerreach)
   gold    ← 04_gold_access      block_access (+ Spec 1 and 2 tables)
                               ▼
 SQL warehouse
-                              ▲  @databricks/sql
-Node server (Express), deployed as the Databricks App
-  - /api/... routes: read gold tables only
+                              ▲  AppKit Analytics plugin (app service principal)
+AppKit Node server (Express), deployed as the Databricks App
+  - runs config/queries/*.sql: read gold tables only
   - serves the built React files
-                              ▲  fetch /api/...
+                              ▲  useAnalyticsQuery("<page>_<name>", params)
 Browser: React (Vite) + deck.gl maps
 ```
 
@@ -26,13 +26,14 @@ Browser: React (Vite) + deck.gl maps
 | Data platform | Databricks, Unity Catalog `hawkerreach`, bronze / silver / gold schemas | `Sql/00_setup.sql` |
 | Pipeline | Notebooks: PySpark, pandas, shapely, osmium, networkx, scipy | `01_ingest` … `04_gold_access` |
 | Serving | Databricks SQL warehouse | `app/app.yaml` (`sql-warehouse` resource) |
-| API | Node + Express, `@databricks/sql` | `app/` (Spec 1) |
-| UI | React + Vite | `app/` (Spec 1) |
+| App framework | Databricks AppKit, Analytics plugin | `app/` (Spec 1) |
+| Queries | AppKit SQL files, typed with `npm run typegen` | `app/config/queries/` |
+| UI | React + Vite | `app/client/` (Spec 1) |
 | Maps | deck.gl, react-map-gl / MapLibre | `app/` (Spec 1) |
 
 Rules:
 
 - The app reads gold tables only, and does no routing at click time.
-- The browser never talks to Databricks directly; all queries go through the Node API.
+- The browser never talks to Databricks directly; AppKit runs every query on its Node server.
 
-Why React and Node: [ADR 0001](adr/0001-react-and-node-on-databricks-apps.md).
+Why React and Node: [ADR 0001](adr/0001-react-and-node-on-databricks-apps.md). Why AppKit: [ADR 0002](adr/0002-appkit-for-the-app.md).
