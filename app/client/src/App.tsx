@@ -112,8 +112,9 @@ function HomePage() {
           {error && <div className="text-destructive bg-destructive/10 p-3 rounded-md">Error: {error}</div>}
           {data && data.length > 0 && (
             <p className="text-sm text-muted-foreground">
-              <span className="text-2xl font-bold text-primary">{data[0].blocks}</span> HDB blocks in
-              hawkerreach.gold.block_access
+              <span className="text-2xl font-bold text-primary">{data[0].blocks}</span> blocks in
+              hawkerreach.gold.block_access{' '}
+              <span className="ml-1 rounded border px-1.5 py-0.5 text-xs font-medium">MEASURED</span>
             </p>
           )}
         </CardContent>
