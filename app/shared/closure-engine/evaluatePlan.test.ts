@@ -368,6 +368,35 @@ describe('evaluatePlan: headline tiles', () => {
     expect(result.receivers.map((r) => r.centreId)).toEqual(['HC_M', 'HC_Z']);
   });
 
+  it('gives no per-stall load for a centre with 0 stalls, and ranks it last for the biggest load', () => {
+    const zeroStalls = town(
+      [centre('HC_A'), centre('HC_B', { stalls: 10 }), centre('HC_ZERO', { stalls: 0 })],
+      [
+        block(
+          'B1',
+          [
+            ['HC_A', 300],
+            ['HC_ZERO', 500],
+          ],
+          { diners: 500 }
+        ),
+        block(
+          'B2',
+          [
+            ['HC_A', 300],
+            ['HC_B', 600],
+          ],
+          { diners: 50 }
+        ),
+      ]
+    );
+
+    const result = evaluatePlan(zeroStalls, 'HC_A', [], assumptions);
+
+    expect(result.receivers.find((r) => r.centreId === 'HC_ZERO')?.extraDinersPerStall).toBeNull();
+    expect(result.tiles.biggestLoad.centre?.centreId).toBe('HC_B');
+  });
+
   it('has no biggest load when nobody moves', () => {
     const { tiles } = evaluatePlan(data, 'HC_SMALL', [], assumptions);
 

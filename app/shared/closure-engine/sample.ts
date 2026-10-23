@@ -6,13 +6,13 @@ import type { BlockOptionRow, CentreClosureRow, CentreDemandRow, CentreRow, Gold
 export { assumptions };
 
 // As in 05_gold_closures: diners per day = residents × eating share × visits per week ÷ 7.
-const num = (key: string) => assumptions[key]!.value as number;
+const num = (key: string) => assumptions[key].value as number;
 const dinersPerResident = (num('diners.eating_share') * num('diners.visits_per_week.base')) / 7;
 
 /** A copy of assumptions.json with some values changed. */
 export function withValues(values: Record<string, number>): Assumptions {
   const copy = structuredClone(assumptions);
-  for (const [key, value] of Object.entries(values)) copy[key]!.value = value;
+  for (const [key, value] of Object.entries(values)) copy[key].value = value;
   return copy;
 }
 

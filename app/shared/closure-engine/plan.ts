@@ -5,8 +5,8 @@ export interface Receiver {
   centreId: string;
   name: string;
   extraDinersPerDay: number;
-  /** Extra diners per day ÷ `cooked_food_stalls`. */
-  extraDinersPerStall: number;
+  /** Extra diners per day ÷ `cooked_food_stalls`; null for a centre with no stalls, as in gold. */
+  extraDinersPerStall: number | null;
   /** Extra diners as % of the centre's baseline; information only. "new" when the baseline is 0. */
   pctOverBaseline: number | 'new';
   /** Share (0–1) of the plan's displaced diners this centre takes. */
@@ -157,22 +157,17 @@ export function evaluatePlan(
         centreId,
         name: centre.name,
         extraDinersPerDay,
-        extraDinersPerStall: extraDinersPerDay / centre.cooked_food_stalls,
+        extraDinersPerStall: centre.cooked_food_stalls > 0 ? extraDinersPerDay / centre.cooked_food_stalls : null,
         pctOverBaseline: baseline > 0 ? (extraDinersPerDay / baseline) * 100 : 'new',
         shareOfDisplaced: extraDinersPerDay / displaced,
       };
     })
     .sort((a, b) => b.extraDinersPerDay - a.extraDinersPerDay || byCentreId(a, b));
 
-  const biggest = receivers.reduce<Receiver | null>(
-    (worst, r) =>
-      !worst ||
-      r.extraDinersPerStall > worst.extraDinersPerStall ||
-      (r.extraDinersPerStall === worst.extraDinersPerStall && byCentreId(r, worst) < 0)
-        ? r
-        : worst,
-    null
-  );
+  // Same order as closure_scenarios' worst neighbour: most extra diners per stall, nulls last, then centre_id.
+  const biggest = [...receivers].sort(
+    (a, b) => (b.extraDinersPerStall ?? -Infinity) - (a.extraDinersPerStall ?? -Infinity) || byCentreId(a, b)
+  )[0];
   const tiles: Tiles = {
     displaced: {
       dinersPerDay: roundTo10(displaced),
@@ -181,12 +176,14 @@ export function evaluatePlan(
       source: 'gold.block_options',
     },
     biggestLoad: {
-      centre: biggest && {
-        centreId: biggest.centreId,
-        name: biggest.name,
-        extraDinersPerStall: biggest.extraDinersPerStall,
-        pctOverBaseline: biggest.pctOverBaseline,
-      },
+      centre: biggest
+        ? {
+            centreId: biggest.centreId,
+            name: biggest.name,
+            extraDinersPerStall: biggest.extraDinersPerStall,
+            pctOverBaseline: biggest.pctOverBaseline,
+          }
+        : null,
       tag: 'MODELLED',
       source: 'gold.block_options, gold.centres, gold.centre_demand',
     },
