@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { canClose, searchCentres, townLabel, townsOf, type Centre } from './centres';
+import { canClose, searchCentres, toCentre, townLabel, townsOf, type Centre } from './centres';
 
 const centre = (centre_id: string, name: string, pln_area_n: string, is_interim = false): Centre => ({
   centre_id,
@@ -65,5 +65,30 @@ describe('centres', () => {
 
   test('town labels are title case', () => {
     expect(townLabel('ANG MO KIO')).toBe('Ang Mo Kio');
+  });
+});
+
+describe('toCentre', () => {
+  test('parses the strings AppKit sends into numbers and booleans', () => {
+    const row = {
+      centre_id: 'HC_1',
+      name: 'Adam Road Food Centre',
+      lon: '103.81',
+      lat: '1.32',
+      is_interim: 'false',
+      pln_area_n: 'NOVENA',
+    };
+    expect(toCentre(row)).toEqual({ ...row, lon: 103.81, lat: 1.32, is_interim: false });
+    expect(canClose(toCentre(row))).toBe(true);
+    expect(canClose(toCentre({ ...row, is_interim: 'true' }))).toBe(false);
+  });
+
+  test('accepts values that are already typed', () => {
+    expect(
+      toCentre({ centre_id: 'HC_1', name: 'X', lon: 103.8, lat: 1.3, is_interim: true, pln_area_n: 'BEDOK' })
+    ).toMatchObject({
+      lon: 103.8,
+      is_interim: true,
+    });
   });
 });

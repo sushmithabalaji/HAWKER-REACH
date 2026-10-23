@@ -1,4 +1,4 @@
-// A row of gold.centres, as config/queries/shared_centres.sql reads it.
+// A centre from gold.centres (config/queries/shared_centres.sql), parsed by toCentre.
 export interface Centre {
   centre_id: string;
   name: string;
@@ -6,6 +6,29 @@ export interface Centre {
   lat: number;
   is_interim: boolean;
   pln_area_n: string;
+}
+
+// AppKit's JSON format sends every value as a string ("103.81", "false"), whatever the generated
+// types say, so numbers and booleans are parsed here.
+export type RawRow = Record<string, string | number | boolean | null>;
+
+export function toNumber(v: RawRow[string]): number {
+  return typeof v === 'number' ? v : Number(v);
+}
+
+export function toBoolean(v: RawRow[string]): boolean {
+  return v === true || v === 'true';
+}
+
+export function toCentre(row: RawRow): Centre {
+  return {
+    centre_id: String(row.centre_id),
+    name: String(row.name),
+    lon: toNumber(row.lon),
+    lat: toNumber(row.lat),
+    is_interim: toBoolean(row.is_interim),
+    pln_area_n: String(row.pln_area_n),
+  };
 }
 
 // Interim centres stay open and take diners from a closure, but can't be picked as the centre to close.

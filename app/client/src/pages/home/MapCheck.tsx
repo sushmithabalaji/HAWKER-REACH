@@ -3,11 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle, useAnalyticsQuery } from '@da
 import { ScatterplotLayer } from '@deck.gl/layers';
 import { BaseMap } from '@/components/shared/BaseMap';
 import { CentreSearch } from '@/components/shared/CentreSearch';
-import { canClose, type Centre } from '@/components/shared/centres';
+import { canClose, toNumber, type Centre } from '@/components/shared/centres';
 import { useGeoData } from '@/components/shared/GeoData';
 
 interface BlockPoint {
-  block_id: string;
   lon: number;
   lat: number;
 }
@@ -23,12 +22,21 @@ export function MapCheck() {
   const { centres } = useGeoData();
   const { data: blocks, error } = useAnalyticsQuery('home_block_points', NO_PARAMS);
   const [picked, setPicked] = useState<string | null>(null);
+  // values arrive as strings (see toCentre)
+  const points = useMemo<BlockPoint[]>(
+    () =>
+      ((blocks as { lon: string; lat: string }[] | null) ?? []).map((b) => ({
+        lon: toNumber(b.lon),
+        lat: toNumber(b.lat),
+      })),
+    [blocks]
+  );
 
   const layers = useMemo(
     () => [
       new ScatterplotLayer<BlockPoint>({
         id: 'blocks',
-        data: (blocks as BlockPoint[] | null) ?? [],
+        data: points,
         getPosition: (b) => [b.lon, b.lat],
         getFillColor: [100, 116, 139, 140],
         radiusUnits: 'pixels',
@@ -45,7 +53,7 @@ export function MapCheck() {
         updateTriggers: { getFillColor: picked, getRadius: picked },
       }),
     ],
-    [blocks, centres, picked]
+    [points, centres, picked]
   );
 
   return (

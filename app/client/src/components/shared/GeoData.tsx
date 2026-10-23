@@ -1,7 +1,7 @@
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
 import { useAnalyticsQuery } from '@databricks/appkit-ui/react';
 import type { FeatureCollection, Geometry } from 'geojson';
-import type { Centre } from './centres';
+import { toCentre, type Centre, type RawRow } from './centres';
 import { toFeatureCollection, type SubzoneProps, type SubzoneShapeRow } from './subzones';
 
 interface GeoData {
@@ -23,7 +23,7 @@ export function GeoDataProvider({ children }: { children: ReactNode }) {
   const value = useMemo<GeoData>(
     () => ({
       subzones: shapes.data ? toFeatureCollection(shapes.data as SubzoneShapeRow[]) : null,
-      centres: (centres.data as Centre[] | null) ?? null,
+      centres: centres.data ? (centres.data as unknown as RawRow[]).map(toCentre) : null,
       loading: shapes.loading || centres.loading,
       error: shapes.error ?? centres.error,
     }),
