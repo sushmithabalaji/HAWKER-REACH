@@ -1,4 +1,4 @@
-"""Append rows to data_quality_log, the one table every notebook writes (CLAUDE.md, team rules).
+"""Append rows to data_quality_log, the one table every notebook writes (CLAUDE.md, team rules, from #23).
 
 Issue rows record one problem (an unmatched name, a centre with no subzone).
 Step rows record rows in, rows out and rows dropped for one step.
@@ -10,8 +10,9 @@ SCHEMA = ("run_at timestamp, notebook string, check_name string, entity_key stri
 
 
 class DQLog:
-    def __init__(self, spark, table, notebook):
-        self.spark, self.table, self.notebook = spark, table, notebook
+    def __init__(self, spark, notebook, schema="hawkerreach.silver"):
+        # schema: hawkerreach.dev_<name> for test runs
+        self.spark, self.table, self.notebook = spark, f"{schema}.data_quality_log", notebook
         self.run_at = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
 
     def issues(self, check_name, items):
