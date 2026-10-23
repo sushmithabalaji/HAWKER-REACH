@@ -1,4 +1,4 @@
-command: ["streamlit", "run", "app.py"]
+command: ['npm', 'run', 'start']
 env:
   # Filled in by Databricks from the app's "sql-warehouse" resource.
   - name: DATABRICKS_WAREHOUSE_ID
