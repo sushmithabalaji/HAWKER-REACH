@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, useAnalyticsQuery } from '@databricks/appkit-ui/react';
 import { ScatterplotLayer } from '@deck.gl/layers';
+import type { Color } from '@deck.gl/core';
 import { BaseMap } from '@/components/shared/BaseMap';
 import { CentreSearch } from '@/components/shared/CentreSearch';
 import { canClose, canPick, type Centre } from '@/components/shared/centres';
@@ -13,9 +14,9 @@ interface BlockPoint {
   lat: number;
 }
 
-const CLOSABLE: [number, number, number] = [37, 99, 235];
-const INTERIM: [number, number, number] = [22, 163, 74];
-const PICKED: [number, number, number] = [220, 38, 38];
+const CLOSABLE: Color = [37, 99, 235];
+const INTERIM: Color = [22, 163, 74];
+const PICKED: Color = [220, 38, 38];
 
 // Shell check for the shared map: every HDB block and centre on BaseMap, with CentreSearch picking
 // one. Proves tiles, the subzone fallback and ~10k points work in the deployed app.

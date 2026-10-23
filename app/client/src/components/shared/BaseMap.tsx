@@ -10,7 +10,7 @@ import {
   CARTO_STYLE_URL,
   cartoStyle,
   INITIAL_TILES,
-  onTileEvent,
+  nextTileState,
   SG_MAX_BOUNDS,
   SG_VIEW,
   styleFor,
@@ -37,20 +37,20 @@ interface BaseMapProps {
 // and gold.subzone_shapes always drawn underneath so the map still reads with no tiles at all.
 export function BaseMap({ layers = [], getTooltip, onClick, className = 'h-[480px]' }: BaseMapProps) {
   const { subzones, subzonesError } = useGeoData();
-  const [tiles, dispatch] = useReducer(onTileEvent, INITIAL_TILES);
+  const [tiles, dispatch] = useReducer(nextTileState, INITIAL_TILES);
   const [carto, setCarto] = useState<StyleSpecification | null>(null);
 
   // Carto's style is fetched only once OneMap has failed. Until it arrives the map shows outlines alone.
   const needCarto = tiles.basemap === 'carto' && !carto;
   useEffect(() => {
     if (!needCarto) return;
-    let live = true;
+    let cancelled = false;
     fetch(CARTO_STYLE_URL)
       .then((r) => (r.ok ? (r.json() as Promise<StyleSpecification>) : Promise.reject(new Error(String(r.status)))))
-      .then((style) => live && setCarto(cartoStyle(style)))
-      .catch(() => live && dispatch({ type: 'style-error', basemap: 'carto' }));
+      .then((style) => !cancelled && setCarto(cartoStyle(style)))
+      .catch(() => !cancelled && dispatch({ type: 'style-error', basemap: 'carto' }));
     return () => {
-      live = false;
+      cancelled = true;
     };
   }, [needCarto]);
 

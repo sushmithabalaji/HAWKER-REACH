@@ -22,7 +22,7 @@ The app's service principal needs gold-only read grants: `Sql/01_app_grants.sql`
 |---|---|
 | A page | `client/src/pages/<page>/`, with its component and its `assumptions.ts` |
 | Adding a page to the sidebar and routes | one entry in `client/src/pages/registry.tsx` (`path`, `label`, `element`, `assumptions`) |
-| A read | `config/queries/<page>_<name>.sql`, gold tables only, named parameters. Run `npm run typegen`, then call it with `useAnalyticsQuery('<page>_<name>', params)` |
+| A read | `config/queries/<page>_<name>.sql` (`shared_<name>.sql` for a read several pages share, e.g. `shared_centres`), gold tables only, named parameters. Run `npm run typegen`, then call it with `useAnalyticsQuery('<page>_<name>', params)` |
 | A custom server route | only for what a SQL file can't do, in `server/server.ts`. Check with the shell owner (Spec 1) first |
 | Pure TypeScript both sides use | `shared/` (no React, Express or AppKit imports), imported as `@shared/...` |
 | Shared UI | `client/src/components/shared/`: `TagBadge`, `AssumptionsPanel`, `QueryError`, `BaseMap`, `CentreSearch` |

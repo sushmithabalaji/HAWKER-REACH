@@ -5,7 +5,7 @@ import {
   cartoStyle,
   INITIAL_TILES,
   MAX_TILE_ERRORS,
-  onTileEvent,
+  nextTileState,
   styleFor,
   type Basemap,
   type TileEvent,
@@ -14,7 +14,7 @@ import {
 
 const error = (basemap: Basemap = 'onemap'): TileEvent => ({ type: 'tile-error', basemap });
 const loaded = (basemap: Basemap = 'onemap'): TileEvent => ({ type: 'tile-loaded', basemap });
-const run = (events: TileEvent[], from: TileState = INITIAL_TILES) => events.reduce(onTileEvent, from);
+const run = (events: TileEvent[], from: TileState = INITIAL_TILES) => events.reduce(nextTileState, from);
 const errors = (n: number, basemap: Basemap = 'onemap') => Array.from({ length: n }, () => error(basemap));
 
 describe('basemap fallback', () => {
@@ -43,7 +43,7 @@ describe('basemap fallback', () => {
 
   test("Carto's style failing to load goes straight to outlines only", () => {
     const carto = run(errors(MAX_TILE_ERRORS));
-    expect(onTileEvent(carto, { type: 'style-error', basemap: 'carto' }).basemap).toBe('none');
+    expect(nextTileState(carto, { type: 'style-error', basemap: 'carto' }).basemap).toBe('none');
   });
 
   test('Carto loading stops the fallback', () => {

@@ -1,9 +1,11 @@
 import type { StyleSpecification } from 'maplibre-gl';
 
-// Singapore, as [west, south, east, north]. OneMap only serves tiles inside this box.
-export const SG_BOUNDS: [number, number, number, number] = [103.596, 1.1443, 104.1, 1.4835];
+type Bounds = [west: number, south: number, east: number, north: number];
+
+// Singapore. OneMap only serves tiles inside this box.
+export const SG_BOUNDS: Bounds = [103.596, 1.1443, 104.1, 1.4835];
 // Panning stops a little outside Singapore, so the island never leaves the frame.
-export const SG_MAX_BOUNDS: [number, number, number, number] = [103.45, 1.05, 104.25, 1.58];
+export const SG_MAX_BOUNDS: Bounds = [103.45, 1.05, 104.25, 1.58];
 export const SG_VIEW = { longitude: 103.82, latitude: 1.352, zoom: 10.6 };
 
 // Tried in order. 'none' is the background colour alone, with subzone outlines drawn over it by BaseMap.
@@ -53,8 +55,9 @@ export function cartoStyle(style: StyleSpecification): StyleSpecification {
 
 // The basemap a map source belongs to, or null for any other source.
 export function basemapOfSource(sourceId: string | undefined): Basemap | null {
-  const match = sourceId?.match(/^basemap-(onemap|carto)(-|$)/);
-  return match ? (match[1] as Basemap) : null;
+  if (!sourceId?.startsWith(SOURCE_PREFIX)) return null;
+  const [name] = sourceId.slice(SOURCE_PREFIX.length).split('-');
+  return name === 'onemap' || name === 'carto' ? name : null;
 }
 
 // Tile errors before any tile loads mean the basemap is unreachable (blocked, down or offline),
@@ -74,7 +77,7 @@ export interface TileEvent {
 
 export const INITIAL_TILES: TileState = { basemap: 'onemap', loaded: false, errors: 0 };
 
-export function onTileEvent(state: TileState, event: TileEvent): TileState {
+export function nextTileState(state: TileState, event: TileEvent): TileState {
   if (event.basemap !== state.basemap) return state; // from a basemap already given up on
   if (event.type === 'tile-loaded') return state.loaded ? state : { ...state, loaded: true };
   if (state.loaded || state.basemap === 'none') return state;
