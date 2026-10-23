@@ -1,11 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle, Skeleton, useAnalyticsQuery } from '@databricks/appkit-ui/react';
 import { TagBadge } from '@/components/shared/TagBadge';
+import { MapCheck } from './MapCheck';
 
 export function HomePage() {
   const { data, loading, error } = useAnalyticsQuery('home_gold_check', {});
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6 mt-8">
+    <div className="max-w-4xl mx-auto space-y-6 mt-8">
       <div className="text-center">
         <h2 className="text-3xl font-bold mb-2 text-foreground">HawkerReach</h2>
         <p className="text-lg text-muted-foreground">Hawker centre closures and who loses a walkable meal.</p>
@@ -27,6 +28,8 @@ export function HomePage() {
           )}
         </CardContent>
       </Card>
+
+      <MapCheck />
     </div>
   );
 }

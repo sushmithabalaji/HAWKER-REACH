@@ -13,5 +13,49 @@ declare module "@databricks/appkit-ui/react" {
           blocks: number;
         }>;
       };
+    home_block_points: {
+        name: "home_block_points";
+        parameters: Record<string, never>;
+        result: Array<{
+          /** @sqlType STRING */
+          block_id: string;
+          /** @sqlType DOUBLE */
+          lon: number;
+          /** @sqlType DOUBLE */
+          lat: number;
+        }>;
+      };
+    shared_centres: {
+        name: "shared_centres";
+        parameters: Record<string, never>;
+        result: Array<{
+          /** @sqlType STRING */
+          centre_id: string;
+          /** @sqlType STRING */
+          name: string;
+          /** @sqlType DOUBLE */
+          lon: number;
+          /** @sqlType DOUBLE */
+          lat: number;
+          /** @sqlType BOOLEAN */
+          is_interim: boolean;
+          /** @sqlType STRING */
+          pln_area_n: string;
+        }>;
+      };
+    shared_subzone_shapes: {
+        name: "shared_subzone_shapes";
+        parameters: Record<string, never>;
+        result: Array<{
+          /** @sqlType STRING */
+          subzone_id: string;
+          /** @sqlType STRING */
+          name: string;
+          /** @sqlType STRING */
+          planning_area: string;
+          /** @sqlType STRING */
+          geometry: string;
+        }>;
+      };
   }
 }

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { INITIAL_TILES, MAX_TILE_ERRORS, onTileEvent, styleFor, type TileEvent, type TileState } from './basemap';
+import { INITIAL_TILES, MAX_TILE_ERRORS, onTileEvent, styleFor, type TileEvent, type TileState } from './basemapStyles';
 
 const error: TileEvent = { type: 'tile-error' };
 const loaded: TileEvent = { type: 'tile-loaded' };

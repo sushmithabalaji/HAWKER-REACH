@@ -2,7 +2,17 @@ import { expect, test } from 'vitest';
 import { toFeatureCollection } from './subzones';
 
 test('subzone rows become one GeoJSON feature each, geometry parsed', () => {
-  const square = { type: 'Polygon', coordinates: [[[103.8, 1.3], [103.81, 1.3], [103.81, 1.31], [103.8, 1.3]]] };
+  const square = {
+    type: 'Polygon',
+    coordinates: [
+      [
+        [103.8, 1.3],
+        [103.81, 1.3],
+        [103.81, 1.31],
+        [103.8, 1.3],
+      ],
+    ],
+  };
   const fc = toFeatureCollection([
     { subzone_id: 'TPSZ01', name: 'Potong Pasir', planning_area: 'TOA PAYOH', geometry: JSON.stringify(square) },
   ]);
