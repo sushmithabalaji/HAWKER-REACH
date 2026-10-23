@@ -17,7 +17,7 @@ import {
   Skeleton,
 } from '@databricks/appkit-ui/react';
 import { ChevronsUpDown } from 'lucide-react';
-import { canClose, searchCentres, townLabel, townsOf, type Centre } from './centres';
+import { searchCentres, townLabel, townsOf, whyNotPickable, type Centre } from './centres';
 import { useGeoData } from './GeoData';
 
 const ALL_TOWNS = '__all__';
@@ -26,15 +26,30 @@ interface CentreSearchProps {
   selectedId: string | null;
   onSelect: (centre: Centre) => void;
   placeholder?: string;
+  // Centres listed but not pickable, e.g. Page 1's anchor and the centres already added.
+  excludedIds?: readonly string[];
+  // Pass both to drive the town filter from the page (Page 2 also filters its map by town).
+  // Leave both out and CentreSearch keeps the town itself.
+  town?: string | null;
+  onTownChange?: (town: string | null) => void;
 }
 
 // Pick the centre to close: typeahead over operating centres from gold.centres, with an optional
-// town filter. Interim centres are listed but can't be picked, since they stay open.
-export function CentreSearch({ selectedId, onSelect, placeholder = 'Pick a centre to close' }: CentreSearchProps) {
+// town filter. Interim and excluded centres are listed but can't be picked (whyNotPickable).
+export function CentreSearch({
+  selectedId,
+  onSelect,
+  placeholder = 'Pick a centre to close',
+  excludedIds = [],
+  town: townProp,
+  onTownChange,
+}: CentreSearchProps) {
   const { centres, error } = useGeoData();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
-  const [town, setTown] = useState<string | null>(null);
+  const [ownTown, setOwnTown] = useState<string | null>(null);
+  const town = townProp === undefined ? ownTown : townProp;
+  const setTown = onTownChange ?? setOwnTown;
 
   const towns = useMemo(() => (centres ? townsOf(centres) : []), [centres]);
   const matches = useMemo(() => (centres ? searchCentres(centres, query, town) : []), [centres, query, town]);
@@ -72,22 +87,23 @@ export function CentreSearch({ selectedId, onSelect, placeholder = 'Pick a centr
             <CommandInput placeholder="Search centres" value={query} onValueChange={setQuery} />
             <CommandList>
               <CommandEmpty>No centre matches.</CommandEmpty>
-              {matches.map((c) => (
-                <CommandItem
-                  key={c.centre_id}
-                  value={c.centre_id}
-                  disabled={!canClose(c)}
-                  onSelect={() => {
-                    onSelect(c);
-                    setOpen(false);
-                  }}
-                >
-                  <span className="flex-1 truncate">{c.name}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {canClose(c) ? townLabel(c.pln_area_n) : 'Interim, stays open'}
-                  </span>
-                </CommandItem>
-              ))}
+              {matches.map((c) => {
+                const reason = whyNotPickable(c, excludedIds);
+                return (
+                  <CommandItem
+                    key={c.centre_id}
+                    value={c.centre_id}
+                    disabled={reason !== null}
+                    onSelect={() => {
+                      onSelect(c);
+                      setOpen(false);
+                    }}
+                  >
+                    <span className="flex-1 truncate">{c.name}</span>
+                    <span className="text-xs text-muted-foreground">{reason ?? townLabel(c.pln_area_n)}</span>
+                  </CommandItem>
+                );
+              })}
             </CommandList>
           </Command>
         </PopoverContent>

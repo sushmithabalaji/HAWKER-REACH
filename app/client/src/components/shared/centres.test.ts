@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { canClose, searchCentres, toCentre, townLabel, townsOf, type Centre } from './centres';
+import { canClose, canPick, searchCentres, toCentre, townLabel, townsOf, whyNotPickable, type Centre } from './centres';
 
 const centre = (centre_id: string, name: string, pln_area_n: string, is_interim = false): Centre => ({
   centre_id,
@@ -90,5 +90,21 @@ describe('toCentre', () => {
       lon: 103.8,
       is_interim: true,
     });
+  });
+});
+
+describe('picking a centre to close', () => {
+  test('a closable centre can be picked', () => {
+    expect(whyNotPickable(centres[0])).toBeNull();
+    expect(canPick(centres[0])).toBe(true);
+  });
+
+  test("interim centres can't be picked", () => {
+    expect(whyNotPickable(centres[3])).toBe('Interim, stays open');
+  });
+
+  test("centres the page excludes can't be picked", () => {
+    expect(whyNotPickable(centres[0], ['1'])).toBe('Already picked');
+    expect(canPick(centres[1], ['1'])).toBe(true);
   });
 });

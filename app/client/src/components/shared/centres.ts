@@ -26,6 +26,19 @@ export function canClose(centre: Centre): boolean {
   return !centre.is_interim;
 }
 
+// Why a centre can't be picked, or null if it can. The same rule applies to a pick from CentreSearch
+// and a click on the map. `excluded` holds centres the page has already used, e.g. Page 1's anchor
+// and the centres added to close with it.
+export function whyNotPickable(centre: Centre, excluded: readonly string[] = []): string | null {
+  if (!canClose(centre)) return 'Interim, stays open';
+  if (excluded.includes(centre.centre_id)) return 'Already picked';
+  return null;
+}
+
+export function canPick(centre: Centre, excluded: readonly string[] = []): boolean {
+  return whyNotPickable(centre, excluded) === null;
+}
+
 // Planning areas come in upper case ("ANG MO KIO"); towns are shown in title case ("Ang Mo Kio").
 export function townLabel(plnArea: string): string {
   return plnArea.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
