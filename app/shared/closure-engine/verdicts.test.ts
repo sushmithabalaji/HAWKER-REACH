@@ -246,6 +246,13 @@ describe('evaluatePlan: NEA actions', () => {
     expect(result.cards[0].neaActions).toEqual([{ centreId: 'HC_B', name: 'Busy Centre', extraDinersPerStall: 16 }]);
   });
 
+  it('reads which centre counts as typical from assumptions', () => {
+    // Quantile 1 takes the busiest centre, 100 diners per stall: actions start above 20, so Z (15) is fine.
+    const { neaActions } = evaluatePlan(data, 'HC_A', [], withValues({ 'actions.waste.typical_centre_quantile': 1 }));
+
+    expect(neaActions).toEqual({ threshold: 20, centres: [] });
+  });
+
   it('never changes the colour', () => {
     // With a tiny share every receiver needs actions, yet A + P0 stays green (Q0 takes 5 per stall).
     const [card] = evaluatePlan(
@@ -328,21 +335,43 @@ describe('evaluatePlan: whole-plan line', () => {
     expect(takeaway.verdict).toEqual({ status: 'yellow', counts: { red: 0, yellow: 1, green: 1 } });
   });
 
-  it('counts problems the anchor causes alone, and lists them', () => {
-    // P3 alone pushes Q3 to 8 per stall, above 7.25. The P0 card is green, but the plan is red.
+  it('lists problems the anchor causes alone without colouring the plan, which takes the worst card', () => {
+    // P3 alone pushes Q3 to 8 per stall, above 7.25. The only card (P0) is green, so the plan is green.
     const { plan } = evaluatePlan(verdictTown(), 'HC_P3', ['HC_P0'], assumptions);
 
-    expect(plan.status).toBe('red');
+    expect(plan.status).toBe('green');
     expect(plan.counts).toEqual({ red: 0, yellow: 0, green: 1 });
     expect(plan.anchorProblems).toEqual([
       'Closing Centre HC_P3 on its own pushes Centre HC_Q3 to 8.0 extra diners per stall (0.0 without it), above the 3-in-4 benchmark of 7.3.',
     ]);
   });
 
-  it('judges an anchor-only plan by the anchor alone', () => {
-    const { plan, cards } = evaluatePlan(verdictTown(), 'HC_A', [], assumptions);
+  it('lists every rule the anchor breaks on its own, not just the first', () => {
+    // bP3x has only P3 within 900 m (fallback Q3 at 1,200 m). P3 alone: Q3 takes 9 per stall; benchmark stays 5.5 / 7.25.
+    const town = verdictTown([
+      block(
+        'bP3x',
+        [
+          ['HC_P3', 400],
+          ['HC_Q3', 1200],
+        ],
+        { diners: 10 }
+      ),
+    ]);
+
+    const { plan } = evaluatePlan(town, 'HC_P3', [], assumptions);
+
+    expect(plan.anchorProblems).toEqual([
+      'Closing Centre HC_P3 on its own leaves 1 more block (20 seniors) with no centre within 15 min at senior pace.',
+      'Closing Centre HC_P3 on its own pushes Centre HC_Q3 to 9.0 extra diners per stall (0.0 without it), above the 3-in-4 benchmark of 7.3.',
+    ]);
+  });
+
+  it('has no plan colour when only the anchor is chosen', () => {
+    const { plan, cards, tiles } = evaluatePlan(verdictTown(), 'HC_A', [], assumptions);
 
     expect(cards).toEqual([]);
-    expect(plan).toMatchObject({ status: 'green', counts: { red: 0, yellow: 0, green: 0 }, anchorProblems: [] });
+    expect(plan).toMatchObject({ status: null, counts: { red: 0, yellow: 0, green: 0 }, anchorProblems: [] });
+    expect(tiles.verdict.status).toBeNull();
   });
 });

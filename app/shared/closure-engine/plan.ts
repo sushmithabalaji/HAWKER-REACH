@@ -50,11 +50,11 @@ export interface PlanResult {
 export type Status = 'red' | 'yellow' | 'green';
 
 export interface PlanLine {
-  /** The worst of the cards and of the anchor closing on its own. */
-  status: Status;
+  /** The worst card's colour; null when only the anchor is chosen. */
+  status: Status | null;
   /** Cards by colour. */
   counts: Record<Status, number>;
-  /** The reason, when the anchor closing on its own already breaks a rule. */
+  /** Every rule the anchor breaks on its own, as reasons; listed, never colouring the plan. */
   anchorProblems: string[];
 }
 
@@ -228,7 +228,7 @@ export function evaluatePlan(
     loads
       .filter((l): l is NeaAction => l.extraDinersPerStall !== null && l.extraDinersPerStall > actionThreshold)
       .map(({ centreId, name, extraDinersPerStall }) => ({ centreId, name, extraDinersPerStall }))
-      .sort((a, b) => b.extraDinersPerStall - a.extraDinersPerStall || byCentreId(a, b));
+      .sort(byWorstLoad);
 
   const cards = selectedIds.map((id): VerdictCard => {
     const name = centres.get(id)!.name;
@@ -250,7 +250,7 @@ export function evaluatePlan(
   });
 
   const anchorName = centres.get(anchorId)!.name;
-  const anchorAlone = verdict(
+  const anchorBroken = brokenRules(
     prepared,
     assumptions,
     benchmark,
@@ -261,9 +261,9 @@ export function evaluatePlan(
   const counts = { red: 0, yellow: 0, green: 0 };
   for (const card of cards) counts[card.status] += 1;
   const plan: PlanLine = {
-    status: worstStatus([anchorAlone.status, ...cards.map((c) => c.status)]),
+    status: cards.length > 0 ? worstStatus(cards.map((c) => c.status)) : null,
     counts,
-    anchorProblems: anchorAlone.status === 'green' ? [] : [anchorAlone.reason],
+    anchorProblems: anchorBroken.map((v) => v.reason),
   };
 
   // Same order as closure_scenarios' worst neighbour: most extra diners per stall, nulls last, then centre_id.
@@ -335,7 +335,7 @@ interface Prepared {
   demand: Map<string, CentreDemandRow>;
   limitMin: number;
   limitM: Record<Pace, number>;
-  /** Median baseline diners per stall over centres with stalls. */
+  /** A typical centre's baseline diners per stall (`actions.waste.typical_centre_quantile` over centres with stalls). */
   typicalDinersPerStall: number;
   benchmark?: Benchmark;
 }
@@ -364,7 +364,7 @@ function prepare(data: GoldData, assumptions: Assumptions): Prepared {
       limitM: Object.fromEntries(
         PACES.map((pace) => [pace, value(assumptions, `walk.pace.${pace}`) * limitMin * 60])
       ) as Record<Pace, number>,
-      typicalDinersPerStall: quantile(baselinePerStall, 0.5),
+      typicalDinersPerStall: quantile(baselinePerStall, value(assumptions, 'actions.waste.typical_centre_quantile')),
     };
     byAssumptions.set(assumptions, prepared);
   }
@@ -433,29 +433,40 @@ function byWorstLoad(
 
 type Verdict = Pick<VerdictCard, 'status' | 'rule' | 'reason' | 'cutOff' | 'pastBenchmark'>;
 
-/** Applies the rules in order to the plan against the plan without one centre; the first that fires decides. */
-function verdict(
+/** The plan against the plan without one centre: the first rule that fires decides. */
+function verdict(...args: Parameters<typeof brokenRules>): Verdict {
+  const broken = brokenRules(...args);
+  if (broken.length > 0) return broken[0];
+  const [prepared, , benchmark, subject, withPlan, without] = args;
+  return {
+    status: 'green',
+    rule: null,
+    reason: `${subject} cuts no one off and pushes no centre past the typical benchmark of ${fmt(benchmark.typical)}.`,
+    cutOff: newlyCutOff(prepared, withPlan, without),
+    pastBenchmark: [],
+  };
+}
+
+/** Every rule the plan breaks against the plan without one centre, in rule order: Access, then Load. */
+function brokenRules(
   prepared: Prepared,
   assumptions: Assumptions,
   benchmark: Benchmark,
   subject: string,
   withPlan: Regrouped,
   without: Regrouped
-): Verdict {
-  const newlyCutOff = [...withPlan.cutOffBlockIds].filter((id) => !without.cutOffBlockIds.has(id));
-  const cutOff = {
-    blocks: newlyCutOff.length,
-    seniors: newlyCutOff.reduce((sum, id) => sum + prepared.blocksById.get(id)!.seniors, 0),
-  };
+): Verdict[] {
+  const broken: Verdict[] = [];
+  const cutOff = newlyCutOff(prepared, withPlan, without);
   if (cutOff.blocks >= value(assumptions, 'verdict.access.min_new_blocks')) {
     const blocks = cutOff.blocks === 1 ? '1 more block' : `${cutOff.blocks} more blocks`;
-    return {
+    broken.push({
       status: 'red',
       rule: 'access',
       reason: `${subject} leaves ${blocks} (${cutOff.seniors} seniors) with no centre within ${prepared.limitMin} min at senior pace.`,
       cutOff,
       pastBenchmark: [],
-    };
+    });
   }
 
   const pastRed = crossings(prepared, withPlan.extra, without.extra, benchmark.threeInFour);
@@ -471,22 +482,20 @@ function verdict(
           `${p.name} to ${fmt(p.extraDinersPerStall)} extra diners per stall (${fmt(p.withoutThisCentre)} without it)`
       )
     );
-    return {
+    broken.push({
       status,
       rule: 'load',
       reason: `${subject} pushes ${pushes}, above the ${label} benchmark of ${fmt(level)}.`,
       cutOff,
       pastBenchmark: past,
-    };
+    });
   }
+  return broken;
+}
 
-  return {
-    status: 'green',
-    rule: null,
-    reason: `${subject} cuts no one off and pushes no centre past the typical benchmark of ${fmt(benchmark.typical)}.`,
-    cutOff,
-    pastBenchmark: [],
-  };
+function newlyCutOff(prepared: Prepared, withPlan: Regrouped, without: Regrouped): Verdict['cutOff'] {
+  const ids = [...withPlan.cutOffBlockIds].filter((id) => !without.cutOffBlockIds.has(id));
+  return { blocks: ids.length, seniors: ids.reduce((sum, id) => sum + prepared.blocksById.get(id)!.seniors, 0) };
 }
 
 function worstStatus(statuses: Status[]): Status {
@@ -540,7 +549,7 @@ function rises(prepared: Prepared, withPlan: Map<string, number>, without: Map<s
       });
     }
   }
-  return risen.sort((a, b) => b.extraDinersPerStall - a.extraDinersPerStall || byCentreId(a, b));
+  return risen.sort(byWorstLoad);
 }
 
 /** Open centres above `threshold` extra diners per stall with the plan that weren't without the centre. */

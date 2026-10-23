@@ -234,6 +234,19 @@
       "spec4"
     ]
   },
+  "actions.waste.typical_centre_quantile": {
+    "name": "A typical centre's baseline diners per stall, for the NEA actions line: this quantile over all centres with stalls",
+    "value": 0.5,
+    "unit": "quantile",
+    "tag": "ASSUMPTION",
+    "source": "Spec 3 (#11): \"a typical centre's diners per stall (median)\"",
+    "status": "decided",
+    "owner": "Aanya",
+    "used_by": [
+      "spec3",
+      "spec4"
+    ]
+  },
   "plan.max_extra_centres": {
     "name": "Most centres that can close alongside the anchor",
     "value": 5,
