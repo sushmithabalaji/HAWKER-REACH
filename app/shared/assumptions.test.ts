@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, test } from 'vitest';
 import { resolveLine, UNSOURCED, type Assumptions } from './assumptions';
@@ -35,11 +35,19 @@ describe('resolveLine', () => {
     });
   });
 
-  test('labels open values as illustrative, unsourced', () => {
-    expect(resolveLine({ key: 'walk.pace.senior' }, sample).source).toBe(UNSOURCED);
+  test('flags open values: still needs a source, or illustrative when there is none', () => {
+    expect(resolveLine({ key: 'walk.pace.senior' }, sample).source).toBe('gait-speed study (source still needed)');
     expect(
       resolveLine({ text: 'Waste per meal', tag: 'ASSUMPTION', source: '', status: 'open' }).source,
     ).toBe(UNSOURCED);
+  });
+
+  test('shows a known limitation without a tag', () => {
+    expect(resolveLine({ limitation: '6 centres get 0 modelled residents' })).toEqual({
+      text: '6 centres get 0 modelled residents',
+      tag: null,
+      source: 'Known limitation',
+    });
   });
 
   test('keeps written-out lines as they are', () => {
@@ -52,9 +60,12 @@ describe('resolveLine', () => {
   });
 });
 
+// The repo-root file isn't uploaded with app/, so this only runs in a full checkout.
+const rootFile = path.resolve(__dirname, '../../assumptions.json');
+
 describe('assumptions.json copy', () => {
-  test('matches the repo-root file (run `npm run sync:assumptions`)', () => {
-    const root = readFileSync(path.resolve(__dirname, '../../assumptions.json'), 'utf8');
+  test.skipIf(!existsSync(rootFile))('matches the repo-root file (run `npm run sync:assumptions`)', () => {
+    const root = readFileSync(rootFile, 'utf8');
     const copy = readFileSync(path.resolve(__dirname, './assumptions.json'), 'utf8');
     expect(JSON.parse(copy)).toEqual(JSON.parse(root));
   });

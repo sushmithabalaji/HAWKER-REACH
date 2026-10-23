@@ -13,13 +13,16 @@ export function AssumptionsPanel({ lines }: { lines: AssumptionLine[] }) {
       </CardHeader>
       <CardContent>
         <ul className="space-y-2 text-sm">
-          {lines.map((l) => resolveLine(l)).map((line) => (
-            <li key={line.text}>
-              {line.text}
-              <TagBadge tag={line.tag} />
-              <span className="block text-xs text-muted-foreground">{line.source}</span>
-            </li>
-          ))}
+          {lines.map((raw) => {
+            const line = resolveLine(raw);
+            return (
+              <li key={`${line.text}|${line.source}`}>
+                {line.text}
+                {line.tag && <TagBadge tag={line.tag} />}
+                <span className="block text-xs text-muted-foreground">{line.source}</span>
+              </li>
+            );
+          })}
         </ul>
       </CardContent>
     </Card>

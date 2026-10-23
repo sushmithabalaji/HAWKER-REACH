@@ -30,6 +30,8 @@ The app's service principal needs gold-only read grants: `Sql/01_app_grants.sql`
 
 ## Tags and the Assumptions panel
 
-Every number shown carries a `<TagBadge tag="MEASURED" | "MODELLED" | "ASSUMPTION" />` and a line in its page's Assumptions panel. A page lists its lines in its `assumptions.ts`, either written out (`text`, `tag`, `source`, `status`) or as `{ key: '<assumptions.json key>' }`, which reads name, value, unit, tag and source from `assumptions.json`. Lines with status `open` show "illustrative, unsourced" instead of a source.
+Every number shown carries a `<TagBadge tag="MEASURED" | "MODELLED" | "ASSUMPTION" />` and a line in its page's Assumptions panel. A page lists its lines in its `assumptions.ts`, either written out (`text`, `tag`, `source`, `status`) or as `{ key: '<assumptions.json key>' }`, which reads name, value, unit, tag and source from `assumptions.json`. A third kind, `{ limitation: '...' }`, is a known limitation of the model and has no tag. Lines with status `open` show their source with "(source still needed)", or "illustrative, unsourced" when there is no source.
+
+Lines a spec owns but shows on another spec's page (for example Spec 2's model lines on Page 1) go in `client/src/assumptions/<spec>.ts`. The page that shows them spreads them into its `assumptions` in the registry, so each spec still edits only its own file.
 
 `shared/assumptions.json` is a copy of the repo-root `assumptions.json`, because Databricks only uploads `app/` when it builds the app. Edit the root file, then run `npm run sync:assumptions`. A test fails if the copy drifts.
