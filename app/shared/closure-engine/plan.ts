@@ -1,4 +1,5 @@
-import type { Assumptions, BlockOptionRow, GoldData } from "./gold";
+import type { Assumptions } from '../assumptions';
+import type { BlockOptionRow, GoldData } from './gold';
 
 export interface Receiver {
   centreId: string;
@@ -7,12 +8,12 @@ export interface Receiver {
   /** Extra diners per day ÷ `cooked_food_stalls`. */
   extraDinersPerStall: number;
   /** Extra diners as % of the centre's baseline; information only. "new" when the baseline is 0. */
-  pctOverBaseline: number | "new";
+  pctOverBaseline: number | 'new';
   /** Share (0–1) of the plan's displaced diners this centre takes. */
   shareOfDisplaced: number;
 }
 
-export type Pace = "senior" | "typical" | "brisk";
+export type Pace = 'senior' | 'typical' | 'brisk';
 
 export interface AccessLoss {
   /** Blocks with a centre within the walking limit at this pace before the plan, and none after. */
@@ -47,7 +48,7 @@ export interface TakeawayParts {
 }
 
 interface Tile {
-  tag: "MODELLED";
+  tag: 'MODELLED';
   /** Gold tables the number comes from. */
   source: string;
 }
@@ -60,23 +61,23 @@ export interface Tiles {
   };
   biggestLoad: Tile & {
     /** The receiver with the most extra diners per stall; null when nobody moves. */
-    centre: Pick<Receiver, "centreId" | "name" | "extraDinersPerStall" | "pctOverBaseline"> | null;
+    centre: Pick<Receiver, 'centreId' | 'name' | 'extraDinersPerStall' | 'pctOverBaseline'> | null;
   };
   accessLoss: Tile & Record<Pace, number> & { limitMin: number };
 }
 
-const PACES: Pace[] = ["senior", "typical", "brisk"];
+const PACES: Pace[] = ['senior', 'typical', 'brisk'];
 
-export type PlanErrorCode = "interim-centre" | "too-many-centres" | "unknown-centre" | "duplicate-centre";
+export type PlanErrorCode = 'interim-centre' | 'too-many-centres' | 'unknown-centre' | 'duplicate-centre';
 
 /** A plan the page must not evaluate; `message` is safe to show the planner. */
 export class PlanError extends Error {
   constructor(
     readonly code: PlanErrorCode,
-    message: string,
+    message: string
   ) {
     super(message);
-    this.name = "PlanError";
+    this.name = 'PlanError';
   }
 }
 
@@ -93,37 +94,37 @@ export function evaluatePlan(
   data: GoldData,
   anchorId: string,
   selectedIds: string[],
-  assumptions: Assumptions,
+  assumptions: Assumptions
 ): PlanResult {
-  const maxSelected = value(assumptions, "plan.max_extra_centres");
+  const maxSelected = value(assumptions, 'plan.max_extra_centres');
   if (selectedIds.length > maxSelected) {
-    throw new PlanError("too-many-centres", `Up to ${maxSelected} at once. Remove one to add another.`);
+    throw new PlanError('too-many-centres', `Up to ${maxSelected} at once. Remove one to add another.`);
   }
   const centres = new Map(data.centres.map((c) => [c.centre_id, c]));
   const planIds = [anchorId, ...selectedIds];
   for (const id of planIds) {
     const centre = centres.get(id);
-    if (!centre) throw new PlanError("unknown-centre", `No centre with id ${id}.`);
+    if (!centre) throw new PlanError('unknown-centre', `No centre with id ${id}.`);
     if (centre.is_interim) {
-      throw new PlanError("interim-centre", `${centre.name} is an interim centre and can't be closed in a plan.`);
+      throw new PlanError('interim-centre', `${centre.name} is an interim centre and can't be closed in a plan.`);
     }
   }
 
   const closed = new Set(planIds);
   if (closed.size < planIds.length) {
-    throw new PlanError("duplicate-centre", "Each centre can be in the plan only once.");
+    throw new PlanError('duplicate-centre', 'Each centre can be in the plan only once.');
   }
 
-  const cutoffM = value(assumptions, "walk.cutoff_m");
+  const cutoffM = value(assumptions, 'walk.cutoff_m');
   const extra = new Map<string, number>();
   let displaced = 0;
   const unserved = { blocks: 0, residents: 0, dinersPerDay: 0 };
-  const limitMin = value(assumptions, "walk.limit_min");
+  const limitMin = value(assumptions, 'walk.limit_min');
   const limitM = Object.fromEntries(
-    PACES.map((pace) => [pace, value(assumptions, `walk.pace.${pace}`) * limitMin * 60]),
+    PACES.map((pace) => [pace, value(assumptions, `walk.pace.${pace}`) * limitMin * 60])
   ) as Record<Pace, number>;
   const accessLoss = Object.fromEntries(
-    PACES.map((pace): [Pace, AccessLoss] => [pace, { blocks: 0, seniors: 0, blockIds: [] }]),
+    PACES.map((pace): [Pace, AccessLoss] => [pace, { blocks: 0, seniors: 0, blockIds: [] }])
   ) as Record<Pace, AccessLoss>;
 
   for (const block of groupBlocks(data.blockOptions, cutoffM)) {
@@ -157,7 +158,7 @@ export function evaluatePlan(
         name: centre.name,
         extraDinersPerDay,
         extraDinersPerStall: extraDinersPerDay / centre.cooked_food_stalls,
-        pctOverBaseline: baseline > 0 ? (extraDinersPerDay / baseline) * 100 : "new",
+        pctOverBaseline: baseline > 0 ? (extraDinersPerDay / baseline) * 100 : 'new',
         shareOfDisplaced: extraDinersPerDay / displaced,
       };
     })
@@ -170,14 +171,14 @@ export function evaluatePlan(
       (r.extraDinersPerStall === worst.extraDinersPerStall && byCentreId(r, worst) < 0)
         ? r
         : worst,
-    null,
+    null
   );
   const tiles: Tiles = {
     displaced: {
       dinersPerDay: roundTo10(displaced),
       unservedDinersPerDay: roundTo10(unserved.dinersPerDay),
-      tag: "MODELLED",
-      source: "gold.block_options",
+      tag: 'MODELLED',
+      source: 'gold.block_options',
     },
     biggestLoad: {
       centre: biggest && {
@@ -186,16 +187,16 @@ export function evaluatePlan(
         extraDinersPerStall: biggest.extraDinersPerStall,
         pctOverBaseline: biggest.pctOverBaseline,
       },
-      tag: "MODELLED",
-      source: "gold.block_options, gold.centres, gold.centre_demand",
+      tag: 'MODELLED',
+      source: 'gold.block_options, gold.centres, gold.centre_demand',
     },
     accessLoss: {
       limitMin,
       senior: accessLoss.senior.blocks,
       typical: accessLoss.typical.blocks,
       brisk: accessLoss.brisk.blocks,
-      tag: "MODELLED",
-      source: "gold.block_options",
+      tag: 'MODELLED',
+      source: 'gold.block_options',
     },
   };
 
@@ -231,9 +232,7 @@ function groupBlocks(rows: BlockOptionRow[], cutoffM: number): Block[] {
     }
   }
   for (const block of blocks.values()) {
-    block.options.sort(
-      (a, b) => a.walkM - b.walkM || byCentreId(a, b),
-    );
+    block.options.sort((a, b) => a.walkM - b.walkM || byCentreId(a, b));
   }
   return [...blocks.values()];
 }
@@ -249,6 +248,6 @@ function roundTo10(n: number): number {
 
 function value(assumptions: Assumptions, key: string): number {
   const entry = assumptions[key];
-  if (!entry) throw new Error(`assumptions.json has no "${key}"`);
+  if (typeof entry?.value !== 'number') throw new Error(`assumptions.json has no number for "${key}"`);
   return entry.value;
 }

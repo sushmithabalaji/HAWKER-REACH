@@ -1,16 +1,13 @@
 // Builders for small hand-made gold samples. Options are listed nearest first,
 // in gold's order (walk_m, then centre_id), and get ranks 1, 2, 3...
-import type {
-  BlockOptionRow,
-  CentreClosureRow,
-  CentreDemandRow,
-  CentreRow,
-  GoldData,
-} from "../src/gold";
-import rawAssumptions from "../../../assumptions.json";
-import type { Assumptions } from "../src/gold";
+import { assumptions, type Assumptions } from '../assumptions';
+import type { BlockOptionRow, CentreClosureRow, CentreDemandRow, CentreRow, GoldData } from './gold';
 
-export const assumptions = rawAssumptions as Assumptions;
+export { assumptions };
+
+// As in 05_gold_closures: diners per day = residents × eating share × visits per week ÷ 7.
+const num = (key: string) => assumptions[key]!.value as number;
+const dinersPerResident = (num('diners.eating_share') * num('diners.visits_per_week.base')) / 7;
 
 /** A copy of assumptions.json with some values changed. */
 export function withValues(values: Record<string, number>): Assumptions {
@@ -37,18 +34,14 @@ export interface BlockSpec {
   seniors?: number;
 }
 
-export function block(
-  id: string,
-  options: [centreId: string, walkM: number][],
-  spec: BlockSpec = {},
-) {
+export function block(id: string, options: [centreId: string, walkM: number][], spec: BlockSpec = {}) {
   return { id, options, ...spec };
 }
 
 export function town(
   centres: ReturnType<typeof centre>[],
   blocks: ReturnType<typeof block>[],
-  centreClosures: CentreClosureRow[] = [],
+  centreClosures: CentreClosureRow[] = []
 ): GoldData {
   const centreRows: CentreRow[] = centres.map((c, i) => ({
     centre_id: c.id,
@@ -57,11 +50,12 @@ export function town(
     lat: 1.35,
     cooked_food_stalls: c.stalls ?? 10,
     is_interim: c.interim ?? false,
-    pln_area_n: "TOA PAYOH",
-    subzone_id: "TPSZ01",
+    pln_area_n: 'TOA PAYOH',
+    subzone_id: 'TPSZ01',
   }));
   const centreDemand: CentreDemandRow[] = centres.map((c) => ({
     centre_id: c.id,
+    baseline_residents: (c.baseline ?? 1000) / dinersPerResident,
     baseline_diners_per_day: c.baseline ?? 1000,
     residents_per_stall: 300,
     possibly_undercounted: c.undercounted ?? false,
@@ -71,7 +65,7 @@ export function town(
       block_id: b.id,
       lon: 103.8 + i * 0.001,
       lat: 1.34,
-      subzone: "TPSZ01",
+      subzone_id: 'TPSZ01',
       est_residents: b.residents ?? 100,
       est_seniors: b.seniors ?? 20,
       diners_per_day: b.diners ?? 36,

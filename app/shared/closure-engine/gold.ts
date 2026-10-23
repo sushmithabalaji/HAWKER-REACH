@@ -11,7 +11,7 @@ export interface BlockOptionRow {
   rank: number;
   lon: number;
   lat: number;
-  subzone: string;
+  subzone_id: string;
   est_residents: number;
   est_seniors: number;
   diners_per_day: number;
@@ -32,6 +32,7 @@ export interface CentreRow {
 /** `gold.centre_demand` (Spec 2). */
 export interface CentreDemandRow {
   centre_id: string;
+  baseline_residents: number;
   baseline_diners_per_day: number;
   residents_per_stall: number;
   possibly_undercounted: boolean;
@@ -41,7 +42,7 @@ export interface CentreDemandRow {
 export interface CentreClosureRow {
   closure_id: string;
   centre_id: string;
-  type: "cleaning" | "renovation" | "redevelopment" | "partial";
+  type: 'cleaning' | 'renovation' | 'redevelopment' | 'partial';
   start_date: string;
   end_date: string;
   duration_days: number;
@@ -54,17 +55,3 @@ export interface GoldData {
   centreDemand: CentreDemandRow[];
   centreClosures: CentreClosureRow[];
 }
-
-/** One entry of `assumptions.json` at the repo root. */
-export interface AssumptionEntry {
-  name: string;
-  value: number;
-  unit: string;
-  tag: "MEASURED" | "MODELLED" | "ASSUMPTION";
-  source: string;
-  status: "sourced" | "open" | "decided";
-  owner: string;
-  used_by: string[];
-}
-
-export type Assumptions = Record<string, AssumptionEntry>;
