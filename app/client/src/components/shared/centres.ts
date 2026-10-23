@@ -1,4 +1,4 @@
-import { toBoolean, toNumber, type RawRow } from './queryValues';
+import { toBoolean, toNumber, toText, type RawRow } from './queryValues';
 
 // A centre from gold.centres (config/queries/shared_centres.sql), parsed by toCentre.
 export interface Centre {
@@ -12,12 +12,12 @@ export interface Centre {
 
 export function toCentre(row: RawRow): Centre {
   return {
-    centre_id: String(row.centre_id),
-    name: String(row.name),
+    centre_id: toText(row.centre_id),
+    name: toText(row.name),
     lon: toNumber(row.lon),
     lat: toNumber(row.lat),
     is_interim: toBoolean(row.is_interim),
-    pln_area_n: String(row.pln_area_n),
+    pln_area_n: toText(row.pln_area_n),
   };
 }
 

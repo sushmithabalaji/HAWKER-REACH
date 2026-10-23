@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { toBoolean, toNumber } from './queryValues';
+import { toBoolean, toNumber, toText } from './queryValues';
 
 test('numbers parse from strings and pass through when already numbers', () => {
   expect(toNumber('103.81')).toBe(103.81);
@@ -11,4 +11,9 @@ test("booleans: only true or 'true' are true", () => {
   expect(toBoolean(true)).toBe(true);
   expect(toBoolean('false')).toBe(false);
   expect(toBoolean(null)).toBe(false);
+});
+
+test('text passes strings through', () => {
+  expect(toText('HC_1')).toBe('HC_1');
+  expect(toText(12)).toBe('12');
 });
