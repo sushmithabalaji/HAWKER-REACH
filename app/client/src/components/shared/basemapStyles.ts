@@ -10,7 +10,8 @@ export const SG_VIEW = { longitude: 103.82, latitude: 1.352, zoom: 10.6 };
 export type Basemap = 'onemap' | 'carto' | 'none';
 const ORDER: Basemap[] = ['onemap', 'carto', 'none'];
 
-const BASEMAP_SOURCE = 'basemap';
+// Each basemap has its own source id, so a late error from one isn't counted against the next.
+const SOURCE_PREFIX = 'basemap-';
 export const BACKGROUND = '#f2f2ef';
 
 const SOURCES = {
@@ -37,13 +38,15 @@ export function styleFor(basemap: Basemap): StyleSpecification {
   if (basemap === 'none') return { version: 8, sources: {}, layers: [background] };
   return {
     version: 8,
-    sources: { [BASEMAP_SOURCE]: { type: 'raster', tileSize: 256, ...SOURCES[basemap] } },
-    layers: [background, { id: BASEMAP_SOURCE, type: 'raster', source: BASEMAP_SOURCE }],
+    sources: { [SOURCE_PREFIX + basemap]: { type: 'raster', tileSize: 256, ...SOURCES[basemap] } },
+    layers: [background, { id: SOURCE_PREFIX + basemap, type: 'raster', source: SOURCE_PREFIX + basemap }],
   };
 }
 
-export function isBasemapSource(sourceId: string | undefined): boolean {
-  return sourceId === BASEMAP_SOURCE;
+// The basemap a map source belongs to, or null for any other source.
+export function basemapOfSource(sourceId: string | undefined): Basemap | null {
+  const name = sourceId?.startsWith(SOURCE_PREFIX) ? sourceId.slice(SOURCE_PREFIX.length) : null;
+  return name === 'onemap' || name === 'carto' ? name : null;
 }
 
 // Tile errors before any tile loads mean the basemap is unreachable (blocked, down or offline),
@@ -55,11 +58,15 @@ export interface TileState {
   loaded: boolean;
   errors: number;
 }
-export type TileEvent = { type: 'tile-loaded' } | { type: 'tile-error' };
+export interface TileEvent {
+  type: 'tile-loaded' | 'tile-error';
+  basemap: Basemap;
+}
 
 export const INITIAL_TILES: TileState = { basemap: 'onemap', loaded: false, errors: 0 };
 
 export function onTileEvent(state: TileState, event: TileEvent): TileState {
+  if (event.basemap !== state.basemap) return state; // from a basemap already given up on
   if (event.type === 'tile-loaded') return state.loaded ? state : { ...state, loaded: true };
   if (state.loaded || state.basemap === 'none') return state;
   const errors = state.errors + 1;

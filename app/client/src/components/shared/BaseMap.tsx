@@ -4,7 +4,7 @@ import { MapboxOverlay, type MapboxOverlayProps } from '@deck.gl/mapbox';
 import { GeoJsonLayer } from '@deck.gl/layers';
 import type { LayersList } from '@deck.gl/core';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { INITIAL_TILES, isBasemapSource, onTileEvent, SG_MAX_BOUNDS, SG_VIEW, styleFor } from './basemapStyles';
+import { INITIAL_TILES, basemapOfSource, onTileEvent, SG_MAX_BOUNDS, SG_VIEW, styleFor } from './basemapStyles';
 import { useGeoData } from './GeoData';
 
 function DeckOverlay(props: MapboxOverlayProps) {
@@ -42,11 +42,13 @@ export function BaseMap({ layers = [], getTooltip, className = 'h-[480px]' }: Ba
   );
 
   const onSourceData = (e: MapSourceDataEvent) => {
-    if (isBasemapSource(e.sourceId) && e.tile) dispatch({ type: 'tile-loaded' });
+    const basemap = basemapOfSource(e.sourceId);
+    if (basemap && e.tile) dispatch({ type: 'tile-loaded', basemap });
   };
   const onError = (e: ErrorEvent) => {
     // MapLibre puts the failing source on tile errors; other errors aren't the basemap's
-    if (isBasemapSource((e as ErrorEvent & { sourceId?: string }).sourceId)) dispatch({ type: 'tile-error' });
+    const basemap = basemapOfSource((e as ErrorEvent & { sourceId?: string }).sourceId);
+    if (basemap) dispatch({ type: 'tile-error', basemap });
   };
 
   return (
