@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle, Skeleton, useAnalyticsQuery } from '@databricks/appkit-ui/react';
+import { QueryError } from '@/components/shared/QueryError';
 import { TagBadge } from '@/components/shared/TagBadge';
 import { MapCheck } from './MapCheck';
 
@@ -18,7 +19,7 @@ export function HomePage() {
         </CardHeader>
         <CardContent>
           {loading && <Skeleton className="h-8 w-1/2" />}
-          {error && <div className="text-destructive bg-destructive/10 p-3 rounded-md">Error: {error}</div>}
+          {error && <QueryError error={error} />}
           {data && data.length > 0 && (
             <p className="text-sm text-muted-foreground">
               <span className="text-2xl font-bold text-primary">{data[0].blocks}</span> blocks in

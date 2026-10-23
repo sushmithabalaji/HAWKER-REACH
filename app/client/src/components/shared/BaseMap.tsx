@@ -16,6 +16,7 @@ import {
   styleFor,
 } from './basemapStyles';
 import { useGeoData } from './GeoData';
+import { QueryError } from './QueryError';
 
 function DeckOverlay(props: MapboxOverlayProps) {
   const overlay = useControl<MapboxOverlay>(() => new MapboxOverlay(props));
@@ -27,13 +28,15 @@ interface BaseMapProps {
   // deck.gl layers drawn above the subzone outlines, bottom first.
   layers?: LayersList;
   getTooltip?: MapboxOverlayProps['getTooltip'];
+  // Clicks on pickable deck.gl layers. A page that picks a centre by click checks canPick first.
+  onClick?: MapboxOverlayProps['onClick'];
   className?: string;
 }
 
 // Singapore map shared by Pages 1 and 2: OneMap grey tiles, Carto Positron if OneMap is unreachable,
 // and gold.subzone_shapes always drawn underneath so the map still reads with no tiles at all.
-export function BaseMap({ layers = [], getTooltip, className = 'h-[480px]' }: BaseMapProps) {
-  const { subzones } = useGeoData();
+export function BaseMap({ layers = [], getTooltip, onClick, className = 'h-[480px]' }: BaseMapProps) {
+  const { subzones, subzonesError } = useGeoData();
   const [tiles, dispatch] = useReducer(onTileEvent, INITIAL_TILES);
   const [carto, setCarto] = useState<StyleSpecification | null>(null);
 
@@ -92,8 +95,18 @@ export function BaseMap({ layers = [], getTooltip, className = 'h-[480px]' }: Ba
         onSourceData={onSourceData}
         onError={onError}
       >
-        <DeckOverlay layers={[outlines, ...layers]} getTooltip={getTooltip} />
+        <DeckOverlay layers={[outlines, ...layers]} getTooltip={getTooltip} onClick={onClick} />
       </Map>
+      {/* Without outlines a map with no tiles is blank, so say why */}
+      {!subzones && (
+        <div className="absolute left-2 top-2 max-w-[80%]">
+          {subzonesError ? (
+            <QueryError what="Subzone outlines" error={subzonesError} />
+          ) : (
+            <span className="rounded bg-background/80 px-2 py-1 text-xs text-muted-foreground">Loading outlines…</span>
+          )}
+        </div>
+      )}
     </div>
   );
 }

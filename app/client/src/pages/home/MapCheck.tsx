@@ -3,9 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle, useAnalyticsQuery } from '@da
 import { ScatterplotLayer } from '@deck.gl/layers';
 import { BaseMap } from '@/components/shared/BaseMap';
 import { CentreSearch } from '@/components/shared/CentreSearch';
-import { canClose, type Centre } from '@/components/shared/centres';
+import { canClose, canPick, type Centre } from '@/components/shared/centres';
 import { useGeoData } from '@/components/shared/GeoData';
 import { NO_PARAMS, toNumber, type RawRow } from '@/components/shared/queryValues';
+import { QueryError } from '@/components/shared/QueryError';
 
 interface BlockPoint {
   lon: number;
@@ -62,9 +63,12 @@ export function MapCheck() {
       </CardHeader>
       <CardContent className="space-y-3">
         <CentreSearch selectedId={picked} onSelect={(c) => setPicked(c.centre_id)} />
-        {error && <div className="text-destructive bg-destructive/10 p-3 rounded-md">Error: {error}</div>}
+        {error && <QueryError what="Blocks" error={error} />}
         <BaseMap
           layers={layers}
+          onClick={({ layer, object }) => {
+            if (layer?.id === 'centres' && object && canPick(object as Centre)) setPicked((object as Centre).centre_id);
+          }}
           getTooltip={({ layer, object }) => {
             if (layer?.id !== 'centres' || !object) return null;
             const c = object as Centre;

@@ -5,11 +5,12 @@ import { toCentre, type Centre } from './centres';
 import { NO_PARAMS, type RawRow } from './queryValues';
 import { toFeatureCollection, type SubzoneProps, type SubzoneShapeRow } from './subzones';
 
+// Each query keeps its own error, so a failed shapes query doesn't hide centres that loaded.
 interface GeoData {
   subzones: FeatureCollection<Geometry, SubzoneProps> | null;
+  subzonesError: string | null;
   centres: Centre[] | null;
-  loading: boolean;
-  error: string | null;
+  centresError: string | null;
 }
 
 const GeoDataContext = createContext<GeoData | null>(null);
@@ -23,11 +24,11 @@ export function GeoDataProvider({ children }: { children: ReactNode }) {
   const value = useMemo<GeoData>(
     () => ({
       subzones: shapes.data ? toFeatureCollection(shapes.data as SubzoneShapeRow[]) : null,
+      subzonesError: shapes.error,
       centres: centres.data ? (centres.data as unknown as RawRow[]).map(toCentre) : null,
-      loading: shapes.loading || centres.loading,
-      error: shapes.error ?? centres.error,
+      centresError: centres.error,
     }),
-    [shapes.data, shapes.loading, shapes.error, centres.data, centres.loading, centres.error]
+    [shapes.data, shapes.error, centres.data, centres.error]
   );
 
   return <GeoDataContext.Provider value={value}>{children}</GeoDataContext.Provider>;

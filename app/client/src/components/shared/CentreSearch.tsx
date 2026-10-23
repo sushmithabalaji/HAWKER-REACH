@@ -19,6 +19,7 @@ import {
 import { ChevronsUpDown } from 'lucide-react';
 import { searchCentres, townLabel, townsOf, whyNotPickable, type Centre } from './centres';
 import { useGeoData } from './GeoData';
+import { QueryError } from './QueryError';
 
 const ALL_TOWNS = '__all__';
 
@@ -44,7 +45,7 @@ export function CentreSearch({
   town: townProp,
   onTownChange,
 }: CentreSearchProps) {
-  const { centres, error } = useGeoData();
+  const { centres, centresError } = useGeoData();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [ownTown, setOwnTown] = useState<string | null>(null);
@@ -55,7 +56,7 @@ export function CentreSearch({
   const matches = useMemo(() => (centres ? searchCentres(centres, query, town) : []), [centres, query, town]);
   const selected = centres?.find((c) => c.centre_id === selectedId) ?? null;
 
-  if (error) return <div className="text-destructive bg-destructive/10 p-3 rounded-md">Error: {error}</div>;
+  if (centresError) return <QueryError what="Centres" error={centresError} />;
   if (!centres) return <Skeleton className="h-9 w-full max-w-xl" />;
 
   return (
