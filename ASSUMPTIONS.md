@@ -68,7 +68,7 @@ Where this file disagrees with the wireframe, this file wins.
 ## Gold tables (all written by `04_gold_access`)
 
 - **`block_access`** (one row per block): `block_id`, `block_label` (blk_no + street), `subzone_id`, `pln_area_n`, `lon`, `lat`, `est_seniors`, `nearest_centre_id`, `nearest_walk_m`, `tier_now`, `second_centre_id`, `second_walk_m`, `tier_if_nearest_closes`, `third_centre_id`, `third_walk_m`.
-- **`access_sensitivity`**: one row per (`closed_centre_id`, `limit_min` 10/15/20) for every operating centre, with `seniors_cut_off`, `seniors_no_one_can_walk`, `seniors_already_without`, `blocks_cut_off`.
+- **`access_sensitivity`**: one row per (`closed_centre_id`, `limit_min` 10/15/20) for every closable (non-interim) centre, with `seniors_cut_off`, `seniors_no_one_can_walk`, `seniors_already_without`, `seniors_now_worse`, `blocks_cut_off`.
 - **`subzone_seniors`**: `subzone_id`, `subzone_name`, `pln_area_n`, `hdb_residents`, `hdb_seniors`, `pct_65p`, `multiplier`, `is_super_aged`. No geometry.
 - **`subzone_shapes`**: `subzone_id`, `name`, `planning_area`, `geometry`. Built from `silver.subzones` by:
   1. `make_valid`
