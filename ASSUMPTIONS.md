@@ -98,7 +98,7 @@ Stack and rules are in [ADR 0002](docs/adr/0002-appkit-for-the-app.md) and `docs
 - **Queries:** `app/config/queries/<page>_<name>.sql`. AppKit names each query after its file, so prefix with the page. Run `npm run typegen`, then call it with `useAnalyticsQuery`. Gold tables only, with named parameters.
 - **Custom routes:** none by default, and never for plain SELECTs. Anything a SQL file can't do goes in `app/server/server.ts` inside `onPluginsReady`, after a check with the shell owner.
 - **Code used by both sides:** `app/shared/` holds pure TypeScript, with no React, Express or AppKit imports: tier rules, tag types.
-- **Sidebar and client routes:** both come from `app/client/src/pages/registry.ts` (`{ path, label, element }`). Adding a page is one line.
+- **Sidebar, client routes and Assumptions panels:** all come from `app/client/src/pages/registry.tsx` (`{ path, label, element, assumptions }`). Adding a page is one entry. Lines a spec shows on another spec's page go in `app/client/src/assumptions/<spec>.ts`. Details: `app/README.md`.
 - **Tests:** Vitest, with `<name>.test.ts` next to the code.
 - **Shared components** in `app/client/src/components/shared/`, built by Spec 1 and reused by other pages:
   - `CentreSearch`
@@ -130,7 +130,7 @@ Stack and rules are in [ADR 0002](docs/adr/0002-appkit-for-the-app.md) and `docs
 - **Excluded centres** are logged with `check_name = centre_excluded`, and the Assumptions panel shows "N centres excluded".
 - **CLI profile:** ticket 4a adds a `[hawkerreach]` profile pointing at the `dbc-98ae1c95-06a5` workspace, so `DATABRICKS_CONFIG_PROFILE=hawkerreach` works.
 - **Multiplier:** used only for the "vulnerability multiplier" map view and the subzone popup. It's built last in the Page 2 map ticket.
-- **Assumptions registry:** Spec 1 builds it and registers Page 2's lines only. Specs 2 and 4 register their own. Unsourced figures (for example waste per meal) are either hidden or labelled "illustrative, unsourced".
+- **Assumptions registry:** Spec 1 builds it and registers Page 2's lines only. Specs 2 and 4 register their own. Unsourced figures (for example waste per meal) are either hidden or labelled "illustrative, unsourced"; `open` values that have a source text show it with "(source still needed)".
 
 ## Job, lineage and MLflow
 
