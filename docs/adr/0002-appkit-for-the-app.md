@@ -10,7 +10,7 @@
 
 ## Decision
 
-- **Framework:** the app in `app/` is scaffolded with `databricks apps init --features analytics` (AppKit, Analytics plugin). Reads run on the SQL warehouse, not Lakebase.
+- **Framework:** the app in `app/` is scaffolded with `databricks apps init` using AppKit's Analytics plugin. The exact flags and resource keys come from `databricks apps init --help` and `databricks apps manifest` at scaffold time. Reads run on the SQL warehouse, not Lakebase.
 - **Reads:** each read is a `.sql` file in `app/config/queries/` named `<page>_<name>.sql`, typed with `npm run typegen` and called from React with `useAnalyticsQuery`. Queries read gold tables only and use named parameters.
 - **Custom routes:** Express routes in `app/server/server.ts` (inside `onPluginsReady`) are only for things a SQL file can't do, and need a check with the app shell owner (Spec 1). They are never used for plain SELECTs.
 - **Rule kept:** the browser never talks to Databricks directly. AppKit runs every query on its Node server with the app's service principal, so no token reaches the client. No routing at click time.

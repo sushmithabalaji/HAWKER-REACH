@@ -1,6 +1,6 @@
 # Spec 1 assumptions and decisions
 
-Settled in the Spec 1 grilling session (2026-10-22). Spec 1 covers the seniors & access page (Page 2 in `docs/wireframes/v1/README.md`), gold `block_access`, `subzone_seniors` and the app shell. Owner: Sushmitha.
+Settled in the Spec 1 grilling session (2026-10-22 and 2026-10-23). Spec 1 covers the seniors & access page (Page 2 in `docs/wireframes/v1/README.md`), gold `block_access`, `subzone_seniors` and the app shell. Owner: Sushmitha.
 
 Where this file disagrees with the wireframe, this file wins.
 
@@ -8,7 +8,7 @@ Where this file disagrees with the wireframe, this file wins.
 
 | Area | Was | Now |
 |---|---|---|
-| App stack | Streamlit in `app/` | Databricks AppKit in `app/`: React (Vite) + deck.gl on AppKit's Node server ([ADR 0002](docs/adr/0002-appkit-for-the-app.md)). Every read is an AppKit SQL file on the SQL warehouse (Analytics, not Lakebase). No Streamlit or FastAPI. |
+| App stack | Streamlit in `app/` | Databricks AppKit in `app/`: React (Vite) + deck.gl on AppKit's Node server ([ADR 0002](docs/adr/0002-appkit-for-the-app.md)). Every read of a gold table is an AppKit SQL file on the SQL warehouse (Analytics, not Lakebase). No Streamlit or FastAPI. |
 | `gold.block_access` | One row per block for each of 10/15/20 min, tiers T1–T4 | Replaced in place (no `_v2`) with one row per block (columns below). |
 | Time limit | 10 / 15 / 20 min on the map | Fixed at 15 min on the map. 10 and 20 min stay in the pipeline only, for sensitivity runs. |
 | Age-group control | Under 65 / 65–74 / 75–84 / 85+, at 1.3 / 1.2 / 1.0 / 0.8 m/s | Removed from the MVP. Seniors (65+) walk at 1.0 m/s everywhere. |
@@ -122,13 +122,13 @@ Stack and rules are in [ADR 0002](docs/adr/0002-appkit-for-the-app.md) and `docs
 - No `hawkerreach` app is deployed yet. The only app in the workspace is `hello-world`, which is stopped.
 - The NEA closures file can't give "years since last major works" (Spec 4): it has at most one "other works" row per centre and no history. The closest data is `silver.centres.opening_year`.
 - There's no official AAC location dataset. data.gov.sg has [yearly counts](https://data.gov.sg/datasets/d_0f70d7095a527be4ea443a7e30597896/view) and a [provider directory](https://data.gov.sg/datasets/d_d9c3fe5dd88c56c7d1322833d92c4fa7/view) that may not cover every AAC. MOH points to SupportGoWhere for confirmed locations.
-- `DATABRICKS_CONFIG_PROFILE=hawkerreach` points at a profile that doesn't exist in `~/.databrickscfg`. The workspace profile is `dbc-98ae1c95-06a5`.
+- `DATABRICKS_CONFIG_PROFILE=hawkerreach` pointed at a profile missing from `~/.databrickscfg` (2026-10-22). The workspace profile is `dbc-98ae1c95-06a5`.
 
 ## Data quality, profile and registry
 
 - **`hawkerreach.silver.data_quality_log`** is the one stated exception to the owning-notebook rule: it's append-only and every notebook writes to it. It holds issue rows plus per-step summary rows.
 - **Excluded centres** are logged with `check_name = centre_excluded`, and the Assumptions panel shows "N centres excluded".
-- **CLI profile:** a `[hawkerreach]` profile points at the `dbc-98ae1c95-06a5` workspace, so `DATABRICKS_CONFIG_PROFILE=hawkerreach` works.
+- **CLI profile:** ticket 4a adds a `[hawkerreach]` profile pointing at the `dbc-98ae1c95-06a5` workspace, so `DATABRICKS_CONFIG_PROFILE=hawkerreach` works.
 - **Multiplier:** used only for the "vulnerability multiplier" map view and the subzone popup. It's built last in the Page 2 map ticket.
 - **Assumptions registry:** Spec 1 builds it and registers Page 2's lines only. Specs 2 and 4 register their own. Unsourced figures (for example waste per meal) are either hidden or labelled "illustrative, unsourced".
 
@@ -138,9 +138,21 @@ Stack and rules are in [ADR 0002](docs/adr/0002-appkit-for-the-app.md) and `docs
   - Tasks run `01` → `02` → `03` → `04`. Saanvi's `05_gold_closures` runs after `03`, or after `04` if it reads `block_access`.
   - If the bundle isn't working within about an hour, define the job in the Jobs UI and commit its YAML.
 - **`05_gold_closures` must not compute its own tiers.** It either reads `block_access` after `04`, or both use one shared tier function.
-- **Lineage check:** queries `system.access.table_lineage`, or falls back to a static check of the app's query files. It logs the result and writes it to `data_quality_log`, and never fails the run.
+- **Lineage check:** queries `system.access.table_lineage` to confirm that gold tables read only from `hawkerreach.silver`/`gold` and that the app's service principal reads only gold. Without system tables, it falls back to a static check that every app query file references only `hawkerreach.gold.*`. It logs the result and writes it to `data_quality_log`, and never fails the run.
 - **MLflow:** four runs per job run, at 10, 15 and 20 min plus a step-free senior run (`highway=steps` removed, from `silver.dist_matrix_step_free`). The app never reads MLflow. Overload sensitivity (eating share, distance decay) belongs to Spec 2.
 
 ## Tickets
 
-Build order: 4a scaffold and deploy the empty shell, 1 silver data quality and subzone_c, 2 gold access, 3 gold subzones, 4b registry/sidebar/tags, 5 shared map and search, 6 Page 2 map and headline, 7 Page 2 lists, 9 job/lineage/MLflow. The AAC data source spike (8) is deferred to Phase 2. Spec 1 is a GitHub parent issue with these as sub-issues.
+Spec 1 is a GitHub parent issue with these tickets as sub-issues, in build order:
+
+1. Scaffold AppKit, deploy the empty shell, read one gold table
+2. Silver: `data_quality_log` and `subzone_c`
+3. Gold access: `block_access`, `access_sensitivity`, `centres`, `centre_closures`
+4. Gold subzones: `subzone_seniors`, `subzone_shapes`
+5. Shell: page registry, sidebar, `TagBadge`, `AssumptionsPanel`
+6. Shared `BaseMap` and `CentreSearch`
+7. Page 2: closure picker, access map, outcome groups, sensitivity line, then the multiplier view. Also updates the wireframe README.
+8. Page 2: Areas to alert, Senior meal-support list, CSV
+9. Lakeflow Job, lineage check, MLflow runs
+
+The AAC location source is a separate Phase 2 issue.

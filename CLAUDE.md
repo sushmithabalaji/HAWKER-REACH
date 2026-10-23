@@ -26,7 +26,7 @@ The spec's owner builds all of its tickets.
 - Only the owning notebook writes a shared table in `hawkerreach`. Experiments write to a personal schema, `hawkerreach.dev_<name>`. The one exception is `hawkerreach.silver.data_quality_log`: it's append-only, and every notebook writes to it.
 - Every number shown in the app carries a MEASURED, MODELLED or ASSUMPTION tag and a line in the Assumptions panel.
 - No routing at click time: the app reads precomputed gold tables.
-- The browser never queries Databricks directly; every query is an AppKit SQL file in `app/config/queries/`, run by the AppKit server.
+- The browser never queries Databricks directly; every read of a gold table is an AppKit SQL file in `app/config/queries/`, run by the AppKit server (custom server routes only for what SQL can't do; see ADR 0002).
 
 ## Decisions
 
