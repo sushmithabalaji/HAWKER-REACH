@@ -41,7 +41,7 @@ Lines a spec owns but shows on another spec's page (for example Spec 2's model l
 
 `BaseMap` is the Singapore map every page uses. Pass it deck.gl `layers` (drawn bottom first) and an optional `getTooltip`. `CentreSearch` picks the centre to close, with a town filter. Interim centres are listed but can't be picked. Both read subzone shapes and centres from `GeoDataProvider` in the app layout, which loads `gold.subzone_shapes` and `gold.centres` once per visit.
 
-Tiles come from OneMap's grey basemap. If OneMap is unreachable, the map switches to Carto Positron, and then to subzone outlines alone. The outlines are always drawn under the page's layers, so the map still reads with no tiles.
+Tiles come from OneMap's grey basemap. If OneMap is unreachable, the map switches to Carto Positron (its vector style, since Carto's raster tiles now need an API key), and then to subzone outlines alone. The outlines are always drawn under the page's layers, so the map still reads with no tiles.
 
 Basemap credits:
 - [OneMap](https://www.onemap.gov.sg/) © contributors, [Singapore Land Authority](https://www.sla.gov.sg/)

@@ -1,10 +1,20 @@
-import { useMemo, useReducer } from 'react';
+import { useEffect, useMemo, useReducer, useState } from 'react';
 import { Map, useControl, type ErrorEvent, type MapSourceDataEvent } from 'react-map-gl/maplibre';
 import { MapboxOverlay, type MapboxOverlayProps } from '@deck.gl/mapbox';
 import { GeoJsonLayer } from '@deck.gl/layers';
 import type { LayersList } from '@deck.gl/core';
+import type { StyleSpecification } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { INITIAL_TILES, basemapOfSource, onTileEvent, SG_MAX_BOUNDS, SG_VIEW, styleFor } from './basemapStyles';
+import {
+  basemapOfSource,
+  CARTO_STYLE_URL,
+  cartoStyle,
+  INITIAL_TILES,
+  onTileEvent,
+  SG_MAX_BOUNDS,
+  SG_VIEW,
+  styleFor,
+} from './basemapStyles';
 import { useGeoData } from './GeoData';
 
 function DeckOverlay(props: MapboxOverlayProps) {
@@ -25,7 +35,26 @@ interface BaseMapProps {
 export function BaseMap({ layers = [], getTooltip, className = 'h-[480px]' }: BaseMapProps) {
   const { subzones } = useGeoData();
   const [tiles, dispatch] = useReducer(onTileEvent, INITIAL_TILES);
-  const mapStyle = useMemo(() => styleFor(tiles.basemap), [tiles.basemap]);
+  const [carto, setCarto] = useState<StyleSpecification | null>(null);
+
+  // Carto's style is fetched only once OneMap has failed. Until it arrives the map shows outlines alone.
+  const needCarto = tiles.basemap === 'carto' && !carto;
+  useEffect(() => {
+    if (!needCarto) return;
+    let live = true;
+    fetch(CARTO_STYLE_URL)
+      .then((r) => (r.ok ? (r.json() as Promise<StyleSpecification>) : Promise.reject(new Error(String(r.status)))))
+      .then((style) => live && setCarto(cartoStyle(style)))
+      .catch(() => live && dispatch({ type: 'style-error', basemap: 'carto' }));
+    return () => {
+      live = false;
+    };
+  }, [needCarto]);
+
+  const mapStyle = useMemo(
+    () => (tiles.basemap === 'carto' ? (carto ?? styleFor('none')) : styleFor(tiles.basemap)),
+    [tiles.basemap, carto]
+  );
 
   const outlines = useMemo(
     () =>

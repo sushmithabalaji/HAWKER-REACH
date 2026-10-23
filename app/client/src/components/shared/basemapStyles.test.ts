@@ -1,6 +1,8 @@
 import { describe, expect, test } from 'vitest';
+import type { StyleSpecification } from 'maplibre-gl';
 import {
   basemapOfSource,
+  cartoStyle,
   INITIAL_TILES,
   MAX_TILE_ERRORS,
   onTileEvent,
@@ -39,6 +41,11 @@ describe('basemap fallback', () => {
     expect(run(errors(10, 'onemap'), carto)).toEqual(carto);
   });
 
+  test("Carto's style failing to load goes straight to outlines only", () => {
+    const carto = run(errors(MAX_TILE_ERRORS));
+    expect(onTileEvent(carto, { type: 'style-error', basemap: 'carto' }).basemap).toBe('none');
+  });
+
   test('Carto loading stops the fallback', () => {
     const carto = run([...errors(MAX_TILE_ERRORS), loaded('carto'), ...errors(10, 'carto')]);
     expect(carto.basemap).toBe('carto');
@@ -46,23 +53,35 @@ describe('basemap fallback', () => {
 });
 
 describe('basemap styles', () => {
-  test('every style has the background, so the map reads with no tiles', () => {
-    for (const b of ['onemap', 'carto', 'none'] as const) expect(styleFor(b).layers[0].type).toBe('background');
+  test('OneMap and outlines-only start with the background, so the map reads with no tiles', () => {
+    for (const b of ['onemap', 'none'] as const) expect(styleFor(b).layers[0].type).toBe('background');
   });
 
-  test('OneMap and Carto are credited', () => {
+  test('OneMap is credited', () => {
     expect(JSON.stringify(styleFor('onemap'))).toContain('OneMap');
-    expect(JSON.stringify(styleFor('carto'))).toContain('CARTO');
   });
 
   test('outlines-only has no tile source', () => {
     expect(styleFor('none').sources).toEqual({});
   });
 
+  test("Carto's sources are renamed so their tile events map back to Carto", () => {
+    const positron: StyleSpecification = {
+      version: 8,
+      sources: { protomaps: { type: 'vector', tiles: ['https://example.test/{z}/{x}/{y}.mvt'] } },
+      layers: [
+        { id: 'background', type: 'background' },
+        { id: 'water', type: 'fill', source: 'protomaps', 'source-layer': 'water' },
+      ],
+    };
+    const adopted = cartoStyle(positron);
+    expect(Object.keys(adopted.sources).map(basemapOfSource)).toEqual(['carto']);
+    expect(adopted.layers[1]).toMatchObject({ id: 'water', source: Object.keys(adopted.sources)[0] });
+    expect(adopted.layers[0]).toEqual(positron.layers[0]);
+  });
+
   test("each style's tile source maps back to its basemap", () => {
-    for (const b of ['onemap', 'carto'] as const) {
-      expect(Object.keys(styleFor(b).sources).map(basemapOfSource)).toEqual([b]);
-    }
+    expect(Object.keys(styleFor('onemap').sources).map(basemapOfSource)).toEqual(['onemap']);
     expect(basemapOfSource('deck')).toBeNull();
     expect(basemapOfSource(undefined)).toBeNull();
   });
