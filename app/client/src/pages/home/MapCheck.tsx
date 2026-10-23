@@ -3,15 +3,15 @@ import { Card, CardContent, CardHeader, CardTitle, useAnalyticsQuery } from '@da
 import { ScatterplotLayer } from '@deck.gl/layers';
 import { BaseMap } from '@/components/shared/BaseMap';
 import { CentreSearch } from '@/components/shared/CentreSearch';
-import { canClose, toNumber, type Centre } from '@/components/shared/centres';
+import { canClose, type Centre } from '@/components/shared/centres';
 import { useGeoData } from '@/components/shared/GeoData';
+import { NO_PARAMS, toNumber, type RawRow } from '@/components/shared/queryValues';
 
 interface BlockPoint {
   lon: number;
   lat: number;
 }
 
-const NO_PARAMS = {};
 const CLOSABLE: [number, number, number] = [37, 99, 235];
 const INTERIM: [number, number, number] = [22, 163, 74];
 const PICKED: [number, number, number] = [220, 38, 38];
@@ -22,10 +22,9 @@ export function MapCheck() {
   const { centres } = useGeoData();
   const { data: blocks, error } = useAnalyticsQuery('home_block_points', NO_PARAMS);
   const [picked, setPicked] = useState<string | null>(null);
-  // values arrive as strings (see toCentre)
   const points = useMemo<BlockPoint[]>(
     () =>
-      ((blocks as { lon: string; lat: string }[] | null) ?? []).map((b) => ({
+      ((blocks as unknown as RawRow[] | null) ?? []).map((b) => ({
         lon: toNumber(b.lon),
         lat: toNumber(b.lat),
       })),

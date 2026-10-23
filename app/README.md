@@ -26,7 +26,7 @@ The app's service principal needs gold-only read grants: `Sql/01_app_grants.sql`
 | A custom server route | only for what a SQL file can't do, in `server/server.ts`. Check with the shell owner (Spec 1) first |
 | Pure TypeScript both sides use | `shared/` (no React, Express or AppKit imports), imported as `@shared/...` |
 | Shared UI | `client/src/components/shared/`: `TagBadge`, `AssumptionsPanel`, `BaseMap`, `CentreSearch` |
-| Query results | AppKit's JSON format sends every value as a string (`"103.81"`, `"false"`) even though the generated types say number or boolean, and a string column holding JSON (like `subzone_shapes.geometry`) arrives already parsed. Parse before use, e.g. `toNumber` / `toBoolean` in `components/shared/centres.ts` |
+| Query results | AppKit's JSON format sends every value as a string (`"103.81"`, `"false"`) even though the generated types say number or boolean, and a string column holding JSON (like `subzone_shapes.geometry`) arrives already parsed. Parse before use with `toNumber` / `toBoolean` in `components/shared/queryValues.ts` |
 | Tests | Vitest, `<name>.test.ts` next to the code. `npm test` |
 
 ## Tags and the Assumptions panel

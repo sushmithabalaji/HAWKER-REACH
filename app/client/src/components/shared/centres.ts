@@ -1,3 +1,5 @@
+import { toBoolean, toNumber, type RawRow } from './queryValues';
+
 // A centre from gold.centres (config/queries/shared_centres.sql), parsed by toCentre.
 export interface Centre {
   centre_id: string;
@@ -6,18 +8,6 @@ export interface Centre {
   lat: number;
   is_interim: boolean;
   pln_area_n: string;
-}
-
-// AppKit's JSON format sends every value as a string ("103.81", "false"), whatever the generated
-// types say, so numbers and booleans are parsed here.
-export type RawRow = Record<string, string | number | boolean | null>;
-
-export function toNumber(v: RawRow[string]): number {
-  return typeof v === 'number' ? v : Number(v);
-}
-
-export function toBoolean(v: RawRow[string]): boolean {
-  return v === true || v === 'true';
 }
 
 export function toCentre(row: RawRow): Centre {

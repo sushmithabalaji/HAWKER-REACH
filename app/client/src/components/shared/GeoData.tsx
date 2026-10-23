@@ -1,7 +1,8 @@
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
 import { useAnalyticsQuery } from '@databricks/appkit-ui/react';
 import type { FeatureCollection, Geometry } from 'geojson';
-import { toCentre, type Centre, type RawRow } from './centres';
+import { toCentre, type Centre } from './centres';
+import { NO_PARAMS, type RawRow } from './queryValues';
 import { toFeatureCollection, type SubzoneProps, type SubzoneShapeRow } from './subzones';
 
 interface GeoData {
@@ -12,7 +13,6 @@ interface GeoData {
 }
 
 const GeoDataContext = createContext<GeoData | null>(null);
-const NO_PARAMS = {};
 
 // Mounted once in the app layout, so subzone shapes and centres load once per visit and every
 // BaseMap and CentreSearch on every page shares them.
