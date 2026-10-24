@@ -11,7 +11,9 @@ import { useGeoData } from '@/components/shared/GeoData';
 import type { SubzoneProps } from '@/components/shared/subzones';
 import { QueryError } from '@/components/shared/QueryError';
 import { TagBadge } from '@/components/shared/TagBadge';
-import { ACCENT_HEX, INK_HEX, MULTIPLIER_HEX, NOT_AFFECTED_HEX, rgb, TIER_HEX } from './colours';
+import { centresLayer } from '@/components/shared/centresLayer';
+import { HIGHLIGHT_HEX, INK_HEX, rgb, WHITE_HEX } from '@/components/shared/mapColours';
+import { MULTIPLIER_HEX, NOT_AFFECTED_HEX, TIER_HEX } from './colours';
 import {
   roughCount,
   TIERS,
@@ -92,26 +94,7 @@ export function AccessMap({
   const closedIds = useMemo(() => new Set(closure ? [closure.centreId, ...closure.alsoClosed] : []), [closure]);
 
   const layers = useMemo(() => {
-    const centreLayer = new ScatterplotLayer<Centre>({
-      id: 'centres',
-      data: centres ?? [],
-      pickable: true,
-      getPosition: (c) => [c.lon, c.lat],
-      radiusUnits: 'pixels',
-      getRadius: (c) => (c.centre_id === closure?.centreId ? 8 : closedIds.has(c.centre_id) ? 6 : 5),
-      stroked: true,
-      lineWidthUnits: 'pixels',
-      getLineWidth: (c) => (closedIds.has(c.centre_id) ? 3 : 1),
-      getLineColor: (c) => rgb(closedIds.has(c.centre_id) ? ACCENT_HEX : '#FFFFFF'),
-      getFillColor: (c) =>
-        closedIds.has(c.centre_id) ? rgb('#FFFFFF') : c.is_interim ? rgb('#7A8794') : rgb(ACCENT_HEX),
-      updateTriggers: {
-        getRadius: [closure],
-        getLineWidth: [closure],
-        getLineColor: [closure],
-        getFillColor: [closure],
-      },
-    });
+    const centreLayer = centresLayer({ centres: centres ?? [], pickedId: closure?.centreId ?? null, closedIds });
 
     if (view === 'multiplier') {
       const shading = new GeoJsonLayer<SubzoneProps>({
@@ -324,7 +307,7 @@ export function AccessMap({
             </>
           )}
           <span className="flex items-center gap-1.5">
-            <Swatch colour="#FFFFFF" ring={ACCENT_HEX} />
+            <Swatch colour={WHITE_HEX} ring={HIGHLIGHT_HEX} />
             closed centre
           </span>
         </div>
