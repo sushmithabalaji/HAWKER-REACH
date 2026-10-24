@@ -1,4 +1,3 @@
-import { Badge } from '@databricks/appkit-ui/react';
 import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/shared/Panel';
 import { TagBadge } from '@/components/shared/TagBadge';
 import { roughCount, type AreaCutOff } from './scenario';
@@ -38,9 +37,9 @@ export function AreasToAlert({ areas, subzoneSeniors, names }: AreasToAlertProps
                   <span className="flex-1">
                     <strong>{names.subzone(a.subzone_id)}</strong>
                     {s?.is_super_aged && (
-                      <Badge variant="destructive" className="ml-2 align-middle text-[10px]">
-                        {SUPER_AGED_PCT}%+ aged 65+
-                      </Badge>
+                      <span className="ml-2 inline-block rounded-full bg-highlight-tint px-2 py-px align-middle text-[11px] font-semibold text-highlight">
+                        ⚠ {SUPER_AGED_PCT}%+ aged 65+
+                      </span>
                     )}
                     <span className="block text-xs text-muted-foreground">
                       {s?.pct_65p != null ? (
