@@ -7,4 +7,7 @@ export const homeAssumptions: AssumptionLine[] = [
     source: 'HDB Property Information and building footprints (data.gov.sg, 2026-10-17), matched in 02_silver',
     status: 'sourced',
   },
+  {
+    limitation: 'Subzone outlines on the map are simplified to about 15 m, so borders are approximate at street level',
+  },
 ];
