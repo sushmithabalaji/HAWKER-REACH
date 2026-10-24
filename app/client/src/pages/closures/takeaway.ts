@@ -1,13 +1,8 @@
 import type { TakeawayParts } from '@shared/closure-engine';
 import { shortName } from '@/components/shared/centres';
+import { count, roundTo10 } from './format';
+import type { WalkLimits } from './settings';
 
-export interface WalkLimits {
-  limitMin: number;
-  cutoffM: number;
-}
-
-export const count = (n: number) => n.toLocaleString('en-US');
-export const roundTo10 = (n: number) => Math.round(n / 10) * 10;
 const plural = (n: number, one: string, many: string) => `${count(n)} ${n === 1 ? one : many}`;
 
 // The one-sentence takeaway below the map (#11, story 24), written from the engine's facts.
@@ -25,7 +20,7 @@ export function takeawaySentence(parts: TakeawayParts, { limitMin, cutoffM }: Wa
         cutOff(parts, limitMin, cutoffM),
       ]
     : [
-        `${closing} displaces no modelled diners: no HDB block has ${names.length > 1 ? 'them' : 'it'} as its nearest centre.`,
+        `${closing} displaces no modelled diners: no HDB block uses ${names.length > 1 ? 'them' : 'it'} as its nearest centre.`,
       ];
   const verdict = verdictSummary(parts.verdict.counts);
   return [...sentences, ...(verdict ? [verdict] : [])].join(' ');

@@ -1,7 +1,8 @@
 import type { Tiles } from '@shared/closure-engine';
 import type { Tag } from '@shared/tags';
 import { shortName } from '@/components/shared/centres';
-import { count, roundTo10, type WalkLimits } from './takeaway';
+import { count, pctOverBaseline, roundTo10 } from './format';
+import type { WalkLimits } from './settings';
 
 export interface HeadlineTile {
   value: string;
@@ -18,13 +19,14 @@ export function headlineTiles(tiles: Tiles, { cutoffM }: WalkLimits): HeadlineTi
   const { displaced, biggestLoad, accessLoss, verdict } = tiles;
   const unserved = roundTo10(displaced.unservedDinersPerDay);
   const load = biggestLoad.centre;
-  const pct = load && (load.pctOverBaseline === 'new' ? 'new diners' : `+${Math.round(load.pctOverBaseline)}%`);
+  const pct = load && (load.pctOverBaseline === 'new' ? 'new diners' : pctOverBaseline(load.pctOverBaseline));
 
   return [
     {
       value: displaced.dinersPerDay > 0 ? `≈${count(displaced.dinersPerDay)}` : '0',
       label: 'displaced diners a day',
-      note: unserved > 0 ? `+${count(unserved)} a day newly unserved (no centre within ${cutoffM / 1000} km)` : null,
+      note:
+        unserved > 0 ? `+${count(unserved)} diners a day newly unserved (no centre within ${cutoffM / 1000} km)` : null,
       tag: displaced.tag,
       source: displaced.source,
     },
@@ -51,7 +53,7 @@ export function headlineTiles(tiles: Tiles, { cutoffM }: WalkLimits): HeadlineTi
       label: 'plan verdict',
       note: verdict.status
         ? `${verdict.counts.red} red · ${verdict.counts.yellow} yellow · ${verdict.counts.green} green`
-        : 'add centres to close at the same time',
+        : 'add centres above to check whether they can close together',
       tag: verdict.tag,
       source: verdict.source,
     },

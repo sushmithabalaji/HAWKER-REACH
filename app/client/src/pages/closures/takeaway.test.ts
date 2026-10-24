@@ -60,7 +60,7 @@ describe('takeawaySentence', () => {
       seniorBlocksLosingAccess: 0,
     };
     expect(takeawaySentence(parts, limits)).toBe(
-      'Closing Amoy Street Food Centre displaces no modelled diners: no HDB block has it as its nearest centre.'
+      'Closing Amoy Street Food Centre displaces no modelled diners: no HDB block uses it as its nearest centre.'
     );
   });
 

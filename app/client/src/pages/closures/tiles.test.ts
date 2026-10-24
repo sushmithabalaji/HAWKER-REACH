@@ -31,7 +31,7 @@ describe('headlineTiles', () => {
       {
         value: '≈1,230',
         label: 'displaced diners a day',
-        note: '+40 a day newly unserved (no centre within 2 km)',
+        note: '+40 diners a day newly unserved (no centre within 2 km)',
         tag: 'MODELLED',
         source: 'gold.block_options',
       },
@@ -69,7 +69,7 @@ describe('headlineTiles', () => {
     const [displaced, load, , verdict] = headlineTiles(quiet, limits);
     expect(displaced).toMatchObject({ value: '0', note: null });
     expect(load).toMatchObject({ value: '—', note: 'no centre takes extra diners' });
-    expect(verdict).toMatchObject({ value: '—', note: 'add centres to close at the same time' });
+    expect(verdict).toMatchObject({ value: '—', note: 'add centres above to check whether they can close together' });
   });
 
   test('a receiver with no baseline shows "new", and one with no stalls has no per-stall load', () => {

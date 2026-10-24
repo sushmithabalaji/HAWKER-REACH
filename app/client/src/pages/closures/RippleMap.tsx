@@ -7,7 +7,7 @@ import type { Bounds } from '@/components/shared/basemapStyles';
 import { canPick, shortName } from '@/components/shared/centres';
 import { ACCENT_HEX, INK_HEX, rgb } from '../seniors/colours';
 import { TOP_RECEIVERS } from './settings';
-import { count } from './takeaway';
+import { count, pctOverBaseline } from './format';
 
 const OTHER_HEX = '#9AA5B1';
 const INTERIM_HEX = '#5F6B78';
@@ -26,7 +26,6 @@ interface PlacedReceiver extends Receiver {
 }
 
 const position = (c: CentreRow): [number, number] => [c.lon, c.lat];
-const pct = (r: Receiver) => (r.pctOverBaseline === 'new' ? 'new' : `+${Math.round(r.pctOverBaseline)}%`);
 
 function boundsOf(points: [number, number][]): Bounds | null {
   if (points.length === 0) return null;
@@ -136,7 +135,7 @@ export function RippleMap({ centres, anchor, result, onCentreClick, className }:
     },
     receivers: {
       tooltip: (r: PlacedReceiver) =>
-        `${r.name}\n+${count(Math.round(r.extraDinersPerDay))} diners a day (${pct(r)})` +
+        `${r.name}\n+${count(Math.round(r.extraDinersPerDay))} diners a day (${pctOverBaseline(r.pctOverBaseline)})` +
         `\n${r.extraDinersPerStall === null ? 'No stalls recorded' : `+${r.extraDinersPerStall.toFixed(1)} per stall`}` +
         ` · ${Math.round(r.shareOfDisplaced * 100)}% of displaced diners`,
       click: (r: PlacedReceiver) => {

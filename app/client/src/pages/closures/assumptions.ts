@@ -36,6 +36,12 @@ export const closuresAssumptions: AssumptionLine[] = [
     source: 'gold.block_options',
     status: 'decided',
   },
+  {
+    text: 'Diners and residents are shown to the nearest 10 (≈), and extra diners per stall to one decimal place, because they are modelled',
+    tag: 'ASSUMPTION',
+    source: 'Team decision (Spec 3, display rounding)',
+    status: 'decided',
+  },
   { key: 'verdict.access.min_new_blocks' },
   { key: 'verdict.load.yellow_quantile' },
   { key: 'verdict.load.red_quantile' },

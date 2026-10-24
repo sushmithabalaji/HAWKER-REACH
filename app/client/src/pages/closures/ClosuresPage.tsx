@@ -7,7 +7,7 @@ import { townLabel, type Centre } from '@/components/shared/centres';
 import { QueryError } from '@/components/shared/QueryError';
 import { TagBadge } from '@/components/shared/TagBadge';
 import { RippleMap } from './RippleMap';
-import { WALK_LIMITS } from './settings';
+import { TOP_RECEIVERS, WALK_LIMITS } from './settings';
 import { takeawaySentence } from './takeaway';
 import { headlineTiles } from './tiles';
 import { usePlanData } from './usePlanData';
@@ -73,8 +73,8 @@ export function ClosuresPage() {
             <Skeleton className="h-[560px] w-full" />
           )}
           <p className="text-xs text-muted-foreground">
-            × closed centre · circles sized by extra diners a day · lines to the {result ? 'top 5 centres' : 'centres'}{' '}
-            taking its diners, thicker for a bigger share
+            × closed centre · circles sized by extra diners a day · lines to the{' '}
+            {result ? `top ${TOP_RECEIVERS} centres` : 'centres'} taking its diners, thicker for a bigger share
             <TagBadge tag="MODELLED" />
           </p>
           <p className="text-xs text-muted-foreground">
