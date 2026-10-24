@@ -2,6 +2,7 @@ import { describe, expect, test } from 'vitest';
 import {
   areasCutOff,
   roughCount,
+  roundedCount,
   runScenario,
   summarise,
   tierOf,
@@ -273,5 +274,9 @@ describe('areasCutOff', () => {
 describe('roughCount', () => {
   test('rounds estimates to the nearest 5, and says <5 for a few', () => {
     expect([0, 0.4, 3, 7, 1234].map(roughCount)).toEqual(['0', '<5', '<5', '5', '1,235']);
+  });
+
+  test('roundedCount is the same rounding as a number, with under 5 as 0', () => {
+    expect([0, 0.4, 3, 7, 1234].map(roundedCount)).toEqual([0, 0, 0, 5, 1235]);
   });
 });

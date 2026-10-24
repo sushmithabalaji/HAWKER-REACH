@@ -1,4 +1,4 @@
-import { roughCount, type BlockOutcome } from './scenario';
+import { roundedCount, type BlockOutcome } from './scenario';
 import { MEAL_SUPPORT_WALK_M } from './settings';
 
 // Ordered mildest first, so the stricter of two is the later one.
@@ -71,7 +71,8 @@ const csvCell = (v: string | number) => {
   return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 };
 
-// Block-level CSV of the list. Seniors are rounded as on the page; names come from the page's lookups.
+// Block-level CSV of the list. Seniors are rounded to 5 as on the page, but as plain numbers (under 5 is 0)
+// so the column sums in a spreadsheet.
 export function supportCsv(
   areas: readonly SupportArea[],
   subzoneName: (id: string) => string,
@@ -83,7 +84,7 @@ export function supportCsv(
       subzoneName(area.subzone_id),
       o.block.block_id,
       o.block.block_label,
-      roughCount(o.block.est_seniors),
+      roundedCount(o.block.est_seniors),
       o.block.tier_now,
       o.after,
       centreName(o.afterCentreId),

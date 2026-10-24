@@ -18,13 +18,16 @@ function SupportPill({ support }: { support: Support }) {
   return <Badge variant={support === 'Meal delivery' ? 'default' : 'outline'}>{support}</Badge>;
 }
 
+// The link is added to the page and the URL kept a moment, or Firefox and Safari can drop the download.
 function download(csv: string, filename: string) {
   const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
   const a = document.createElement('a');
   a.href = url;
   a.download = filename;
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(url);
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 const fileSafe = (s: string) =>

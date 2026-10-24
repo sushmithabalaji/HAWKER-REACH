@@ -107,6 +107,43 @@ describe('mealSupportList', () => {
   });
 });
 
+test('supportCsv writes seniors as plain numbers, under 5 as 0', () => {
+  const list = mealSupportList(
+    run([
+      block(
+        'a',
+        'SZ1',
+        'T1',
+        [
+          ['C', 300],
+          ['D', 1000],
+        ],
+        3
+      ),
+      block(
+        'b',
+        'SZ1',
+        'T1',
+        [
+          ['C', 300],
+          ['D', 900.5],
+        ],
+        1234
+      ),
+    ])
+  );
+  const seniors = supportCsv(
+    list,
+    () => 'X',
+    () => 'Y'
+  )
+    .trim()
+    .split('\n')
+    .slice(1)
+    .map((row) => row.split(',')[4]);
+  expect(seniors).toEqual(['0', '1235']);
+});
+
 test('supportCsv has one row per block and quotes commas', () => {
   const list = mealSupportList(
     run([
