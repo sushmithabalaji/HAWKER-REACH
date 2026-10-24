@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, test } from 'vitest';
-import { resolveLine, UNSOURCED, type Assumptions } from './assumptions';
+import { assumedNumber, resolveLine, UNSOURCED, type Assumptions } from './assumptions';
 
 const sample: Assumptions = {
   'walk.pace.senior': {
@@ -62,6 +62,16 @@ describe('resolveLine', () => {
 
 // The repo-root file isn't uploaded with app/, so this only runs in a full checkout.
 const rootFile = path.resolve(__dirname, '../../assumptions.json');
+
+describe('assumedNumber', () => {
+  test('reads a numeric value', () => {
+    expect(assumedNumber('walk.pace.senior', sample)).toBe(1.0);
+  });
+
+  test('an unknown key throws instead of computing with undefined', () => {
+    expect(() => assumedNumber('walk.pace.toddler', sample)).toThrow(/Unknown/);
+  });
+});
 
 describe('assumptions.json copy', () => {
   test.skipIf(!existsSync(rootFile))('matches the repo-root file (run `npm run sync:assumptions`)', () => {
