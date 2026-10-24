@@ -66,6 +66,32 @@ describe('evaluatePlan: single closure', () => {
   });
 });
 
+describe('evaluatePlan: displaced blocks', () => {
+  it('lists every block whose nearest centre closes, including ones left with no centre, for the map', () => {
+    const data = town(
+      [centre('HC_A'), centre('HC_B'), centre('HC_C')],
+      [
+        block('B1', [
+          ['HC_A', 300],
+          ['HC_B', 700],
+        ]),
+        block('B2', [
+          ['HC_C', 200],
+          ['HC_A', 900],
+        ]),
+        block('B3', [
+          ['HC_B', 400],
+          ['HC_C', 500],
+        ]),
+        block('B4', [['HC_B', 1500]]),
+        block('B5', []),
+      ]
+    );
+
+    expect(evaluatePlan(data, 'HC_A', ['HC_B'], assumptions).displacedBlockIds).toEqual(['B1', 'B3', 'B4']);
+  });
+});
+
 describe('evaluatePlan: joint closure', () => {
   it('evaluates the anchor and selected centres as one plan, skipping every closed centre', () => {
     const data = town(

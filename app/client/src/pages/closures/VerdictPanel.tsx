@@ -7,9 +7,6 @@ import { TagBadge } from '@/components/shared/TagBadge';
 import { WALK_LIMITS } from './settings';
 import { cardView, planLineView, STATUS_STYLE, TONE_CLASS, type CardView } from './verdicts';
 
-const UNDERCOUNT_REASON =
-  'The model counts HDB residents only, so a centre whose diners are mostly workers, visitors or private-housing residents has fewer modelled diners than real ones';
-
 function StatusMark({ icon, word, tone }: { icon: string; word: string; tone: Status }) {
   return (
     <span className={`inline-flex items-center gap-1.5 font-semibold ${TONE_CLASS[tone].text}`}>
@@ -26,11 +23,13 @@ function StatusMark({ icon, word, tone }: { icon: string; word: string; tone: St
 
 function VerdictCardItem({
   card,
+  undercountReason,
   open,
   onToggle,
   onRemove,
 }: {
   card: CardView;
+  undercountReason: string | null;
   open: boolean;
   onToggle: () => void;
   onRemove: () => void;
@@ -41,7 +40,7 @@ function VerdictCardItem({
         <StatusMark {...card} />
         <span className="font-medium">{card.name}</span>
         {card.possiblyUndercounted && (
-          <span title={UNDERCOUNT_REASON}>
+          <span title={undercountReason ?? undefined}>
             <Pill tone="outline">Possibly under-counted</Pill>
           </span>
         )}
@@ -107,10 +106,13 @@ function VerdictCardItem({
 export function VerdictPanel({
   anchorName,
   result,
+  undercountNotes,
   onRemove,
 }: {
   anchorName: string;
   result: PlanResult;
+  /** The badge tooltip for each possibly under-counted centre, by centre_id. */
+  undercountNotes: Map<string, string>;
   onRemove: (centreId: string) => void;
 }) {
   const [openId, setOpenId] = useState<string | null>(null);
@@ -148,15 +150,19 @@ export function VerdictPanel({
             ))}
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground">
-            No centres added. Use “Also close at the same time” above to check whether they can close together.
-          </p>
+          <p className="text-sm text-muted-foreground">Add centres above to check whether they can close together.</p>
         )}
+        <p className="text-xs text-muted-foreground">
+          Load benchmarks from NEA&rsquo;s single closures: typical {result.benchmark.typical.toFixed(1)} · 3 in 4{' '}
+          {result.benchmark.threeInFour.toFixed(1)} extra diners per stall at the worst-hit neighbour
+          <TagBadge tag="MODELLED" />
+        </p>
         <ul className="flex flex-col gap-2">
           {cards.map((card) => (
             <VerdictCardItem
               key={card.centreId}
               card={card}
+              undercountReason={undercountNotes.get(card.centreId) ?? null}
               open={openId === card.centreId}
               onToggle={() => setOpenId(openId === card.centreId ? null : card.centreId)}
               onRemove={() => onRemove(card.centreId)}
