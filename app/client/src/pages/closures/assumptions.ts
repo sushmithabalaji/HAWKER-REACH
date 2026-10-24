@@ -37,7 +37,7 @@ export const closuresAssumptions: AssumptionLine[] = [
     status: 'decided',
   },
   {
-    text: 'Diners and residents are shown to the nearest 10 (≈), and extra diners per stall to one decimal place, because they are modelled',
+    text: 'Diners and residents are shown to the nearest 10 (≈), seniors to the nearest 5 (under 5 as "<5"), and extra diners per stall to one decimal place, because they are modelled',
     tag: 'ASSUMPTION',
     source: 'Team decision (Spec 3, display rounding)',
     status: 'decided',

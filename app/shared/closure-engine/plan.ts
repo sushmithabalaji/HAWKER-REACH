@@ -463,7 +463,7 @@ function brokenRules(
     broken.push({
       status: 'red',
       rule: 'access',
-      reason: `${subject} leaves ${blocks} (${cutOff.seniors} seniors) with no centre within ${prepared.limitMin} min at senior pace.`,
+      reason: `${subject} leaves ${blocks} (${roughSeniors(cutOff.seniors)} seniors) with no centre within ${prepared.limitMin} min at senior pace.`,
       cutOff,
       pastBenchmark: [],
     });
@@ -504,6 +504,11 @@ function worstStatus(statuses: Status[]): Status {
 
 function joinNames(parts: string[]): string {
   return parts.length <= 1 ? (parts[0] ?? '') : `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`;
+}
+
+// Seniors per block are estimates, so they are shown to the nearest 5, and under 5 as "<5" (ASSUMPTIONS.md, display rounding).
+function roughSeniors(n: number): string {
+  return n < 5 ? '<5' : (Math.round(n / 5) * 5).toLocaleString('en-US');
 }
 
 function fmt(n: number): string {

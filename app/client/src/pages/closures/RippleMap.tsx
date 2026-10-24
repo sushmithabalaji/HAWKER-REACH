@@ -14,7 +14,8 @@ const RECEIVER_HEX = '#2F86B0';
 
 interface RippleMapProps {
   centres: CentreRow[];
-  anchor: CentreRow | null;
+  /** The anchor first, then the centres closing at the same time. */
+  closed: CentreRow[];
   result: PlanResult | null;
   onCentreClick: (centre: CentreRow) => void;
   className?: string;
@@ -22,9 +23,13 @@ interface RippleMapProps {
 
 interface PlacedReceiver extends Receiver {
   position: [number, number];
+  /** Where its line starts: the closed centre nearest to it. */
+  from: [number, number];
 }
 
 const position = (c: CentreRow): [number, number] => [c.lon, c.lat];
+// Near enough for picking the nearest of a few closed centres within Singapore.
+const squaredDistance = (a: [number, number], b: [number, number]) => (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2;
 
 function boundsOf(points: [number, number][]): Bounds | null {
   if (points.length === 0) return null;
@@ -33,35 +38,37 @@ function boundsOf(points: [number, number][]): Bounds | null {
   return [Math.min(...lons), Math.min(...lats), Math.max(...lons), Math.max(...lats)];
 }
 
-// Page 1's map (#11, map layers): where the closed centre's diners go. Static for now; the ripple
+// Page 1's map (#11, map layers): where the closed centres' diners go. Static for now; the ripple
 // animation, displaced blocks and access outlines come in #16.
-export function RippleMap({ centres, anchor, result, onCentreClick, className }: RippleMapProps) {
+export function RippleMap({ centres, closed, result, onCentreClick, className }: RippleMapProps) {
   const centreById = useMemo(() => new Map(centres.map((c) => [c.centre_id, c])), [centres]);
 
   const receivers = useMemo<PlacedReceiver[]>(
     () =>
       (result?.receivers ?? []).flatMap((r) => {
         const c = centreById.get(r.centreId);
-        return c ? [{ ...r, position: position(c) }] : [];
+        if (!c || closed.length === 0) return [];
+        const at = position(c);
+        const from = closed
+          .map(position)
+          .reduce((best, p) => (squaredDistance(p, at) < squaredDistance(best, at) ? p : best));
+        return [{ ...r, position: at, from }];
       }),
-    [result, centreById]
+    [result, centreById, closed]
   );
   const top = useMemo(() => receivers.slice(0, TOP_RECEIVERS), [receivers]);
 
-  // Frame the anchor and the centres taking most of its diners.
-  const fitTo = useMemo(
-    () => (anchor ? boundsOf([position(anchor), ...top.map((r) => r.position)]) : null),
-    [anchor, top]
-  );
+  // Frame the closed centres and the centres taking most of their diners.
+  const fitTo = useMemo(() => boundsOf([...closed.map(position), ...top.map((r) => r.position)]), [closed, top]);
 
   const layers = useMemo(() => {
-    const receiverIds = new Set(receivers.map((r) => r.centreId));
+    const shownIds = new Set([...receivers.map((r) => r.centreId), ...closed.map((c) => c.centre_id)]);
     const maxExtra = Math.max(1, ...receivers.map((r) => r.extraDinersPerDay));
     const maxShare = Math.max(0.01, ...top.map((r) => r.shareOfDisplaced));
 
     const others = new ScatterplotLayer<CentreRow>({
       id: 'centres',
-      data: centres.filter((c) => c.centre_id !== anchor?.centre_id && !receiverIds.has(c.centre_id)),
+      data: centres.filter((c) => !shownIds.has(c.centre_id)),
       pickable: true,
       getPosition: position,
       radiusUnits: 'pixels',
@@ -74,8 +81,8 @@ export function RippleMap({ centres, anchor, result, onCentreClick, className }:
     });
     const lines = new LineLayer<PlacedReceiver>({
       id: 'lines',
-      data: anchor ? top : [],
-      getSourcePosition: () => position(anchor!),
+      data: top,
+      getSourcePosition: (r) => r.from,
       getTargetPosition: (r) => r.position,
       widthUnits: 'pixels',
       getWidth: (r) => 2 + 10 * (r.shareOfDisplaced / maxShare),
@@ -95,9 +102,9 @@ export function RippleMap({ centres, anchor, result, onCentreClick, className }:
       getLineColor: rgb(WHITE_HEX),
       getFillColor: rgb(RECEIVER_HEX, 200),
     });
-    const closed = new TextLayer<CentreRow>({
+    const crosses = new TextLayer<CentreRow>({
       id: 'closed',
-      data: anchor ? [anchor] : [],
+      data: closed,
       pickable: true,
       getPosition: position,
       getText: () => '×',
@@ -121,8 +128,8 @@ export function RippleMap({ centres, anchor, result, onCentreClick, className }:
       backgroundPadding: [4, 2],
       fontFamily: 'system-ui, sans-serif',
     });
-    return [others, lines, sized, closed, labels];
-  }, [centres, anchor, receivers, top]);
+    return [others, lines, sized, crosses, labels];
+  }, [centres, closed, receivers, top]);
 
   // What hovering and clicking each pickable layer does, keyed by layer id.
   const pickCentre = (c: CentreRow) => canPick(c) && onCentreClick(c);
@@ -142,7 +149,10 @@ export function RippleMap({ centres, anchor, result, onCentreClick, className }:
         if (c) pickCentre(c);
       },
     },
-    closed: { tooltip: (c: CentreRow) => `${c.name}\nClosed (anchor)` },
+    closed: {
+      tooltip: (c: CentreRow) =>
+        `${c.name}\n${c.centre_id === closed[0]?.centre_id ? 'Closed: the anchor' : 'Closed at the same time'}`,
+    },
   };
   const getTooltip = ({ object, layer }: PickingInfo) =>
     object && layer ? (handlers[layer.id]?.tooltip(object as never) ?? null) : null;

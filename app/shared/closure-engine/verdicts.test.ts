@@ -106,6 +106,24 @@ describe('evaluatePlan: verdict cards', () => {
     expect(card).toMatchObject({ status: 'green', rule: null, pastBenchmark: [] });
   });
 
+  it('the access reason shows seniors to the nearest 5, and under 5 as "<5", since they are estimates', () => {
+    const reasonFor = (seniors: number) => {
+      const town = verdictTown([
+        block(
+          'bCx',
+          [
+            ['HC_C', 400],
+            ['HC_D', 1200],
+          ],
+          { diners: 10, seniors }
+        ),
+      ]);
+      return evaluatePlan(town, 'HC_A', ['HC_B', 'HC_C'], assumptions).cards[1].reason;
+    };
+    expect(reasonFor(2123.066)).toContain('leaves 1 more block (2,125 seniors)');
+    expect(reasonFor(3.4)).toContain('leaves 1 more block (<5 seniors)');
+  });
+
   it('checks Access before Load, and the reason names the rule and its numbers', () => {
     // C is the only centre within 900 m of bCx; its fallback D is 1,200 m away.
     // C's single closure is now 5 per stall, and the benchmark stays 5.5 / 7.25.

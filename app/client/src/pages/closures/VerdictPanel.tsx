@@ -1,0 +1,166 @@
+import { useState } from 'react';
+import { Button } from '@databricks/appkit-ui/react';
+import type { PlanResult } from '@shared/closure-engine';
+import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/shared/Panel';
+import { Pill } from '@/components/shared/Pill';
+import { TagBadge } from '@/components/shared/TagBadge';
+import { WALK_LIMITS } from './settings';
+import { cardView, planLineView, STATUS_STYLE, type CardView } from './verdicts';
+
+const UNDERCOUNT_REASON =
+  'The model counts HDB residents only, so a centre whose diners are mostly workers, visitors or private-housing residents has fewer modelled diners than real ones';
+
+function StatusMark({ icon, word, colour }: { icon: string; word: string; colour: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 font-semibold" style={{ color: colour }}>
+      <span
+        aria-hidden
+        className="inline-flex h-5 w-5 items-center justify-center rounded-full text-xs text-white"
+        style={{ background: colour }}
+      >
+        {icon}
+      </span>
+      {word}
+    </span>
+  );
+}
+
+function Card({
+  card,
+  open,
+  onToggle,
+  onRemove,
+}: {
+  card: CardView;
+  open: boolean;
+  onToggle: () => void;
+  onRemove: () => void;
+}) {
+  return (
+    <li className="flex flex-col gap-2 rounded-md border-l-4 bg-muted/40 p-3" style={{ borderLeftColor: card.colour }}>
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <StatusMark {...card} />
+        <span className="font-medium">{card.name}</span>
+        {card.possiblyUndercounted && (
+          <span title={UNDERCOUNT_REASON}>
+            <Pill tone="outline">Possibly under-counted</Pill>
+          </span>
+        )}
+      </div>
+      <p className="text-sm">
+        {card.reason}
+        <TagBadge tag="MODELLED" />
+      </p>
+      {card.neaActions && (
+        <p className="text-sm">
+          {card.neaActions}
+          <TagBadge tag="MODELLED" />
+        </p>
+      )}
+      {card.overlaps.map((note) => (
+        <p key={note} className="text-sm text-muted-foreground">
+          {note}
+          <TagBadge tag="MEASURED" />
+        </p>
+      ))}
+      {open && (
+        <div className="flex flex-col gap-1 text-sm">
+          <p>
+            {card.readMore.share}
+            <TagBadge tag="MODELLED" />
+          </p>
+          <div>
+            Centres it pushes:
+            {card.readMore.pushes.length === 0 ? (
+              ' none'
+            ) : (
+              <ul className="ml-4 list-disc">
+                {card.readMore.pushes.map((p) => (
+                  <li key={p}>{p}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <p>
+            {card.readMore.accessLoss}
+            <TagBadge tag="MODELLED" />
+          </p>
+          <p className="text-xs text-muted-foreground">
+            The plan compared with the same plan where {card.name} stays open · gold.block_options · gold.centres ·
+            gold.centre_demand · gold.centre_closures
+          </p>
+        </div>
+      )}
+      <div className="flex gap-2">
+        <Button variant="ghost" size="sm" className="h-7 px-2" aria-expanded={open} onClick={onToggle}>
+          {open ? 'Minimise ▲' : 'Read more ▼'}
+        </Button>
+        <Button variant="ghost" size="sm" className="h-7 px-2" onClick={onRemove}>
+          Remove
+        </Button>
+      </div>
+    </li>
+  );
+}
+
+// "Can these close with {anchor}?": the whole-plan line, then one card per centre added (#11, Verdict card).
+export function VerdictPanel({
+  anchorName,
+  result,
+  onRemove,
+}: {
+  anchorName: string;
+  result: PlanResult;
+  onRemove: (centreId: string) => void;
+}) {
+  const [openId, setOpenId] = useState<string | null>(null);
+  const line = planLineView(result.plan);
+  const cards = result.cards.map((c) => cardView(c, WALK_LIMITS.limitMin));
+
+  return (
+    <Panel>
+      <PanelHeader>
+        <PanelTitle>Can these close with {anchorName}?</PanelTitle>
+        <div className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">
+          {Object.values(STATUS_STYLE).map((s) => (
+            <span key={s.word} style={{ color: s.colour }}>
+              {s.icon} {s.word}
+            </span>
+          ))}
+        </div>
+      </PanelHeader>
+      <PanelContent>
+        {line ? (
+          <div className="flex flex-col gap-1 rounded-md border p-3" style={{ borderColor: line.colour }}>
+            <div className="flex flex-wrap items-center gap-2 text-sm">
+              <span className="font-medium">Whole plan:</span>
+              <StatusMark {...line} />
+              <span className="text-muted-foreground">{line.counts}</span>
+              <TagBadge tag="MODELLED" />
+            </div>
+            {line.anchorProblems.map((p) => (
+              <p key={p} className="text-sm text-muted-foreground">
+                Already on its own: {p}
+              </p>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            No centres added. Use “Also close at the same time” above to check whether they can close together.
+          </p>
+        )}
+        <ul className="flex flex-col gap-2">
+          {cards.map((card) => (
+            <Card
+              key={card.centreId}
+              card={card}
+              open={openId === card.centreId}
+              onToggle={() => setOpenId(openId === card.centreId ? null : card.centreId)}
+              onRemove={() => onRemove(card.centreId)}
+            />
+          ))}
+        </ul>
+      </PanelContent>
+    </Panel>
+  );
+}
