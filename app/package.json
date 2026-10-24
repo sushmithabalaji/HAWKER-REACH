@@ -17,6 +17,7 @@
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
     "test": "vitest run",
+    "check:scenarios": "CHECK_GOLD=1 vitest run closureScenarios.gold",
     "clean": "rm -rf client/dist dist build node_modules",
     "prebuild": "npm run sync && appkit generate-types --wait",
     "predev": "npm run sync && npm run typegen",
