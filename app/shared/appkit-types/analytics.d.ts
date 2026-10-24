@@ -13,5 +13,127 @@ declare module "@databricks/appkit-ui/react" {
           blocks: number;
         }>;
       };
+    seniors_blocks: {
+        name: "seniors_blocks";
+        parameters: Record<string, never>;
+        result: Array<{
+          /** @sqlType STRING */
+          block_id: string;
+          /** @sqlType STRING */
+          block_label: string;
+          /** @sqlType STRING */
+          subzone_id: string;
+          /** @sqlType STRING */
+          pln_area_n: string;
+          /** @sqlType DOUBLE */
+          lon: number;
+          /** @sqlType DOUBLE */
+          lat: number;
+          /** @sqlType DOUBLE */
+          est_seniors: number;
+          /** @sqlType STRING */
+          tier_now: string;
+          /** @sqlType STRING */
+          nearest_centre_id: string;
+          /** @sqlType DOUBLE */
+          nearest_walk_m: number;
+          /** @sqlType STRING */
+          second_centre_id: string;
+          /** @sqlType DOUBLE */
+          second_walk_m: number;
+          /** @sqlType STRING */
+          third_centre_id: string;
+          /** @sqlType DOUBLE */
+          third_walk_m: number;
+        }>;
+      };
+    seniors_closures: {
+        name: "seniors_closures";
+        parameters: Record<string, never>;
+        result: Array<{
+          /** @sqlType STRING */
+          closure_id: string;
+          /** @sqlType STRING */
+          centre_id: string;
+          /** @sqlType STRING */
+          name: string;
+          /** @sqlType STRING */
+          pln_area_n: string;
+          /** @sqlType STRING */
+          type: string;
+          /** @sqlType STRING */
+          start_date: string;
+          /** @sqlType STRING */
+          end_date: string;
+          /** @sqlType INT */
+          duration_days: number;
+          /** @sqlType STRING */
+          remarks: string;
+        }>;
+      };
+    seniors_sensitivity: {
+        name: "seniors_sensitivity";
+        parameters: Record<string, never>;
+        result: Array<{
+          /** @sqlType STRING */
+          closed_centre_id: string;
+          /** @sqlType INT */
+          limit_min: number;
+          /** @sqlType DOUBLE */
+          seniors_cut_off: number;
+        }>;
+      };
+    seniors_subzones: {
+        name: "seniors_subzones";
+        parameters: Record<string, never>;
+        result: Array<{
+          /** @sqlType STRING */
+          subzone_id: string;
+          /** @sqlType STRING */
+          subzone_name: string;
+          /** @sqlType STRING */
+          pln_area_n: string;
+          /** @sqlType BIGINT */
+          hdb_residents: number;
+          /** @sqlType DOUBLE */
+          pct_65p: number;
+          /** @sqlType DOUBLE */
+          multiplier: number;
+          /** @sqlType BOOLEAN */
+          is_super_aged: boolean;
+        }>;
+      };
+    shared_centres: {
+        name: "shared_centres";
+        parameters: Record<string, never>;
+        result: Array<{
+          /** @sqlType STRING */
+          centre_id: string;
+          /** @sqlType STRING */
+          name: string;
+          /** @sqlType DOUBLE */
+          lon: number;
+          /** @sqlType DOUBLE */
+          lat: number;
+          /** @sqlType BOOLEAN */
+          is_interim: boolean;
+          /** @sqlType STRING */
+          pln_area_n: string;
+        }>;
+      };
+    shared_subzone_shapes: {
+        name: "shared_subzone_shapes";
+        parameters: Record<string, never>;
+        result: Array<{
+          /** @sqlType STRING */
+          subzone_id: string;
+          /** @sqlType STRING */
+          name: string;
+          /** @sqlType STRING */
+          planning_area: string;
+          /** @sqlType STRING */
+          geometry: string;
+        }>;
+      };
   }
 }

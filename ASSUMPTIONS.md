@@ -37,6 +37,7 @@ Where this file disagrees with the wireframe, this file wins.
   - A clicked centre is a single closure.
   - A picked NEA closure that overlaps in time with another renovation or redevelopment closure among a block's nearest centres uses the next centre that's still open. If the second and third are both closed, the block is T4.
   - Cleaning overlaps show only as a note.
+  - Only blocks whose nearest centre is the picked one are in the scenario. An overlapping closure counts as closed only as one of those blocks' second or third centre; blocks whose own nearest is the other centre belong to that closure's scenario. (Decided in #31.)
   - Users never combine closures by hand; that's Spec 2.
 - **What can be picked:** renovation and redevelopment closures that are current or upcoming. Cleaning, partial (gas) and past closures are excluded.
 - **Outcome groups** (blocks whose nearest open centre changes):
@@ -53,6 +54,7 @@ Where this file disagrees with the wireframe, this file wins.
   - **Walking buddy:** nearest open centre after the closure is ≤ 1,800 m away (30 min at 1.0 m/s)
   - **Meal delivery:** it's further, or there's no centre within 2 km
   - Fixed and not editable. One row per subzone (the stricter suggestion wins), with block rows underneath. CSV exports at block level.
+- **Display rounding:** seniors counts are shown to the nearest 5, and under 5 as "<5", since seniors per block are estimates. Block counts are exact. (Decided in #31.)
 - **Town:** planning area (`pln_area_n`). The town filters the closure list and frames the map. The affected blocks include any block whose nearest centre closed, even across a town border.
 
 ## Seniors and subzones
@@ -95,7 +97,7 @@ Where this file disagrees with the wireframe, this file wins.
 - **Page code:** `app/client/src/pages/<page>/`.
 - **Queries:** `app/config/queries/<page>_<name>.sql`. AppKit names each query after its file, so prefix with the page.
 - **Custom /api routes:** none by default. Any route goes in `app/server/server.ts` inside `onPluginsReady`, after a check with the shell owner.
-- **Sidebar and routes:** both come from `app/client/src/pages/registry.ts`.
+- **Sidebar and routes:** both come from `app/client/src/pages/registry.tsx`.
 - **Shared components** in `app/client/src/components/shared/`, built by Spec 1 and reused by other pages:
   - `CentreSearch`
   - `BaseMap`

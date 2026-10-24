@@ -1,11 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle, Skeleton, useAnalyticsQuery } from '@databricks/appkit-ui/react';
+import { QueryError } from '@/components/shared/QueryError';
 import { TagBadge } from '@/components/shared/TagBadge';
 
 export function HomePage() {
   const { data, loading, error } = useAnalyticsQuery('home_gold_check', {});
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6 mt-8">
+    <div className="max-w-4xl mx-auto space-y-6 mt-8">
       <div className="text-center">
         <h2 className="text-3xl font-bold mb-2 text-foreground">HawkerReach</h2>
         <p className="text-lg text-muted-foreground">Hawker centre closures and who loses a walkable meal.</p>
@@ -17,7 +18,7 @@ export function HomePage() {
         </CardHeader>
         <CardContent>
           {loading && <Skeleton className="h-8 w-1/2" />}
-          {error && <div className="text-destructive bg-destructive/10 p-3 rounded-md">Error: {error}</div>}
+          {error && <QueryError error={error} />}
           {data && data.length > 0 && (
             <p className="text-sm text-muted-foreground">
               <span className="text-2xl font-bold text-primary">{data[0].blocks}</span> blocks in

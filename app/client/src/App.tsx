@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Button, Sheet, SheetContent, SheetHeader, SheetTitle, useIsMobile } from '@databricks/appkit-ui/react';
 import { Menu } from 'lucide-react';
 import { AssumptionsPanel } from '@/components/shared/AssumptionsPanel';
+import { GeoDataProvider } from '@/components/shared/GeoData';
 import { pages } from './pages/registry';
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
@@ -56,7 +57,9 @@ function Layout() {
       </header>
 
       <main className="flex-1 p-4 md:p-6">
-        <Outlet />
+        <GeoDataProvider>
+          <Outlet />
+        </GeoDataProvider>
       </main>
     </div>
   );

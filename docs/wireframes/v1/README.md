@@ -27,17 +27,19 @@ Reads: `silver.centres`, `silver.closures`, `silver.blocks`, `silver.dist_matrix
 
 Question it answers: *if this centre closes, which seniors lose a walkable hawker centre, and who should check on them?*
 
-- **Controls:** town, walking pace (set by age group), map view (access tiers or vulnerability multiplier). Pick a real NEA closure in that town, or click any centre.
-- **Map:** HDB blocks coloured by walking-time tier (10, 15 or 20 min), with a popup per subzone showing % aged 65+, seniors who lost a 15-min walk, and the multiplier.
-- **AACs to alert:** areas where 21% or more of residents are 65+ and seniors lost their walk, ranked by seniors affected × multiplier.
-- **Slower walkers lose more:** the loss at each walking speed.
+- **Controls:** town and map view (access tiers or vulnerability multiplier). Pick a real NEA closure in that town, or click any centre. *Built (#31): the age-group / walking-pace control is removed; seniors walk at 1.0 m/s.*
+- **Map:** HDB blocks coloured by walking tier, with a popup per subzone showing % aged 65+, seniors who lost a 15-min walk, and the multiplier. *Built (#31): tiers are at 15 min only (T1 a senior can walk it, T2 a typical walker only, T3 a brisk walker only, T4 no one can), shown before or after the closure.*
+- **AACs to alert:** areas where 21% or more of residents are 65+ and seniors lost their walk, ranked by seniors affected × multiplier. *Changed (ASSUMPTIONS.md): "Areas to alert", one row per subzone sorted by seniors cut off, with 21%+ as a badge and no multiplied score (#32).*
+- ~~**Slower walkers lose more:** the loss at each walking speed.~~ *Removed (#31). Replaced by the line "If the limit were 10 or 20 min…", from `gold.access_sensitivity`.*
 - **Senior meal-support list:** subzone, blocks, estimated seniors, nearest open centre, suggested support (walking buddy or meal delivery), and nearest AAC. The AAC column is Phase 2 and waits on the MSF data. Download as CSV, or print a 1-page brief.
 
 Planned Gold tables: `block_access (block, subzone, nearest_id, walk_m, second_walk_m)` and `subzone_seniors (subzone, pct_65p, multiplier)`
 
 ## Number labels
 
-Page 1 tags every number **MEASURED**, **MODELLED** or **ASSUMPTION** and shows its source table. Page 2 doesn't use these tags yet; its assumptions sit in the sources footnote.
+Page 1 tags every number **MEASURED**, **MODELLED** or **ASSUMPTION** and shows its source table. Page 2 now does too (#31): every number has a tag and a line in the Assumptions panel.
+
+The 21% super-aged threshold is MOH's definition (NPTD Population in Brief 2026), tagged ASSUMPTION. Our share aged 65+ counts SingStat HDB residents, while the official figure counts citizens.
 
 ## Assumptions in the draft (from the canvas notes)
 
@@ -60,5 +62,7 @@ Page 1 tags every number **MEASURED**, **MODELLED** or **ASSUMPTION** and shows 
 - Anchor case: Kim Keat Palm's nearest neighbour is only about 460 m away, so in Toa Payoh the story may be overload rather than lost access. The notes say to pick the final anchor after the model runs.
 
 ## Changes
+
+- 2026-10-24: Page 2 as built (#31). The age-group control and "Slower walkers lose more" panel are removed, tiers are at 15 min, every number is tagged, and the 21% source is added. See ASSUMPTIONS.md for the full list of changes from this draft.
 
 - 2026-10-22: Page 1's takeaway and headline numbers moved from the top of the page to below the map. Page order is now controls → map and verdict → takeaway → headline numbers → demand and candidates → assumptions.
