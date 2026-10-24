@@ -41,13 +41,15 @@ interface BaseMapProps {
 export function BaseMap({ layers = [], getTooltip, onClick, fitTo = null, className = 'h-[480px]' }: BaseMapProps) {
   const { subzones, subzonesError } = useGeoData();
   const mapRef = useRef<MapRef>(null);
+  // Bounds that arrive before the map has loaded are applied once it has, so an early pick still zooms.
+  const [mapLoaded, setMapLoaded] = useState(false);
   // Keyed on the values, so a page passing equal bounds in a new array doesn't move the map.
   const fitKey = fitTo?.join(',') ?? null;
   useEffect(() => {
-    if (!fitKey) return;
+    if (!fitKey || !mapLoaded) return;
     const [west, south, east, north] = fitKey.split(',').map(Number);
     mapRef.current?.fitBounds([west, south, east, north], { padding: 40, duration: 600, maxZoom: 15 });
-  }, [fitKey]);
+  }, [fitKey, mapLoaded]);
   const [tiles, dispatch] = useReducer(nextTileState, INITIAL_TILES);
   const [carto, setCarto] = useState<StyleSpecification | null>(null);
 
@@ -106,6 +108,7 @@ export function BaseMap({ layers = [], getTooltip, onClick, fitTo = null, classN
         attributionControl={{ compact: true }}
         onSourceData={onSourceData}
         onError={onError}
+        onLoad={() => setMapLoaded(true)}
       >
         <DeckOverlay layers={[outlines, ...layers]} getTooltip={getTooltip} onClick={onClick} />
       </Map>
