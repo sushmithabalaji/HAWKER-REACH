@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider, NavLink, Outlet } from 'react-router';
+import { createBrowserRouter, RouterProvider, NavLink, Navigate, Outlet } from 'react-router';
 import { useState } from 'react';
 import { Button, Sheet, SheetContent, SheetHeader, SheetTitle, useIsMobile } from '@databricks/appkit-ui/react';
 import { Menu } from 'lucide-react';
@@ -68,15 +68,19 @@ function Layout() {
 const router = createBrowserRouter([
   {
     element: <Layout />,
-    children: pages.map((page) => ({
-      path: page.path,
-      element: (
-        <>
-          {page.element}
-          <AssumptionsPanel lines={page.assumptions} />
-        </>
-      ),
-    })),
+    children: [
+      ...pages.map((page) => ({
+        path: page.path,
+        element: (
+          <>
+            {page.element}
+            <AssumptionsPanel lines={page.assumptions} />
+          </>
+        ),
+      })),
+      // "/" and any unknown path go to the first page.
+      { path: '*', element: <Navigate to={pages[0].path} replace /> },
+    ],
   },
 ]);
 

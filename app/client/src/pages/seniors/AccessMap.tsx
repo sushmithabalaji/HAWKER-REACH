@@ -5,7 +5,7 @@ import { GeoJsonLayer, ScatterplotLayer } from '@deck.gl/layers';
 import type { Feature, Geometry } from 'geojson';
 import { BaseMap } from '@/components/shared/BaseMap';
 import type { Bounds } from '@/components/shared/basemapStyles';
-import { canPick, shortName, type Centre } from '@/components/shared/centres';
+import { canPick, type Centre } from '@/components/shared/centres';
 import { useGeoData } from '@/components/shared/GeoData';
 import type { SubzoneProps } from '@/components/shared/subzones';
 import { QueryError } from '@/components/shared/QueryError';
@@ -21,7 +21,8 @@ import {
   type Closure,
   type Tier,
 } from './scenario';
-import { CUTOFF_M, LIMIT_MIN, SUPER_AGED_SHARE } from './settings';
+import { metres, NO_CENTRE, type Names } from './names';
+import { LIMIT_MIN, SUPER_AGED_SHARE } from './settings';
 import { multiplierBand, multiplierBandLabel, MULTIPLIER_BREAKS, type SubzoneSeniors } from './subzoneSeniors';
 
 type View = 'tiers' | 'multiplier';
@@ -34,7 +35,7 @@ interface AccessMapProps {
   areas: AreaCutOff[];
   subzoneSeniors: Map<string, SubzoneSeniors>;
   subzonesError: string | null;
-  centreById: Map<string, Centre>;
+  names: Names;
   fitTo: Bounds | null;
   onCentreClick: (centre: Centre) => void;
 }
@@ -45,9 +46,6 @@ const TIER_MEANING: Record<Tier, string> = {
   T3: 'a brisk walker only',
   T4: 'no one can walk it',
 };
-
-const metres = (m: number) => `${(Math.round(m / 10) * 10).toLocaleString('en-US')} m`;
-const NO_CENTRE = `none within ${CUTOFF_M / 1000} km`;
 
 type SubzoneFeature = Feature<Geometry, SubzoneProps>;
 
@@ -76,7 +74,7 @@ export function AccessMap({
   areas,
   subzoneSeniors,
   subzonesError,
-  centreById,
+  names,
   fitTo,
   onCentreClick,
 }: AccessMapProps) {
@@ -159,14 +157,12 @@ export function AccessMap({
     return [blockLayer, centreLayer];
   }, [view, phase, blocks, centres, subzones, closure, closedIds, outcomeById, cutOffBySubzone, subzoneSeniors]);
 
-  const centreLabel = (id: string | null) => (id ? shortName(centreById.get(id)?.name ?? id) : NO_CENTRE);
-
   const blockTooltip = (b: AccessBlock) => {
     const nearest = b.options[0];
-    const before = `Now: ${b.tier_now} · ${nearest ? `${metres(nearest.walk_m)} to ${centreLabel(nearest.centre_id)}` : NO_CENTRE}`;
+    const before = `Now: ${b.tier_now} · ${nearest ? `${metres(nearest.walk_m)} to ${names.centre(nearest.centre_id)}` : NO_CENTRE}`;
     const o = outcomeById.get(b.block_id);
     const after = o
-      ? `\nAfter: ${o.after} · ${o.afterWalkM !== null ? `${metres(o.afterWalkM)} to ` : ''}${centreLabel(o.afterCentreId)}`
+      ? `\nAfter: ${o.after} · ${o.afterWalkM !== null ? `${metres(o.afterWalkM)} to ` : ''}${names.centre(o.afterCentreId)}`
       : '';
     return `${b.block_label}\n${before}${after}`;
   };
@@ -192,8 +188,7 @@ export function AccessMap({
 
   const popup = popupId ? subzoneSeniors.get(popupId) : undefined;
   const popupCutOff = popupId ? cutOffBySubzone.get(popupId) : undefined;
-  const popupName =
-    subzones?.features.find((f) => f.properties.subzone_id === popupId)?.properties.name ?? popup?.subzone_name;
+  const popupName = popupId ? names.subzone(popupId) : undefined;
 
   return (
     <Card>

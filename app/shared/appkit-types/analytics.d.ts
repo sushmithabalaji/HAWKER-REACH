@@ -5,14 +5,6 @@ import type { SQLTypeMarker, SQLStringMarker, SQLNumberMarker, SQLBooleanMarker,
 
 declare module "@databricks/appkit-ui/react" {
   interface QueryRegistry {
-    home_gold_check: {
-        name: "home_gold_check";
-        parameters: Record<string, never>;
-        result: Array<{
-          /** @sqlType BIGINT */
-          blocks: number;
-        }>;
-      };
     seniors_blocks: {
         name: "seniors_blocks";
         parameters: Record<string, never>;

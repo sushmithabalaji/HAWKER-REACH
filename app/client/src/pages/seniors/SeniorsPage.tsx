@@ -17,8 +17,11 @@ import {
   toNeaClosure,
   type NeaClosure,
 } from './closures';
+import { AreasToAlert } from './AreasToAlert';
+import { MealSupportList } from './MealSupportList';
 import { OutcomePanel, type Sensitivity } from './OutcomePanel';
 import { areasCutOff, runScenario, summarise, toAccessBlocks, type AccessBlock, type Closure } from './scenario';
+import { makeNames } from './names';
 import { SENSITIVITY_LIMITS_MIN } from './settings';
 import { toSubzoneSeniors } from './subzoneSeniors';
 
@@ -34,7 +37,7 @@ function boundsOf(blocks: readonly AccessBlock[]): Bounds | null {
 
 // Page 2 · Seniors & access (for AACs): if this centre closes, which seniors lose a walkable hawker centre?
 export function SeniorsPage() {
-  const { centres } = useGeoData();
+  const { centres, subzones } = useGeoData();
   const blocksQuery = useAnalyticsQuery('seniors_blocks', NO_PARAMS);
   const closuresQuery = useAnalyticsQuery('seniors_closures', NO_PARAMS);
   const sensitivityQuery = useAnalyticsQuery('seniors_sensitivity', NO_PARAMS);
@@ -56,6 +59,12 @@ export function SeniorsPage() {
     [subzonesQuery.data]
   );
   const centreById = useMemo(() => new Map((centres ?? []).map((c) => [c.centre_id, c])), [centres]);
+  // Subzone names from gold.subzone_seniors, falling back to the outline's name for subzones it leaves out.
+  const names = useMemo(() => {
+    const subzoneNames = new Map((subzones?.features ?? []).map((f) => [f.properties.subzone_id, f.properties.name]));
+    for (const s of subzoneSeniors.values()) if (s.subzone_name) subzoneNames.set(s.subzone_id, s.subzone_name);
+    return makeNames(centreById, subzoneNames);
+  }, [centreById, subzoneSeniors, subzones]);
 
   const closure: Closure | null = useMemo(() => {
     if (!selection) return null;
@@ -170,7 +179,7 @@ export function SeniorsPage() {
             areas={areas}
             subzoneSeniors={subzoneSeniors}
             subzonesError={subzonesQuery.error}
-            centreById={centreById}
+            names={names}
             fitTo={fitTo}
             onCentreClick={closeCentre}
           />
@@ -184,8 +193,22 @@ export function SeniorsPage() {
             sensitivity={sensitivity}
             loading={!blocks}
           />
+          {closedCentre && outcomes && <AreasToAlert areas={areas} subzoneSeniors={subzoneSeniors} names={names} />}
         </aside>
       </div>
+
+      <MealSupportList
+        outcomes={outcomes}
+        closedName={closedCentre ? shortName(closedCentre.name) : null}
+        names={names}
+      />
+
+      <p className="text-xs text-muted-foreground">
+        Sources: HDB property information and building outlines (data.gov.sg) · NEA hawker centres and closure dates ·
+        URA Master Plan subzones · SingStat HDB residents by age and subzone. Walks are along the OpenStreetMap walking
+        network to the nearest open NEA hawker centre (silver.dist_matrix). Coffee shops and food courts are not
+        counted.
+      </p>
     </div>
   );
 }
