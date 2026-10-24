@@ -74,23 +74,53 @@ describe('toAccessBlock', () => {
 
 describe('runScenario', () => {
   test('only blocks whose nearest centre closes are affected', () => {
-    const blocks = [block('a', 'T1', [['C', 300], ['D', 500]]), block('b', 'T1', [['D', 300], ['C', 400]])];
+    const blocks = [
+      block('a', 'T1', [
+        ['C', 300],
+        ['D', 500],
+      ]),
+      block('b', 'T1', [
+        ['D', 300],
+        ['C', 400],
+      ]),
+    ];
     expect(runScenario(blocks, { centreId: 'C', alsoClosed: [] }).map((o) => o.block.block_id)).toEqual(['a']);
   });
 
   test('the block moves to its next nearest centre', () => {
-    const [o] = runScenario([block('a', 'T1', [['C', 300], ['D', 1000]])], { centreId: 'C', alsoClosed: [] });
+    const [o] = runScenario(
+      [
+        block('a', 'T1', [
+          ['C', 300],
+          ['D', 1000],
+        ]),
+      ],
+      { centreId: 'C', alsoClosed: [] }
+    );
     expect(o).toMatchObject({ after: 'T2', afterCentreId: 'D', afterWalkM: 1000 });
   });
 
   test('a centre closed at the same time is skipped for the next one still open', () => {
-    const blocks = [block('a', 'T1', [['C', 300], ['D', 500], ['E', 1200]])];
+    const blocks = [
+      block('a', 'T1', [
+        ['C', 300],
+        ['D', 500],
+        ['E', 1200],
+      ]),
+    ];
     const [o] = runScenario(blocks, { centreId: 'C', alsoClosed: ['D'] });
     expect(o).toMatchObject({ after: 'T3', afterCentreId: 'E' });
   });
 
   test('second and third both closed, or no other centre in range, is T4', () => {
-    const blocks = [block('a', 'T1', [['C', 300], ['D', 500], ['E', 600]]), block('b', 'T1', [['C', 300]])];
+    const blocks = [
+      block('a', 'T1', [
+        ['C', 300],
+        ['D', 500],
+        ['E', 600],
+      ]),
+      block('b', 'T1', [['C', 300]]),
+    ];
     const outcomes = runScenario(blocks, { centreId: 'C', alsoClosed: ['D', 'E'] });
     expect(outcomes.map((o) => [o.after, o.afterCentreId])).toEqual([
       ['T4', null],
@@ -100,10 +130,22 @@ describe('runScenario', () => {
 
   test('outcome groups follow ASSUMPTIONS.md', () => {
     const blocks = [
-      block('cut', 'T1', [['C', 300], ['D', 1000]]),
-      block('cut-no-one', 'T1', [['C', 300], ['D', 1900]]),
-      block('kept', 'T1', [['C', 300], ['D', 800]]),
-      block('already', 'T2', [['C', 1000], ['D', 1100]]),
+      block('cut', 'T1', [
+        ['C', 300],
+        ['D', 1000],
+      ]),
+      block('cut-no-one', 'T1', [
+        ['C', 300],
+        ['D', 1900],
+      ]),
+      block('kept', 'T1', [
+        ['C', 300],
+        ['D', 800],
+      ]),
+      block('already', 'T2', [
+        ['C', 1000],
+        ['D', 1100],
+      ]),
       block('already-worse', 'T3', [['C', 1200]]),
       block('already-t4', 'T4', [['C', 1500]]),
     ];
@@ -127,9 +169,25 @@ describe('runScenario', () => {
 describe('summarise', () => {
   test('totals blocks and seniors per group, with the sub-lines', () => {
     const blocks = [
-      block('cut', 'T1', [['C', 300], ['D', 1000]], 10),
+      block(
+        'cut',
+        'T1',
+        [
+          ['C', 300],
+          ['D', 1000],
+        ],
+        10
+      ),
       block('cut-no-one', 'T1', [['C', 300]], 5),
-      block('kept', 'T1', [['C', 300], ['D', 800]], 7),
+      block(
+        'kept',
+        'T1',
+        [
+          ['C', 300],
+          ['D', 800],
+        ],
+        7
+      ),
       block('already-worse', 'T2', [['C', 1000]], 3),
     ];
     const s = summarise(runScenario(blocks, { centreId: 'C', alsoClosed: [] }));
@@ -142,10 +200,46 @@ describe('summarise', () => {
 describe('areasCutOff', () => {
   test('seniors cut off per subzone, most first, leaving out subzones with none', () => {
     const blocks = [
-      block('a', 'T1', [['C', 300], ['D', 1000]], 4, 'SZ1'),
-      block('b', 'T1', [['C', 300], ['D', 1000]], 9, 'SZ2'),
-      block('c', 'T1', [['C', 300], ['D', 1000]], 2, 'SZ1'),
-      block('d', 'T1', [['C', 300], ['D', 500]], 50, 'SZ3'),
+      block(
+        'a',
+        'T1',
+        [
+          ['C', 300],
+          ['D', 1000],
+        ],
+        4,
+        'SZ1'
+      ),
+      block(
+        'b',
+        'T1',
+        [
+          ['C', 300],
+          ['D', 1000],
+        ],
+        9,
+        'SZ2'
+      ),
+      block(
+        'c',
+        'T1',
+        [
+          ['C', 300],
+          ['D', 1000],
+        ],
+        2,
+        'SZ1'
+      ),
+      block(
+        'd',
+        'T1',
+        [
+          ['C', 300],
+          ['D', 500],
+        ],
+        50,
+        'SZ3'
+      ),
     ];
     expect(areasCutOff(runScenario(blocks, { centreId: 'C', alsoClosed: [] }))).toEqual([
       { subzone_id: 'SZ2', seniors: 9, blocks: 1 },
