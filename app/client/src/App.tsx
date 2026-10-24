@@ -1,62 +1,30 @@
 import { createBrowserRouter, RouterProvider, NavLink, Navigate, Outlet } from 'react-router';
-import { useState } from 'react';
-import { Button, Sheet, SheetContent, SheetHeader, SheetTitle, useIsMobile } from '@databricks/appkit-ui/react';
-import { Menu } from 'lucide-react';
 import { AssumptionsPanel } from '@/components/shared/AssumptionsPanel';
 import { GeoDataProvider } from '@/components/shared/GeoData';
 import { pages } from './pages/registry';
 
-const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-  `block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-    isActive ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+const tabClass = ({ isActive }: { isActive: boolean }) =>
+  `rounded-md px-3.5 py-2.5 text-sm transition-colors ${
+    isActive ? 'bg-card font-semibold text-foreground' : 'text-topbar-foreground hover:bg-white/10'
   }`;
 
-function NavLinks({ onClick }: { onClick?: () => void }) {
-  return (
-    <nav className="flex flex-col gap-1">
-      {pages.map((page) => (
-        <NavLink key={page.path} to={page.path} end className={navLinkClass} onClick={onClick}>
-          {page.label}
-        </NavLink>
-      ))}
-    </nav>
-  );
-}
-
+// The wireframe's shell: a full-width ink bar with the app name and one tab per registered page
+// (wrapping on a phone), then the page centred up to 1440px on the grey background.
 function Layout() {
-  const isMobile = useIsMobile();
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
-
   return (
-    <div className="min-h-screen bg-background flex flex-col md:flex-row">
-      {/* Sidebar on desktop */}
-      <aside className="hidden md:block w-56 shrink-0 border-r px-3 py-4">
-        <h1 className="px-3 mb-4 text-lg font-semibold text-foreground">HawkerReach</h1>
-        <NavLinks />
-      </aside>
-
-      {/* Header with a slide-out menu on mobile */}
-      <header className="md:hidden border-b px-4 py-3 flex items-center">
-        <h1 className="text-lg font-semibold text-foreground">HawkerReach</h1>
-        <div className="ml-auto">
-          {/* Gate on isMobile so the portaled sheet can't linger on desktop
-              (replaces a set-state-in-effect reset). */}
-          <Sheet open={mobileNavOpen && isMobile} onOpenChange={setMobileNavOpen}>
-            <Button variant="ghost" size="icon" onClick={() => setMobileNavOpen(true)}>
-              <Menu className="h-5 w-5" />
-              <span className="sr-only">Open navigation</span>
-            </Button>
-            <SheetContent side="left">
-              <SheetHeader>
-                <SheetTitle>Navigation</SheetTitle>
-              </SheetHeader>
-              <NavLinks onClick={() => setMobileNavOpen(false)} />
-            </SheetContent>
-          </Sheet>
-        </div>
+    <div className="flex min-h-screen flex-col bg-background">
+      <header className="flex flex-wrap items-center gap-x-6 gap-y-2.5 bg-topbar px-4 py-3 text-white sm:px-8">
+        <h1 className="text-xl font-bold">HawkerReach</h1>
+        <nav aria-label="Pages" className="flex flex-wrap gap-1">
+          {pages.map((page) => (
+            <NavLink key={page.path} to={page.path} end className={tabClass}>
+              {page.label}
+            </NavLink>
+          ))}
+        </nav>
       </header>
 
-      <main className="flex-1 p-4 md:p-6">
+      <main className="mx-auto flex w-full max-w-[1440px] flex-col gap-3.5 px-4 py-[18px] sm:px-8">
         <GeoDataProvider>
           <Outlet />
         </GeoDataProvider>

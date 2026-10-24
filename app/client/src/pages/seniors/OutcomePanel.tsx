@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, Skeleton } from '@databricks/appkit-ui/react';
+import { Skeleton } from '@databricks/appkit-ui/react';
+import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/shared/Panel';
 import { shortName, type Centre } from '@/components/shared/centres';
 import { QueryError } from '@/components/shared/QueryError';
 import { TagBadge } from '@/components/shared/TagBadge';
@@ -91,12 +92,12 @@ function GroupRow({ title, rule, count, sub }: { title: string; rule: string; co
 
 function Tile({ value, label, loading }: { value: ReactNode; label: string; loading: boolean }) {
   return (
-    <Card>
-      <CardContent className="px-4 py-3">
-        {loading ? <Skeleton className="h-8 w-16" /> : <div className="font-mono text-2xl text-primary">{value}</div>}
+    <Panel>
+      <PanelContent className="gap-0 px-3.5">
+        {loading ? <Skeleton className="h-8 w-16" /> : <div className="font-mono text-2xl text-highlight">{value}</div>}
         <div className="text-sm text-muted-foreground">{label}</div>
-      </CardContent>
-    </Card>
+      </PanelContent>
+    </Panel>
   );
 }
 
@@ -123,16 +124,16 @@ export function OutcomePanel({ centre, picked, summary, areas, sensitivity, load
   const shown = centre && summary;
   return (
     <>
-      <section className="rounded-xl bg-foreground px-5 py-4 text-lg font-medium leading-snug text-background">
+      <section className="rounded-xl bg-topbar px-[18px] py-4 text-lg font-medium leading-snug text-white">
         {loading ? 'Loading blocks…' : <Headline centre={centre} picked={picked} summary={summary} />}
       </section>
 
       {shown && (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Blocks whose nearest centre was {shortName(centre.name)}</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <Panel>
+          <PanelHeader>
+            <PanelTitle>Blocks whose nearest centre was {shortName(centre.name)}</PanelTitle>
+          </PanelHeader>
+          <PanelContent>
             <ul className="flex flex-col gap-2">
               <GroupRow title="Cut off" rule="T1 → T2–T4" count={summary.groups['cut-off']} />
               <GroupRow sub title="No one can walk it" rule="T1 → T4" count={summary.noOneCanWalk} />
@@ -140,8 +141,8 @@ export function OutcomePanel({ centre, picked, summary, areas, sensitivity, load
               <GroupRow sub title="Now worse" rule="T2/T3 → T4" count={summary.nowWorse} />
               <GroupRow title="Unaffected" rule="T1 → T1" count={summary.groups.unaffected} />
             </ul>
-          </CardContent>
-        </Card>
+          </PanelContent>
+        </Panel>
       )}
 
       <div className="grid grid-cols-2 gap-3">

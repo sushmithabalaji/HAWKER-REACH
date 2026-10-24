@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Button, Card, CardContent, Skeleton, ToggleGroup, ToggleGroupItem } from '@databricks/appkit-ui/react';
+import { Button, Skeleton, ToggleGroup, ToggleGroupItem } from '@databricks/appkit-ui/react';
+import { Panel, PanelContent } from '@/components/shared/Panel';
 import type { PickingInfo } from '@deck.gl/core';
 import { GeoJsonLayer, ScatterplotLayer } from '@deck.gl/layers';
 import type { Feature, Geometry } from 'geojson';
@@ -26,6 +27,9 @@ import { LIMIT_MIN, SUPER_AGED_SHARE } from './settings';
 import { multiplierBand, multiplierBandLabel, MULTIPLIER_BREAKS, type SubzoneSeniors } from './subzoneSeniors';
 
 type View = 'tiers' | 'multiplier';
+
+// Selected toggles are ink with white text, as in the wireframe.
+const SELECTED_INK = 'data-[state=on]:bg-primary data-[state=on]:text-primary-foreground';
 type Phase = 'before' | 'after';
 
 interface AccessMapProps {
@@ -191,8 +195,8 @@ export function AccessMap({
   const popupName = popupId ? names.subzone(popupId) : undefined;
 
   return (
-    <Card>
-      <CardContent className="flex flex-col gap-3 pt-6">
+    <Panel>
+      <PanelContent>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <span className="text-sm font-medium text-muted-foreground">Map shows</span>
           <ToggleGroup
@@ -202,8 +206,12 @@ export function AccessMap({
             value={view}
             onValueChange={(v) => v && (setView(v as View), setPopupId(null))}
           >
-            <ToggleGroupItem value="tiers">Access tiers</ToggleGroupItem>
-            <ToggleGroupItem value="multiplier">Vulnerability multiplier</ToggleGroupItem>
+            <ToggleGroupItem className={SELECTED_INK} value="tiers">
+              Access tiers
+            </ToggleGroupItem>
+            <ToggleGroupItem className={SELECTED_INK} value="multiplier">
+              Vulnerability multiplier
+            </ToggleGroupItem>
           </ToggleGroup>
           {view === 'tiers' && closure && (
             <ToggleGroup
@@ -213,8 +221,12 @@ export function AccessMap({
               value={phase}
               onValueChange={(v) => v && setPhase(v as Phase)}
             >
-              <ToggleGroupItem value="before">Before</ToggleGroupItem>
-              <ToggleGroupItem value="after">After the closure</ToggleGroupItem>
+              <ToggleGroupItem className={SELECTED_INK} value="before">
+                Before
+              </ToggleGroupItem>
+              <ToggleGroupItem className={SELECTED_INK} value="after">
+                After the closure
+              </ToggleGroupItem>
             </ToggleGroup>
           )}
         </div>
@@ -260,7 +272,7 @@ export function AccessMap({
                     <span className="block text-xs text-muted-foreground">its share aged 65+ ÷ the HDB-wide share</span>
                   </div>
                   {popup.is_super_aged && (
-                    <div className="mt-1 font-medium text-primary">
+                    <div className="mt-1 font-medium text-highlight">
                       ⚠ {Math.round(SUPER_AGED_SHARE * 100)}%+ aged 65+ (super-aged)
                     </div>
                   )}
@@ -330,7 +342,7 @@ export function AccessMap({
           {view === 'multiplier' &&
             `Click an area for its share aged 65+. Bands split at ×${MULTIPLIER_BREAKS.join(', ×')}; blank areas have too few residents.`}
         </p>
-      </CardContent>
-    </Card>
+      </PanelContent>
+    </Panel>
   );
 }
