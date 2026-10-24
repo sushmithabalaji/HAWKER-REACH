@@ -44,9 +44,9 @@
   --tag-modelled-bg: #e3e8f7;
   --tag-assumption: #8a3a08;
   --tag-assumption-bg: #ffe9d2;
-  /* Page 1's verdicts. Yellow is the wireframe's darker text yellow, so it reads on white */
+  /* Page 1's verdicts, from the wireframe (Feature1Ripple.dc.html) */
   --status-red: #b42318;
-  --status-yellow: #8a6300;
+  --status-yellow: #d69e00;
   --status-green: #1e7d4f;
   /* The top bar stays ink in either theme */
   --topbar: #16202a;
