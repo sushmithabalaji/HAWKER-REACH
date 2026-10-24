@@ -24,6 +24,18 @@ export const seniorsAssumptions: AssumptionLine[] = [
     source: 'NEA hawker centre closure schedule (gold.centre_closures)',
     status: 'sourced',
   },
+  {
+    text: 'Outcome groups, for blocks whose nearest centre closes: cut off (T1 → T2–T4; no one can walk it is T1 → T4), already without access (T2–T4 before; now worse is T2/T3 → T4), unaffected (T1 → T1)',
+    tag: 'MODELLED',
+    source: 'ASSUMPTIONS.md (outcome groups), matching gold.access_sensitivity',
+    status: 'decided',
+  },
+  {
+    text: 'Areas where the AAC should check in: subzones with at least one senior cut off by the closure',
+    tag: 'MODELLED',
+    source: 'ASSUMPTIONS.md (Areas to alert)',
+    status: 'decided',
+  },
   { key: 'access.sensitivity_limits_min' },
   { key: 'access.super_aged_share' },
   { key: 'access.min_subzone_residents' },
@@ -38,6 +50,12 @@ export const seniorsAssumptions: AssumptionLine[] = [
       'Our share aged 65+ counts SingStat HDB residents; the official 21% super-aged figure counts citizens, so the two are close but not the same',
   },
   {
+    text: 'Seniors counts are shown to the nearest 5, and under 5 as "<5", because seniors per block are estimates',
+    tag: 'ASSUMPTION',
+    source: 'Team decision (ASSUMPTIONS.md, display rounding)',
+    status: 'decided',
+  },
+  {
     limitation:
       'A picked NEA closure also treats renovation or redevelopment at other centres during the same dates as closed; cleaning at a neighbour (a few days) is a note only',
   },
@@ -45,7 +63,6 @@ export const seniorsAssumptions: AssumptionLine[] = [
     limitation:
       'The 10 and 20 min figures are for the picked centre closing alone, so they leave out other closures at the same time',
   },
-  { limitation: 'Seniors counts are estimates, shown to the nearest 5' },
   {
     limitation: 'Subzone outlines on the map are simplified to about 15 m, so borders are approximate at street level',
   },
