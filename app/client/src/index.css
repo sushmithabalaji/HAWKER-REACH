@@ -1,82 +1,69 @@
-@import "@databricks/appkit-ui/styles.css";
+@import '@databricks/appkit-ui/styles.css';
 
-:root {
-  /* --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.141 0.005 285.823);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.141 0.005 285.823);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.141 0.005 285.823);
-  --primary: oklch(0.21 0.006 285.885);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.21 0.006 285.885);
-  --muted: oklch(0.967 0.001 286.375);
-  --muted-foreground: oklch(0.552 0.016 285.938);
-  --accent: oklch(0.967 0.001 286.375);
-  --accent-foreground: oklch(0.21 0.006 285.885);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
-  --success: oklch(0.603 0.135 166.892);
-  --success-foreground: oklch(1 0 0);
-  --warning: oklch(0.795 0.157 78.748);
-  --warning-foreground: oklch(0.199 0.027 238.732);
-  --border: oklch(0.92 0.004 286.32);
-  --input: oklch(0.92 0.004 286.32);
-  --ring: oklch(0.705 0.015 286.067);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.141 0.005 285.823);
-  --sidebar-primary: oklch(0.21 0.006 285.885);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.967 0.001 286.375);
-  --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
-  --sidebar-border: oklch(0.92 0.004 286.32);
-  --sidebar-ring: oklch(0.705 0.015 286.067); */
+/*
+ * HawkerReach's look, from the wireframe (docs/wireframes/v1/source/*.dc.html). Light whatever the OS
+ * setting: index.html puts `class="light"` on <html>, which turns off AppKit's prefers-color-scheme
+ * dark block, so none of its dark tokens leak in. The `.dark` class still gets AppKit's dark tokens
+ * (not designed for; the wireframe has no dark mode). Every pair here meets WCAG AA; the lowest is
+ * the highlight on its tint, 5.5:1.
+ */
+:root:not(.dark) {
+  color-scheme: light;
+  --radius: 0.5rem; /* cards are rounded-xl: 12px */
+  --background: #f4f5f7;
+  --foreground: #16202a;
+  --card: #ffffff;
+  --card-foreground: #16202a;
+  --popover: #ffffff;
+  --popover-foreground: #16202a;
+  /* Selected controls and the main button are ink, as in the wireframe; the orange is --highlight. */
+  --primary: #16202a;
+  --primary-foreground: #ffffff;
+  --secondary: #eef1f4;
+  --secondary-foreground: #16202a;
+  --muted: #eef1f4;
+  --muted-foreground: #4a5562;
+  /* AppKit uses accent for hovers, skeletons and selected toggles: kept neutral, the orange is --highlight */
+  --accent: #eef1f4;
+  --accent-foreground: #16202a;
+  --destructive: #b42318;
+  --destructive-foreground: #ffffff;
+  --border: #dde2e7;
+  --input: #c5cdd5;
+  --ring: #a8380a;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* --background: oklch(0.141 0.005 285.823);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.21 0.006 285.885);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.21 0.006 285.885);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.92 0.004 286.32);
-    --primary-foreground: oklch(0.21 0.006 285.885);
-    --secondary: oklch(0.274 0.006 286.033);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.274 0.006 286.033);
-    --muted-foreground: oklch(0.705 0.015 286.067);
-    --accent: oklch(0.274 0.006 286.033);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --destructive-foreground: oklch(0.985 0 0);
-    --success: oklch(0.67 0.12 167);
-    --success-foreground: oklch(1 0 0);
-    --warning: oklch(0.83 0.165 85);
-    --warning-foreground: oklch(0.199 0.027 238.732);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.552 0.016 285.938);
-    --chart-1: oklch(0.488 0.243 264.376);
-    --chart-2: oklch(0.696 0.17 162.48);
-    --chart-3: oklch(0.769 0.188 70.08);
-    --chart-4: oklch(0.627 0.265 303.9);
-    --chart-5: oklch(0.645 0.246 16.439);
-    --sidebar: oklch(0.21 0.006 285.885);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.274 0.006 286.033);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.552 0.016 285.938); */
-  }
+:root {
+  /* Numbers that matter, links, the closed centre */
+  --highlight: #a8380a;
+  --highlight-tint: #fde8da;
+  /* Number tags */
+  --tag-measured: #0b5e5e;
+  --tag-measured-bg: #ddf1ee;
+  --tag-modelled: #2b3f86;
+  --tag-modelled-bg: #e3e8f7;
+  --tag-assumption: #8a3a08;
+  --tag-assumption-bg: #ffe9d2;
+  /* The top bar stays ink in either theme */
+  --topbar: #16202a;
+  --topbar-foreground: #e6eaee; /* tabs */
+  --topbar-strong: #ffffff; /* app name, current tab's ring, text on ink cards */
+}
+
+@theme inline {
+  --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --color-highlight: var(--highlight);
+  --color-highlight-tint: var(--highlight-tint);
+  --color-tag-measured: var(--tag-measured);
+  --color-tag-measured-bg: var(--tag-measured-bg);
+  --color-tag-modelled: var(--tag-modelled);
+  --color-tag-modelled-bg: var(--tag-modelled-bg);
+  --color-tag-assumption: var(--tag-assumption);
+  --color-tag-assumption-bg: var(--tag-assumption-bg);
+  --color-topbar: var(--topbar);
+  --color-topbar-foreground: var(--topbar-foreground);
+  --color-topbar-strong: var(--topbar-strong);
+  /* The wireframe's 18px: card padding, the gap beside the map, the page's top and bottom */
+  --spacing-panel: 18px;
 }

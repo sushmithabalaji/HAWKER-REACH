@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Button, Card, CardContent, Skeleton, ToggleGroup, ToggleGroupItem } from '@databricks/appkit-ui/react';
+import { Button, Skeleton, ToggleGroup } from '@databricks/appkit-ui/react';
+import { Panel, PanelContent } from '@/components/shared/Panel';
 import type { PickingInfo } from '@deck.gl/core';
 import { GeoJsonLayer, ScatterplotLayer } from '@deck.gl/layers';
 import type { Feature, Geometry } from 'geojson';
@@ -9,8 +10,11 @@ import { canPick, type Centre } from '@/components/shared/centres';
 import { useGeoData } from '@/components/shared/GeoData';
 import type { SubzoneProps } from '@/components/shared/subzones';
 import { QueryError } from '@/components/shared/QueryError';
+import { InkToggleItem } from '@/components/shared/InkToggleItem';
 import { TagBadge } from '@/components/shared/TagBadge';
-import { ACCENT_HEX, INK_HEX, MULTIPLIER_HEX, NOT_AFFECTED_HEX, rgb, TIER_HEX } from './colours';
+import { centresLayer } from '@/components/shared/centresLayer';
+import { HIGHLIGHT_HEX, INK_HEX, rgb, WHITE_HEX } from '@/components/shared/mapColours';
+import { MULTIPLIER_HEX, NOT_AFFECTED_HEX, TIER_HEX } from './colours';
 import {
   roughCount,
   TIERS,
@@ -88,26 +92,7 @@ export function AccessMap({
   const closedIds = useMemo(() => new Set(closure ? [closure.centreId, ...closure.alsoClosed] : []), [closure]);
 
   const layers = useMemo(() => {
-    const centreLayer = new ScatterplotLayer<Centre>({
-      id: 'centres',
-      data: centres ?? [],
-      pickable: true,
-      getPosition: (c) => [c.lon, c.lat],
-      radiusUnits: 'pixels',
-      getRadius: (c) => (c.centre_id === closure?.centreId ? 8 : closedIds.has(c.centre_id) ? 6 : 5),
-      stroked: true,
-      lineWidthUnits: 'pixels',
-      getLineWidth: (c) => (closedIds.has(c.centre_id) ? 3 : 1),
-      getLineColor: (c) => rgb(closedIds.has(c.centre_id) ? ACCENT_HEX : '#FFFFFF'),
-      getFillColor: (c) =>
-        closedIds.has(c.centre_id) ? rgb('#FFFFFF') : c.is_interim ? rgb('#7A8794') : rgb(ACCENT_HEX),
-      updateTriggers: {
-        getRadius: [closure],
-        getLineWidth: [closure],
-        getLineColor: [closure],
-        getFillColor: [closure],
-      },
-    });
+    const centreLayer = centresLayer({ centres: centres ?? [], pickedId: closure?.centreId ?? null, closedIds });
 
     if (view === 'multiplier') {
       const shading = new GeoJsonLayer<SubzoneProps>({
@@ -191,8 +176,8 @@ export function AccessMap({
   const popupName = popupId ? names.subzone(popupId) : undefined;
 
   return (
-    <Card>
-      <CardContent className="flex flex-col gap-3 pt-6">
+    <Panel>
+      <PanelContent>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <span className="text-sm font-medium text-muted-foreground">Map shows</span>
           <ToggleGroup
@@ -202,8 +187,8 @@ export function AccessMap({
             value={view}
             onValueChange={(v) => v && (setView(v as View), setPopupId(null))}
           >
-            <ToggleGroupItem value="tiers">Access tiers</ToggleGroupItem>
-            <ToggleGroupItem value="multiplier">Vulnerability multiplier</ToggleGroupItem>
+            <InkToggleItem value="tiers">Access tiers</InkToggleItem>
+            <InkToggleItem value="multiplier">Vulnerability multiplier</InkToggleItem>
           </ToggleGroup>
           {view === 'tiers' && closure && (
             <ToggleGroup
@@ -213,8 +198,8 @@ export function AccessMap({
               value={phase}
               onValueChange={(v) => v && setPhase(v as Phase)}
             >
-              <ToggleGroupItem value="before">Before</ToggleGroupItem>
-              <ToggleGroupItem value="after">After the closure</ToggleGroupItem>
+              <InkToggleItem value="before">Before</InkToggleItem>
+              <InkToggleItem value="after">After the closure</InkToggleItem>
             </ToggleGroup>
           )}
         </div>
@@ -260,7 +245,7 @@ export function AccessMap({
                     <span className="block text-xs text-muted-foreground">its share aged 65+ ÷ the HDB-wide share</span>
                   </div>
                   {popup.is_super_aged && (
-                    <div className="mt-1 font-medium text-primary">
+                    <div className="mt-1 font-medium text-highlight">
                       ⚠ {Math.round(SUPER_AGED_SHARE * 100)}%+ aged 65+ (super-aged)
                     </div>
                   )}
@@ -312,7 +297,7 @@ export function AccessMap({
             </>
           )}
           <span className="flex items-center gap-1.5">
-            <Swatch colour="#FFFFFF" ring={ACCENT_HEX} />
+            <Swatch colour={WHITE_HEX} ring={HIGHLIGHT_HEX} />
             closed centre
           </span>
         </div>
@@ -330,7 +315,7 @@ export function AccessMap({
           {view === 'multiplier' &&
             `Click an area for its share aged 65+. Bands split at ×${MULTIPLIER_BREAKS.join(', ×')}; blank areas have too few residents.`}
         </p>
-      </CardContent>
-    </Card>
+      </PanelContent>
+    </Panel>
   );
 }

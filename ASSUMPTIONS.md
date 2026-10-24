@@ -97,10 +97,11 @@ Where this file disagrees with the wireframe, this file wins.
 - **Page code:** `app/client/src/pages/<page>/`.
 - **Queries:** `app/config/queries/<page>_<name>.sql`. AppKit names each query after its file, so prefix with the page.
 - **Custom /api routes:** none by default. Any route goes in `app/server/server.ts` inside `onPluginsReady`, after a check with the shell owner.
-- **Sidebar and routes:** both come from `app/client/src/pages/registry.tsx`.
+- **Top-bar tabs and routes:** both come from `app/client/src/pages/registry.tsx` (#41 replaced the sidebar with the wireframe's top bar).
 - **Shared components** in `app/client/src/components/shared/`, built by Spec 1 and reused by other pages:
   - `CentreSearch`
-  - `BaseMap`
+  - `BaseMap`, with `centresLayer` and `mapColours`
+  - `Panel`, `MapRow`, `Pill`, `InkToggleItem` (the wireframe's look, #41)
   - `TagBadge`
   - `AssumptionsPanel` registry
 - **Map:**

@@ -1,5 +1,7 @@
 import { Fragment, useMemo } from 'react';
-import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@databricks/appkit-ui/react';
+import { Button } from '@databricks/appkit-ui/react';
+import { Pill, type PillTone } from '@/components/shared/Pill';
+import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/shared/Panel';
 import { TagBadge } from '@/components/shared/TagBadge';
 import { metres, type Names } from './names';
 import { roughCount, type BlockOutcome } from './scenario';
@@ -14,10 +16,10 @@ interface MealSupportListProps {
 
 const walk = (m: number | null) => (m === null ? '' : ` · ${metres(m)}`);
 
-const PILL_VARIANT: Record<Support, 'default' | 'outline'> = { 'Walking buddy': 'outline', 'Meal delivery': 'default' };
+const SUPPORT_TONE: Record<Support, PillTone> = { 'Walking buddy': 'outline', 'Meal delivery': 'ink' };
 
 function SupportPill({ support }: { support: Support }) {
-  return <Badge variant={PILL_VARIANT[support]}>{support}</Badge>;
+  return <Pill tone={SUPPORT_TONE[support]}>{support}</Pill>;
 }
 
 // The link is added to the page and the URL kept a moment, or Firefox and Safari can drop the download.
@@ -51,17 +53,17 @@ export function MealSupportList({ outcomes, closedName, names }: MealSupportList
   };
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row flex-wrap items-center gap-x-4 gap-y-2 space-y-0">
-        <CardTitle className="flex-1 text-xl">Senior meal-support list</CardTitle>
+    <Panel>
+      <PanelHeader className="flex flex-row flex-wrap items-center gap-x-4 gap-y-2">
+        <PanelTitle className="flex-1 text-xl">Senior meal-support list</PanelTitle>
         {closedName && areas.length > 0 && (
-          <Badge variant="outline">
+          <Pill tone="outline">
             {areas.length} {areas.length === 1 ? 'area' : 'areas'} · {blocks} blocks <TagBadge tag="MODELLED" /> · after{' '}
             {closedName} closes
-          </Badge>
+          </Pill>
         )}
-      </CardHeader>
-      <CardContent className="flex flex-col gap-3">
+      </PanelHeader>
+      <PanelContent>
         {!closedName && (
           <p className="rounded-md bg-muted p-3 text-sm text-muted-foreground">
             Close a centre to list the blocks whose seniors lose their {LIMIT_MIN}-min walk, and the support each needs.
@@ -137,7 +139,7 @@ export function MealSupportList({ outcomes, closedName, names }: MealSupportList
             Download list (CSV)
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </PanelContent>
+    </Panel>
   );
 }

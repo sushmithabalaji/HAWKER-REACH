@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
-import { Button, Card, CardContent, Skeleton, useAnalyticsQuery } from '@databricks/appkit-ui/react';
+import { Button, Skeleton, useAnalyticsQuery } from '@databricks/appkit-ui/react';
+import { Panel, PanelContent } from '@/components/shared/Panel';
 import type { Bounds } from '@/components/shared/basemapStyles';
 import { CentreSearch } from '@/components/shared/CentreSearch';
+import { MapRow } from '@/components/shared/MapRow';
 import { shortName, townLabel, type Centre } from '@/components/shared/centres';
 import { useGeoData } from '@/components/shared/GeoData';
 import { NO_PARAMS, toNumber, toText, type RawRow } from '@/components/shared/queryValues';
@@ -116,9 +118,9 @@ export function SeniorsPage() {
   const error = blocksQuery.error ?? closuresQuery.error;
 
   return (
-    <div className="mx-auto flex max-w-[1440px] flex-col gap-4">
-      <Card>
-        <CardContent className="flex flex-col gap-3 pt-6">
+    <>
+      <Panel>
+        <PanelContent>
           <CentreSearch
             selectedId={selection?.kind === 'centre' ? selection.centreId : null}
             onSelect={closeCentre}
@@ -137,6 +139,7 @@ export function SeniorsPage() {
                 <Button
                   key={c.closure_id}
                   size="sm"
+                  className="rounded-full"
                   variant={picked?.closure_id === c.closure_id ? 'default' : 'outline'}
                   aria-pressed={picked?.closure_id === c.closure_id}
                   onClick={() =>
@@ -165,13 +168,13 @@ export function SeniorsPage() {
               <TagBadge tag="MEASURED" />
             </p>
           )}
-        </CardContent>
-      </Card>
+        </PanelContent>
+      </Panel>
 
       {error && <QueryError what="Blocks or closures" error={error} />}
 
-      <div className="flex flex-wrap items-start gap-4">
-        <div className="min-w-0 flex-[0_1_816px]">
+      <MapRow
+        map={
           <AccessMap
             blocks={blocks}
             outcomes={outcomes}
@@ -183,19 +186,21 @@ export function SeniorsPage() {
             fitTo={fitTo}
             onCentreClick={closeCentre}
           />
-        </div>
-        <aside className="flex min-w-0 flex-[1_1_340px] flex-col gap-4">
-          <OutcomePanel
-            centre={closedCentre}
-            picked={picked}
-            summary={summary}
-            areas={areas.length}
-            sensitivity={sensitivity}
-            loading={!blocks}
-          />
-          {closedCentre && outcomes && <AreasToAlert areas={areas} subzoneSeniors={subzoneSeniors} names={names} />}
-        </aside>
-      </div>
+        }
+        side={
+          <>
+            <OutcomePanel
+              centre={closedCentre}
+              picked={picked}
+              summary={summary}
+              areas={areas.length}
+              sensitivity={sensitivity}
+              loading={!blocks}
+            />
+            {closedCentre && outcomes && <AreasToAlert areas={areas} subzoneSeniors={subzoneSeniors} names={names} />}
+          </>
+        }
+      />
 
       <MealSupportList
         outcomes={outcomes}
@@ -209,6 +214,6 @@ export function SeniorsPage() {
         network to the nearest open NEA hawker centre (silver.dist_matrix). Coffee shops and food courts are not
         counted.
       </p>
-    </div>
+    </>
   );
 }

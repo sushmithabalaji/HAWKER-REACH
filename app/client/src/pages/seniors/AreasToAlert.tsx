@@ -1,4 +1,5 @@
-import { Badge, Card, CardContent, CardHeader, CardTitle } from '@databricks/appkit-ui/react';
+import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/shared/Panel';
+import { Pill } from '@/components/shared/Pill';
 import { TagBadge } from '@/components/shared/TagBadge';
 import { roughCount, type AreaCutOff } from './scenario';
 import { LIMIT_MIN, SUPER_AGED_SHARE } from './settings';
@@ -17,15 +18,15 @@ const SUPER_AGED_PCT = Math.round(SUPER_AGED_SHARE * 100);
 // badge is shown beside the count, never multiplied into it (ASSUMPTIONS.md, Areas to alert).
 export function AreasToAlert({ areas, subzoneSeniors, names }: AreasToAlertProps) {
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base">Areas to alert</CardTitle>
+    <Panel>
+      <PanelHeader>
+        <PanelTitle>Areas to alert</PanelTitle>
         <p className="text-xs text-muted-foreground">
           Subzones where seniors lose their {LIMIT_MIN}-min walk, most seniors first. Badged where {SUPER_AGED_PCT}%+ of
           HDB residents are 65+.
         </p>
-      </CardHeader>
-      <CardContent>
+      </PanelHeader>
+      <PanelContent>
         {areas.length === 0 ? (
           <p className="text-sm text-muted-foreground">No senior loses a {LIMIT_MIN}-min walk, so no area to alert.</p>
         ) : (
@@ -37,9 +38,9 @@ export function AreasToAlert({ areas, subzoneSeniors, names }: AreasToAlertProps
                   <span className="flex-1">
                     <strong>{names.subzone(a.subzone_id)}</strong>
                     {s?.is_super_aged && (
-                      <Badge variant="destructive" className="ml-2 align-middle text-[10px]">
-                        {SUPER_AGED_PCT}%+ aged 65+
-                      </Badge>
+                      <span className="ml-2">
+                        <Pill tone="highlight">⚠ {SUPER_AGED_PCT}%+ aged 65+</Pill>
+                      </span>
                     )}
                     <span className="block text-xs text-muted-foreground">
                       {s?.pct_65p != null ? (
@@ -53,7 +54,7 @@ export function AreasToAlert({ areas, subzoneSeniors, names }: AreasToAlertProps
                       {a.blocks} {a.blocks === 1 ? 'block' : 'blocks'} <TagBadge tag="MODELLED" />
                     </span>
                   </span>
-                  <span className="text-right font-mono text-primary">
+                  <span className="text-right font-mono text-highlight">
                     {roughCount(a.seniors)}
                     <TagBadge tag="MODELLED" />
                     <span className="block font-sans text-xs text-muted-foreground">seniors</span>
@@ -63,7 +64,7 @@ export function AreasToAlert({ areas, subzoneSeniors, names }: AreasToAlertProps
             })}
           </ul>
         )}
-      </CardContent>
-    </Card>
+      </PanelContent>
+    </Panel>
   );
 }

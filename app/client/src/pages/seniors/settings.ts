@@ -1,12 +1,6 @@
-import { assumptions } from '@shared/assumptions';
+import { assumedNumber, assumptions } from '@shared/assumptions';
 
-// Page 2's model values, read from the repo-root assumptions.json (synced into app/shared) so the
-// notebooks and the page can't disagree.
-function assumedNumber(key: string): number {
-  const n = Number(assumptions[key].value);
-  if (!Number.isFinite(n)) throw new Error(`assumptions.json ${key} is not a number`);
-  return n;
-}
+// Page 2's model values, read from the repo-root assumptions.json (synced into app/shared).
 
 // Slowest first: the distance each covers in the limit is the top of T1, T2 and T3.
 export const PACES = [
