@@ -29,6 +29,8 @@ interface CentreSearchProps {
   placeholder?: string;
   // Centres listed but not pickable, e.g. Page 1's anchor and the centres already added.
   excludedIds?: readonly string[];
+  // Shown beside each pickable centre; the town by default. Page 1 adds the number of stalls.
+  describe?: (centre: Centre) => string;
   // Pass both to drive the town filter from the page (Page 2 also filters its map by town).
   // Leave both out and CentreSearch keeps the town itself.
   town?: string | null;
@@ -42,6 +44,7 @@ export function CentreSearch({
   onSelect,
   placeholder = 'Pick a centre to close',
   excludedIds = [],
+  describe = (c) => townLabel(c.pln_area_n),
   town: townProp,
   onTownChange,
 }: CentreSearchProps) {
@@ -101,7 +104,7 @@ export function CentreSearch({
                     }}
                   >
                     <span className="flex-1 truncate">{c.name}</span>
-                    <span className="text-xs text-muted-foreground">{reason ?? townLabel(c.pln_area_n)}</span>
+                    <span className="text-xs text-muted-foreground">{reason ?? describe(c)}</span>
                   </CommandItem>
                 );
               })}
