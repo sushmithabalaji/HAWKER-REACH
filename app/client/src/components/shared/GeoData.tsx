@@ -25,7 +25,7 @@ export function GeoDataProvider({ children }: { children: ReactNode }) {
     () => ({
       subzones: shapes.data ? toFeatureCollection(shapes.data as SubzoneShapeRow[]) : null,
       subzonesError: shapes.error,
-      centres: centres.data ? (centres.data as unknown as RawRow[]).map(toCentre) : null,
+      centres: centres.data ? (centres.data as RawRow[]).map(toCentre) : null,
       centresError: centres.error,
     }),
     [shapes.data, shapes.error, centres.data, centres.error]

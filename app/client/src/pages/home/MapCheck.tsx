@@ -26,7 +26,7 @@ export function MapCheck() {
   const [picked, setPicked] = useState<string | null>(null);
   const points = useMemo<BlockPoint[]>(
     () =>
-      ((blocks as unknown as RawRow[] | null) ?? []).map((b) => ({
+      ((blocks as RawRow[] | null) ?? []).map((b) => ({
         lon: toNumber(b.lon),
         lat: toNumber(b.lat),
       })),
