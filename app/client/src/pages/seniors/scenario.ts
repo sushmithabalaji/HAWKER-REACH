@@ -166,5 +166,10 @@ export function areasCutOff(outcomes: readonly BlockOutcome[]): AreaCutOff[] {
 // Seniors per block are estimates, so counts are shown to the nearest 5.
 export function roughCount(n: number): string {
   if (n < 5) return n > 0 ? '<5' : '0';
-  return (Math.round(n / 5) * 5).toLocaleString('en-US');
+  return roundedCount(n).toLocaleString('en-US');
+}
+
+// The same rounding as a number, for the CSV: under 5 is 0, so the column always sums.
+export function roundedCount(n: number): number {
+  return n < 5 ? 0 : Math.round(n / 5) * 5;
 }

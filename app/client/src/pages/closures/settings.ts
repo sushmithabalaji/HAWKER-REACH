@@ -1,12 +1,7 @@
-import { assumptions } from '@shared/assumptions';
+import { assumedNumber } from '@shared/assumptions';
 
 // Page 1's walk limits for its wording, read from the repo-root assumptions.json (synced into app/shared).
 // The engine reads its own values from the same file.
-function assumedNumber(key: string): number {
-  const n = Number(assumptions[key].value);
-  if (!Number.isFinite(n)) throw new Error(`assumptions.json ${key} is not a number`);
-  return n;
-}
 
 export interface WalkLimits {
   limitMin: number;

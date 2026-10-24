@@ -89,14 +89,6 @@ declare module "@databricks/appkit-ui/react" {
           subzone_id: string;
         }>;
       };
-    home_gold_check: {
-        name: "home_gold_check";
-        parameters: Record<string, never>;
-        result: Array<{
-          /** @sqlType BIGINT */
-          blocks: number;
-        }>;
-      };
     seniors_blocks: {
         name: "seniors_blocks";
         parameters: Record<string, never>;

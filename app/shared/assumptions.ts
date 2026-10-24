@@ -17,6 +17,16 @@ export type Assumptions = Record<string, AssumptionEntry>;
 
 export const assumptions = assumptionsJson as Assumptions;
 
+// A numeric value from assumptions.json, for code that computes with it (both pages read their model
+// values this way, so the notebooks and the app can't disagree).
+export function assumedNumber(key: string, all: Assumptions = assumptions): number {
+  const entry = all[key];
+  if (!entry) throw new Error(`Unknown assumptions.json key: ${key}`);
+  const n = Number(entry.value);
+  if (!Number.isFinite(n)) throw new Error(`assumptions.json ${key} is not a number`);
+  return n;
+}
+
 export interface ResolvedLine {
   text: string;
   tag: Tag | null; // null for a known limitation, which describes the model rather than a number

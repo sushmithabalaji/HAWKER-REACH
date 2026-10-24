@@ -2,8 +2,6 @@ import type { ReactNode } from 'react';
 import type { AssumptionLine } from '@shared/assumptions';
 import { ClosuresPage } from './closures/ClosuresPage';
 import { closuresAssumptions } from './closures/assumptions';
-import { HomePage } from './home/HomePage';
-import { homeAssumptions } from './home/assumptions';
 import { SeniorsPage } from './seniors/SeniorsPage';
 import { seniorsAssumptions } from './seniors/assumptions';
 
@@ -15,9 +13,9 @@ export interface PageEntry {
   assumptions: AssumptionLine[];
 }
 
-// Adding a page is one entry here: it gets a route, a sidebar link and an Assumptions panel.
+// Adding a page is one entry here: it gets a route, a tab in the top bar and an Assumptions panel.
+// Listed in tab order; the first page is where "/" lands.
 export const pages: PageEntry[] = [
-  { path: '/', label: 'Home', element: <HomePage />, assumptions: homeAssumptions },
   {
     path: '/closures',
     label: '① Closure scenarios · for NEA',

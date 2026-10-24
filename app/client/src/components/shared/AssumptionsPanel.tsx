@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@databricks/appkit-ui/react';
 import { resolveLine, type AssumptionLine } from '@shared/assumptions';
+import { Panel, PanelContent, PanelHeader, PanelTitle } from './Panel';
 import { TagBadge } from './TagBadge';
 
 // Lists the lines a page registered in pages/registry.tsx.
@@ -7,16 +7,16 @@ export function AssumptionsPanel({ lines }: { lines: AssumptionLine[] }) {
   if (lines.length === 0) return null;
 
   return (
-    <Card className="mt-8">
-      <CardHeader>
-        <CardTitle className="text-base">Assumptions</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ul className="space-y-2 text-sm">
+    <Panel>
+      <PanelHeader>
+        <PanelTitle>Assumptions and thresholds on this page</PanelTitle>
+      </PanelHeader>
+      <PanelContent>
+        <ul className="divide-y text-sm">
           {lines.map((raw) => {
             const line = resolveLine(raw);
             return (
-              <li key={`${line.text}|${line.source}`}>
+              <li key={`${line.text}|${line.source}`} className="py-2">
                 {line.text}
                 {line.tag && <TagBadge tag={line.tag} />}
                 <span className="block text-xs text-muted-foreground">{line.source}</span>
@@ -24,7 +24,7 @@ export function AssumptionsPanel({ lines }: { lines: AssumptionLine[] }) {
             );
           })}
         </ul>
-      </CardContent>
-    </Card>
+      </PanelContent>
+    </Panel>
   );
 }

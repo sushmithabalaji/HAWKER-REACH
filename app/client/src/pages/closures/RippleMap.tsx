@@ -5,12 +5,11 @@ import type { CentreRow, PlanResult, Receiver } from '@shared/closure-engine';
 import { BaseMap } from '@/components/shared/BaseMap';
 import type { Bounds } from '@/components/shared/basemapStyles';
 import { canPick, shortName } from '@/components/shared/centres';
-import { ACCENT_HEX, INK_HEX, rgb } from '../seniors/colours';
+import { HIGHLIGHT_HEX, INK_HEX, INTERIM_HEX, rgb, WHITE_HEX } from '@/components/shared/mapColours';
 import { TOP_RECEIVERS } from './settings';
 import { count, pctOverBaseline } from './format';
 
 const OTHER_HEX = '#9AA5B1';
-const INTERIM_HEX = '#5F6B78';
 const RECEIVER_HEX = '#2F86B0';
 
 interface RippleMapProps {
@@ -70,7 +69,7 @@ export function RippleMap({ centres, anchor, result, onCentreClick, className }:
       stroked: true,
       lineWidthUnits: 'pixels',
       getLineWidth: 1,
-      getLineColor: rgb('#FFFFFF'),
+      getLineColor: rgb(WHITE_HEX),
       getFillColor: (c) => rgb(c.is_interim ? INTERIM_HEX : OTHER_HEX),
     });
     const lines = new LineLayer<PlacedReceiver>({
@@ -80,7 +79,7 @@ export function RippleMap({ centres, anchor, result, onCentreClick, className }:
       getTargetPosition: (r) => r.position,
       widthUnits: 'pixels',
       getWidth: (r) => 2 + 10 * (r.shareOfDisplaced / maxShare),
-      getColor: rgb(ACCENT_HEX, 170),
+      getColor: rgb(HIGHLIGHT_HEX, 170),
     });
     const sized = new ScatterplotLayer<PlacedReceiver>({
       id: 'receivers',
@@ -93,7 +92,7 @@ export function RippleMap({ centres, anchor, result, onCentreClick, className }:
       stroked: true,
       lineWidthUnits: 'pixels',
       getLineWidth: 1.5,
-      getLineColor: rgb('#FFFFFF'),
+      getLineColor: rgb(WHITE_HEX),
       getFillColor: rgb(RECEIVER_HEX, 200),
     });
     const closed = new TextLayer<CentreRow>({
@@ -105,7 +104,7 @@ export function RippleMap({ centres, anchor, result, onCentreClick, className }:
       characterSet: ['×'],
       getSize: 34,
       fontWeight: 'bold',
-      getColor: rgb(ACCENT_HEX),
+      getColor: rgb(HIGHLIGHT_HEX),
     });
     const labels = new TextLayer<PlacedReceiver>({
       id: 'labels',
