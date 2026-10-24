@@ -1,4 +1,5 @@
 import type { AssumptionLine } from '@shared/assumptions';
+import { CUTOFF_M, MEAL_SUPPORT_WALK_M, MEAL_SUPPORT_WALK_MIN, PACES } from './settings';
 
 export const seniorsAssumptions: AssumptionLine[] = [
   { key: 'walk.pace.senior' },
@@ -34,6 +35,19 @@ export const seniorsAssumptions: AssumptionLine[] = [
     text: 'Areas where the AAC should check in: subzones with at least one senior cut off by the closure',
     tag: 'MODELLED',
     source: 'ASSUMPTIONS.md (Areas to alert)',
+    status: 'decided',
+  },
+  { key: 'access.meal_support_walk_min' },
+  {
+    text: `Suggested support: walking buddy if the nearest open centre after the closure is within ${MEAL_SUPPORT_WALK_M.toLocaleString('en-US')} m (${MEAL_SUPPORT_WALK_MIN} min at ${PACES[0]} m/s); meal delivery if further or none within ${CUTOFF_M / 1000} km. A subzone takes the stricter suggestion of its blocks`,
+    tag: 'ASSUMPTION',
+    source: 'Team decision (ASSUMPTIONS.md, meal-support rule)',
+    status: 'decided',
+  },
+  {
+    text: 'Meal-support list and Areas to alert: blocks whose seniors are cut off (T1 → T2–T4) by the closure',
+    tag: 'MODELLED',
+    source: 'ASSUMPTIONS.md (outcome groups)',
     status: 'decided',
   },
   { key: 'access.sensitivity_limits_min' },

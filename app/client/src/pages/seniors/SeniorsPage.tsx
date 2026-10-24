@@ -17,9 +17,11 @@ import {
   toNeaClosure,
   type NeaClosure,
 } from './closures';
+import { AreasToAlert } from './AreasToAlert';
+import { MealSupportList } from './MealSupportList';
 import { OutcomePanel, type Sensitivity } from './OutcomePanel';
 import { areasCutOff, runScenario, summarise, toAccessBlocks, type AccessBlock, type Closure } from './scenario';
-import { SENSITIVITY_LIMITS_MIN } from './settings';
+import { CUTOFF_M, SENSITIVITY_LIMITS_MIN } from './settings';
 import { toSubzoneSeniors } from './subzoneSeniors';
 
 // What the user closed: a centre clicked or searched, or a real NEA closure picked from the list.
@@ -34,7 +36,7 @@ function boundsOf(blocks: readonly AccessBlock[]): Bounds | null {
 
 // Page 2 · Seniors & access (for AACs): if this centre closes, which seniors lose a walkable hawker centre?
 export function SeniorsPage() {
-  const { centres } = useGeoData();
+  const { centres, subzones } = useGeoData();
   const blocksQuery = useAnalyticsQuery('seniors_blocks', NO_PARAMS);
   const closuresQuery = useAnalyticsQuery('seniors_closures', NO_PARAMS);
   const sensitivityQuery = useAnalyticsQuery('seniors_sensitivity', NO_PARAMS);
@@ -56,6 +58,12 @@ export function SeniorsPage() {
     [subzonesQuery.data]
   );
   const centreById = useMemo(() => new Map((centres ?? []).map((c) => [c.centre_id, c])), [centres]);
+  const subzoneName = (id: string) =>
+    subzoneSeniors.get(id)?.subzone_name ??
+    subzones?.features.find((f) => f.properties.subzone_id === id)?.properties.name ??
+    id;
+  const centreName = (id: string | null) =>
+    id ? shortName(centreById.get(id)?.name ?? id) : `no centre within ${CUTOFF_M / 1000} km`;
 
   const closure: Closure | null = useMemo(() => {
     if (!selection) return null;
@@ -184,8 +192,25 @@ export function SeniorsPage() {
             sensitivity={sensitivity}
             loading={!blocks}
           />
+          {closedCentre && outcomes && (
+            <AreasToAlert areas={areas} subzoneSeniors={subzoneSeniors} subzoneName={subzoneName} />
+          )}
         </aside>
       </div>
+
+      <MealSupportList
+        outcomes={outcomes}
+        closedName={closedCentre ? shortName(closedCentre.name) : null}
+        subzoneName={subzoneName}
+        centreName={centreName}
+      />
+
+      <p className="text-xs text-muted-foreground">
+        Sources: HDB property information and building outlines (data.gov.sg) · NEA hawker centres and closure dates ·
+        URA Master Plan subzones · SingStat HDB residents by age and subzone. Walks are along the OpenStreetMap walking
+        network to the nearest open NEA hawker centre (silver.dist_matrix). Coffee shops and food courts are not
+        counted.
+      </p>
     </div>
   );
 }
