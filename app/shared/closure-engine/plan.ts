@@ -72,11 +72,11 @@ export type PlanErrorCode = 'interim-centre' | 'too-many-centres' | 'unknown-cen
 
 /** A plan the page must not evaluate; `message` is safe to show the planner. */
 export class PlanError extends Error {
-  constructor(
-    readonly code: PlanErrorCode,
-    message: string
-  ) {
+  readonly code: PlanErrorCode;
+
+  constructor(code: PlanErrorCode, message: string) {
     super(message);
+    this.code = code;
     this.name = 'PlanError';
   }
 }
