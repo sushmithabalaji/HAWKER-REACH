@@ -1,0 +1,28 @@
+# The data pipeline: one manual run rebuilds bronze → silver → gold, logs MLflow sensitivity runs and
+# checks lineage (#33). The app has its own bundle in app/databricks.yml.
+bundle:
+  name: hawkerreach_pipeline
+
+include:
+  - resources/*.yml
+
+sync:
+  # Notebooks import dq.py and tiers.py and read assumptions.json from the repo root, so those sync.
+  # Of app/, only the query files sync, for 07_lineage_check's static check.
+  exclude:
+    - app/*.*
+    - app/client/**
+    - app/server/**
+    - app/shared/**
+    - app/node_modules/**
+    - app/dist/**
+    - docs/**
+    - .claude/**
+    - .vscode/**
+    - tests/**
+
+targets:
+  prod:
+    default: true
+    workspace:
+      host: https://dbc-98ae1c95-06a5.cloud.databricks.com
