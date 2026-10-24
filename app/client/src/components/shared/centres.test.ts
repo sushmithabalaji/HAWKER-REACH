@@ -1,5 +1,15 @@
 import { describe, expect, test } from 'vitest';
-import { canClose, canPick, searchCentres, toCentre, townLabel, townsOf, whyNotPickable, type Centre } from './centres';
+import {
+  canClose,
+  canPick,
+  searchCentres,
+  shortName,
+  toCentre,
+  townLabel,
+  townsOf,
+  whyNotPickable,
+  type Centre,
+} from './centres';
 
 const centre = (centre_id: string, name: string, pln_area_n: string, is_interim = false): Centre => ({
   centre_id,
@@ -106,5 +116,16 @@ describe('picking a centre to close', () => {
   test("centres the page excludes can't be picked", () => {
     expect(whyNotPickable(centres[0], ['1'])).toBe('Already picked');
     expect(canPick(centres[1], ['1'])).toBe(true);
+  });
+});
+
+describe('shortName', () => {
+  test('the bracketed name, without "Market and Food Centre"', () => {
+    expect(shortName('Toa Payoh Lorong 7 Blk 22 (Kim Keat Palm Market and Food Centre)')).toBe('Kim Keat Palm');
+    expect(shortName('Telok Blangah Rise Blk 36 (Telok Blangah Rise Market)')).toBe('Telok Blangah Rise Market');
+  });
+
+  test('the whole name when nothing is bracketed', () => {
+    expect(shortName('Clementi West Street 2 Blk 726')).toBe('Clementi West Street 2 Blk 726');
   });
 });

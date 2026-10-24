@@ -1,6 +1,6 @@
 import type { StyleSpecification } from 'maplibre-gl';
 
-type Bounds = [west: number, south: number, east: number, north: number];
+export type Bounds = [west: number, south: number, east: number, north: number];
 
 // Singapore. OneMap only serves tiles inside this box.
 export const SG_BOUNDS: Bounds = [103.596, 1.1443, 104.1, 1.4835];
