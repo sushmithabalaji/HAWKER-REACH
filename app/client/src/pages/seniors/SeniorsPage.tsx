@@ -21,7 +21,8 @@ import { AreasToAlert } from './AreasToAlert';
 import { MealSupportList } from './MealSupportList';
 import { OutcomePanel, type Sensitivity } from './OutcomePanel';
 import { areasCutOff, runScenario, summarise, toAccessBlocks, type AccessBlock, type Closure } from './scenario';
-import { CUTOFF_M, SENSITIVITY_LIMITS_MIN } from './settings';
+import { makeNames } from './names';
+import { SENSITIVITY_LIMITS_MIN } from './settings';
 import { toSubzoneSeniors } from './subzoneSeniors';
 
 // What the user closed: a centre clicked or searched, or a real NEA closure picked from the list.
@@ -58,12 +59,12 @@ export function SeniorsPage() {
     [subzonesQuery.data]
   );
   const centreById = useMemo(() => new Map((centres ?? []).map((c) => [c.centre_id, c])), [centres]);
-  const subzoneName = (id: string) =>
-    subzoneSeniors.get(id)?.subzone_name ??
-    subzones?.features.find((f) => f.properties.subzone_id === id)?.properties.name ??
-    id;
-  const centreName = (id: string | null) =>
-    id ? shortName(centreById.get(id)?.name ?? id) : `no centre within ${CUTOFF_M / 1000} km`;
+  // Subzone names from gold.subzone_seniors, falling back to the outline's name for subzones it leaves out.
+  const names = useMemo(() => {
+    const subzoneNames = new Map((subzones?.features ?? []).map((f) => [f.properties.subzone_id, f.properties.name]));
+    for (const s of subzoneSeniors.values()) if (s.subzone_name) subzoneNames.set(s.subzone_id, s.subzone_name);
+    return makeNames(centreById, subzoneNames);
+  }, [centreById, subzoneSeniors, subzones]);
 
   const closure: Closure | null = useMemo(() => {
     if (!selection) return null;
@@ -178,7 +179,7 @@ export function SeniorsPage() {
             areas={areas}
             subzoneSeniors={subzoneSeniors}
             subzonesError={subzonesQuery.error}
-            centreById={centreById}
+            names={names}
             fitTo={fitTo}
             onCentreClick={closeCentre}
           />
@@ -192,17 +193,14 @@ export function SeniorsPage() {
             sensitivity={sensitivity}
             loading={!blocks}
           />
-          {closedCentre && outcomes && (
-            <AreasToAlert areas={areas} subzoneSeniors={subzoneSeniors} subzoneName={subzoneName} />
-          )}
+          {closedCentre && outcomes && <AreasToAlert areas={areas} subzoneSeniors={subzoneSeniors} names={names} />}
         </aside>
       </div>
 
       <MealSupportList
         outcomes={outcomes}
         closedName={closedCentre ? shortName(closedCentre.name) : null}
-        subzoneName={subzoneName}
-        centreName={centreName}
+        names={names}
       />
 
       <p className="text-xs text-muted-foreground">

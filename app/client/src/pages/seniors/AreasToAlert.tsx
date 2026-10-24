@@ -3,18 +3,19 @@ import { TagBadge } from '@/components/shared/TagBadge';
 import { roughCount, type AreaCutOff } from './scenario';
 import { LIMIT_MIN, SUPER_AGED_SHARE } from './settings';
 import type { SubzoneSeniors } from './subzoneSeniors';
+import type { Names } from './names';
 
 interface AreasToAlertProps {
   areas: AreaCutOff[];
   subzoneSeniors: Map<string, SubzoneSeniors>;
-  subzoneName: (id: string) => string;
+  names: Names;
 }
 
 const SUPER_AGED_PCT = Math.round(SUPER_AGED_SHARE * 100);
 
 // Subzones whose AAC should check in: every subzone with seniors cut off, most first. The super-aged
 // badge is shown beside the count, never multiplied into it (ASSUMPTIONS.md, Areas to alert).
-export function AreasToAlert({ areas, subzoneSeniors, subzoneName }: AreasToAlertProps) {
+export function AreasToAlert({ areas, subzoneSeniors, names }: AreasToAlertProps) {
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -34,7 +35,7 @@ export function AreasToAlert({ areas, subzoneSeniors, subzoneName }: AreasToAler
               return (
                 <li key={a.subzone_id} className="flex items-start gap-3 py-2 text-sm">
                   <span className="flex-1">
-                    <strong>{subzoneName(a.subzone_id)}</strong>
+                    <strong>{names.subzone(a.subzone_id)}</strong>
                     {s?.is_super_aged && (
                       <Badge variant="destructive" className="ml-2 align-middle text-[10px]">
                         {SUPER_AGED_PCT}%+ aged 65+

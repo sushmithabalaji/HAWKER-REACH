@@ -1,5 +1,6 @@
 import type { AssumptionLine } from '@shared/assumptions';
-import { CUTOFF_M, MEAL_SUPPORT_WALK_M, MEAL_SUPPORT_WALK_MIN, PACES } from './settings';
+import { CUTOFF_M } from './settings';
+import { MEAL_SUPPORT_RULE } from './support';
 
 export const seniorsAssumptions: AssumptionLine[] = [
   { key: 'walk.pace.senior' },
@@ -37,9 +38,8 @@ export const seniorsAssumptions: AssumptionLine[] = [
     source: 'ASSUMPTIONS.md (Areas to alert)',
     status: 'decided',
   },
-  { key: 'access.meal_support_walk_min' },
   {
-    text: `Suggested support: walking buddy if the nearest open centre after the closure is within ${MEAL_SUPPORT_WALK_M.toLocaleString('en-US')} m (${MEAL_SUPPORT_WALK_MIN} min at ${PACES[0]} m/s); meal delivery if further or none within ${CUTOFF_M / 1000} km. A subzone takes the stricter suggestion of its blocks`,
+    text: `Suggested support: ${MEAL_SUPPORT_RULE}`,
     tag: 'ASSUMPTION',
     source: 'Team decision (ASSUMPTIONS.md, meal-support rule)',
     status: 'decided',
@@ -49,6 +49,18 @@ export const seniorsAssumptions: AssumptionLine[] = [
     tag: 'MODELLED',
     source: 'ASSUMPTIONS.md (outcome groups)',
     status: 'decided',
+  },
+  {
+    text: `Walk distances: the shortest route along the OpenStreetMap walking network from each block to its three nearest centres within ${CUTOFF_M / 1000} km`,
+    tag: 'MODELLED',
+    source: 'silver.dist_matrix (03_dist_matrix), OpenStreetMap',
+    status: 'decided',
+  },
+  {
+    text: 'Share aged 65+: a subzone’s HDB residents aged 65+ ÷ its HDB residents',
+    tag: 'MEASURED',
+    source: 'SingStat HDB residents by age and subzone (gold.subzone_seniors)',
+    status: 'sourced',
   },
   { key: 'access.sensitivity_limits_min' },
   { key: 'access.super_aged_share' },

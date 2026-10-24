@@ -132,11 +132,7 @@ test('supportCsv writes seniors as plain numbers, under 5 as 0', () => {
       ),
     ])
   );
-  const seniors = supportCsv(
-    list,
-    () => 'X',
-    () => 'Y'
-  )
+  const seniors = supportCsv(list, { subzone: () => 'X', centre: () => 'Y' })
     .trim()
     .split('\n')
     .slice(1)
@@ -159,11 +155,7 @@ test('supportCsv has one row per block and quotes commas', () => {
       ),
     ])
   );
-  const csv = supportCsv(
-    list,
-    () => 'TOA PAYOH CENTRAL, NORTH',
-    (id) => `Centre ${id}`
-  );
+  const csv = supportCsv(list, { subzone: () => 'TOA PAYOH CENTRAL, NORTH', centre: (id) => `Centre ${id}` });
   expect(csv.split('\n')).toEqual([
     'subzone_id,subzone,block_id,block,est_seniors,tier_before,tier_after,nearest_open_centre,walk_m_after,suggested_support',
     'SZ1,"TOA PAYOH CENTRAL, NORTH",a,a TOA PAYOH,10,T1,T2,Centre D,1000,Walking buddy',

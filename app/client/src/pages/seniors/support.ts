@@ -1,5 +1,6 @@
 import { roundedCount, type BlockOutcome } from './scenario';
-import { MEAL_SUPPORT_WALK_M } from './settings';
+import { CUTOFF_M, MEAL_SUPPORT_WALK_M, MEAL_SUPPORT_WALK_MIN, PACES } from './settings';
+import type { Names } from './names';
 
 // Ordered mildest first, so the stricter of two is the later one.
 export const SUPPORTS = ['Walking buddy', 'Meal delivery'] as const;
@@ -10,6 +11,9 @@ export type Support = (typeof SUPPORTS)[number];
 export function supportFor(o: BlockOutcome): Support {
   return o.afterWalkM !== null && o.afterWalkM <= MEAL_SUPPORT_WALK_M ? 'Walking buddy' : 'Meal delivery';
 }
+
+// The rule in words, for the list's footer and the Assumptions panel.
+export const MEAL_SUPPORT_RULE = `Walking buddy if the nearest open centre after the closure is within ${MEAL_SUPPORT_WALK_M.toLocaleString('en-US')} m (${MEAL_SUPPORT_WALK_MIN} min at ${PACES[0]} m/s); meal delivery if it's further or there's no centre within ${CUTOFF_M / 1000} km. A subzone takes the stricter suggestion of its blocks`;
 
 const stricter = (a: Support, b: Support) => (SUPPORTS.indexOf(a) >= SUPPORTS.indexOf(b) ? a : b);
 
@@ -73,21 +77,17 @@ const csvCell = (v: string | number) => {
 
 // Block-level CSV of the list. Seniors are rounded to 5 as on the page, but as plain numbers (under 5 is 0)
 // so the column sums in a spreadsheet.
-export function supportCsv(
-  areas: readonly SupportArea[],
-  subzoneName: (id: string) => string,
-  centreName: (id: string | null) => string
-): string {
+export function supportCsv(areas: readonly SupportArea[], names: Names): string {
   const rows = areas.flatMap((area) =>
     area.blocks.map(({ outcome: o, support }) => [
       area.subzone_id,
-      subzoneName(area.subzone_id),
+      names.subzone(area.subzone_id),
       o.block.block_id,
       o.block.block_label,
       roundedCount(o.block.est_seniors),
       o.block.tier_now,
       o.after,
-      centreName(o.afterCentreId),
+      names.centre(o.afterCentreId),
       o.afterWalkM === null ? '' : Math.round(o.afterWalkM),
       support,
     ])
