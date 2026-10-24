@@ -10,7 +10,7 @@ import { toGoldData } from './goldRows';
 // #18: the engine against Spec 2's gold.closure_scenarios, on live gold. Needs the Databricks CLI signed
 // in and a warehouse, so it runs only through `npm run check:scenarios`, never in `npm test`.
 const WAREHOUSE = process.env.DATABRICKS_WAREHOUSE_ID;
-const RUN = process.env.CHECK_GOLD === '1';
+const ENABLED = process.env.CHECK_GOLD === '1';
 
 // The parts of the SQL Statement Execution API's reply that the check reads.
 interface Chunk {
@@ -24,15 +24,15 @@ interface StatementReply {
 }
 
 function query(statement: string): RawRow[] {
-  const run = <T>(args: string[]) =>
+  const cli = <T>(args: string[]) =>
     JSON.parse(execFileSync('databricks', args, { encoding: 'utf8', maxBuffer: 1 << 28 })) as T;
   const body = { warehouse_id: WAREHOUSE, statement, wait_timeout: '50s', format: 'JSON_ARRAY', disposition: 'INLINE' };
-  const first = run<StatementReply>(['api', 'post', '/api/2.0/sql/statements', '--json', JSON.stringify(body)]);
+  const first = cli<StatementReply>(['api', 'post', '/api/2.0/sql/statements', '--json', JSON.stringify(body)]);
   if (first.status?.state !== 'SUCCEEDED') throw new Error(`Query failed: ${JSON.stringify(first.status)}`);
   const columns = first.manifest.schema.columns.map((c) => c.name);
   const rows = [...(first.result.data_array ?? [])];
   for (let next = first.result.next_chunk_internal_link; next; ) {
-    const chunk = run<Chunk>(['api', 'get', next]);
+    const chunk = cli<Chunk>(['api', 'get', next]);
     rows.push(...(chunk.data_array ?? []));
     next = chunk.next_chunk_internal_link;
   }
@@ -54,7 +54,7 @@ function toScenario(r: RawRow): ClosureScenarioRow {
   };
 }
 
-describe.runIf(RUN)('engine vs gold.closure_scenarios', () => {
+describe.runIf(ENABLED)('engine vs gold.closure_scenarios', () => {
   test('every single closure matches within 0.01', { timeout: 300_000 }, () => {
     if (!WAREHOUSE) throw new Error('Set DATABRICKS_WAREHOUSE_ID');
     const data = toGoldData({

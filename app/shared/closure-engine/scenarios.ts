@@ -15,17 +15,18 @@ export interface ClosureScenarioRow {
 }
 
 export type ScenarioField = Exclude<keyof ClosureScenarioRow, 'centre_id'>;
+type FieldValue = string | number | null;
 
 export interface ScenarioMismatch {
   centreId: string;
   field: ScenarioField;
-  engine: string | number | null;
-  gold: string | number | null;
+  engine: FieldValue;
+  gold: FieldValue;
 }
 
 const TOLERANCE = 0.01;
 
-function agrees(engine: string | number | null, gold: string | number | null): boolean {
+function agrees(engine: FieldValue, gold: FieldValue): boolean {
   if (typeof engine === 'number' && typeof gold === 'number') return Math.abs(engine - gold) <= TOLERANCE;
   return engine === gold;
 }
@@ -40,7 +41,7 @@ export function checkScenarios(
   return scenarios.flatMap((gold) => {
     const result = evaluatePlan(data, gold.centre_id, [], assumptions);
     const worst = result.tiles.biggestLoad.centre;
-    const engine: Record<ScenarioField, string | number | null> = {
+    const engine: Record<ScenarioField, FieldValue> = {
       worst_neighbour_id: worst?.centreId ?? null,
       worst_neighbour_extra_per_stall: worst?.extraDinersPerStall ?? null,
       worst_neighbour_pct: worst && worst.pctOverBaseline !== 'new' ? worst.pctOverBaseline : null,

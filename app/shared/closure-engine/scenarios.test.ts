@@ -29,7 +29,7 @@ const data = town(
   ]
 );
 
-const agreeing: ClosureScenarioRow = {
+const goldMatchingEngine: ClosureScenarioRow = {
   centre_id: 'HC_A',
   worst_neighbour_id: 'HC_B',
   worst_neighbour_extra_per_stall: 7.2,
@@ -40,14 +40,23 @@ const agreeing: ClosureScenarioRow = {
 
 describe('checkScenarios', () => {
   it('finds no mismatch when gold agrees with the engine within 0.01', () => {
-    expect(checkScenarios(data, [{ ...agreeing, worst_neighbour_extra_per_stall: 7.205 }], assumptions)).toEqual([]);
+    expect(
+      checkScenarios(data, [{ ...goldMatchingEngine, worst_neighbour_extra_per_stall: 7.205 }], assumptions)
+    ).toEqual([]);
   });
 
   it('lists each field that disagrees, with the centre, the engine value and the gold value', () => {
-    const wrong = { ...agreeing, worst_neighbour_id: 'HC_C', unserved_residents: 49.9 };
+    const wrong = { ...goldMatchingEngine, worst_neighbour_id: 'HC_C', unserved_residents: 49.9 };
     expect(checkScenarios(data, [wrong], assumptions)).toEqual([
       { centreId: 'HC_A', field: 'worst_neighbour_id', engine: 'HC_B', gold: 'HC_C' },
       { centreId: 'HC_A', field: 'unserved_residents', engine: 50, gold: 49.9 },
+    ]);
+  });
+
+  it('an empty value on one side and a number on the other is a mismatch', () => {
+    const emptyPct = { ...goldMatchingEngine, worst_neighbour_pct: null };
+    expect(checkScenarios(data, [emptyPct], assumptions)).toEqual([
+      { centreId: 'HC_A', field: 'worst_neighbour_pct', engine: expect.closeTo(7.2) as number, gold: null },
     ]);
   });
 
