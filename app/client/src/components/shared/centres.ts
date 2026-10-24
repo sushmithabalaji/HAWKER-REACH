@@ -60,3 +60,10 @@ export function searchCentres(centres: Centre[], query: string, town: string | n
     })
     .sort((a, b) => Number(canClose(b)) - Number(canClose(a)) || a.name.localeCompare(b.name));
 }
+
+// The everyday name: the part in brackets if there is one, without "Market and Food Centre", as in the wireframe.
+// "Toa Payoh Lorong 7 Blk 22 (Kim Keat Palm Market and Food Centre)" → "Kim Keat Palm".
+export function shortName(name: string): string {
+  const bracketed = /\(([^)]+)\)/.exec(name);
+  return (bracketed ? bracketed[1] : name).replace(/ Market and Food Centre$/, '').trim();
+}

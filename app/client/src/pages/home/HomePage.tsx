@@ -1,7 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle, Skeleton, useAnalyticsQuery } from '@databricks/appkit-ui/react';
 import { QueryError } from '@/components/shared/QueryError';
 import { TagBadge } from '@/components/shared/TagBadge';
-import { MapCheck } from './MapCheck';
 
 export function HomePage() {
   const { data, loading, error } = useAnalyticsQuery('home_gold_check', {});
@@ -29,8 +28,6 @@ export function HomePage() {
           )}
         </CardContent>
       </Card>
-
-      <MapCheck />
     </div>
   );
 }

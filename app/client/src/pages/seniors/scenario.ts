@@ -16,6 +16,11 @@ export function tierOf(walkM: number | null, limitMin = LIMIT_MIN): Tier {
   return i === -1 ? 'T4' : TIERS[i];
 }
 
+// The furthest walk in T1, T2 and T3 at this limit.
+export function tierReachM(limitMin = LIMIT_MIN): number[] {
+  return PACES.map((pace) => pace * limitMin * 60);
+}
+
 // A row of gold.block_access (config/queries/seniors_blocks.sql), parsed by toAccessBlock.
 export interface AccessBlock {
   block_id: string;
