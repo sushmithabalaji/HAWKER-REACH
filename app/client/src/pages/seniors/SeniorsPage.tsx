@@ -2,22 +2,24 @@ import { useMemo, useState } from 'react';
 import { Button, Card, CardContent, Skeleton, useAnalyticsQuery } from '@databricks/appkit-ui/react';
 import type { Bounds } from '@/components/shared/basemapStyles';
 import { CentreSearch } from '@/components/shared/CentreSearch';
-import { townLabel, type Centre } from '@/components/shared/centres';
+import { shortName, townLabel, type Centre } from '@/components/shared/centres';
 import { useGeoData } from '@/components/shared/GeoData';
 import { NO_PARAMS, toNumber, toText, type RawRow } from '@/components/shared/queryValues';
 import { QueryError } from '@/components/shared/QueryError';
 import { AccessMap } from './AccessMap';
+import { TagBadge } from '@/components/shared/TagBadge';
 import {
-  cleaningAlongside,
   closureFor,
+  closureLabel,
   dateRange,
-  overlappingClosures,
+  nearbyAlongside,
   pickableIn,
   toNeaClosure,
   type NeaClosure,
 } from './closures';
 import { OutcomePanel, type Sensitivity } from './OutcomePanel';
 import { areasCutOff, runScenario, summarise, toAccessBlocks, type AccessBlock, type Closure } from './scenario';
+import { SENSITIVITY_LIMITS_MIN } from './settings';
 import { toSubzoneSeniors } from './subzoneSeniors';
 
 // What the user closed: a centre clicked or searched, or a real NEA closure picked from the list.
@@ -70,12 +72,12 @@ export function SeniorsPage() {
     const rows = ((sensitivityQuery.data as RawRow[] | null) ?? []).filter(
       (r) => toText(r.closed_centre_id) === closure.centreId
     );
-    const at = (limit: number) => {
-      const row = rows.find((r) => toNumber(r.limit_min) === limit);
-      return row ? toNumber(row.seniors_cut_off) : null;
-    };
-    return { at10: at(10), at20: at(20), alone: closure.alsoClosed.length === 0 };
-  }, [closure, sensitivityQuery.data]);
+    const cutOffAt = SENSITIVITY_LIMITS_MIN.flatMap((limitMin) => {
+      const row = rows.find((r) => toNumber(r.limit_min) === limitMin);
+      return row ? [{ limitMin, seniors: toNumber(row.seniors_cut_off) }] : [];
+    });
+    return { cutOffAt, alone: closure.alsoClosed.length === 0, error: sensitivityQuery.error };
+  }, [closure, sensitivityQuery.data, sensitivityQuery.error]);
 
   // Frame the town, widened to any affected block across its border.
   const fitTo = useMemo(() => {
@@ -90,7 +92,7 @@ export function SeniorsPage() {
   const notes = useMemo(() => {
     if (!picked || !outcomes) return { works: [], cleaning: [] };
     const neighbours = new Set(outcomes.flatMap((o) => o.block.options.slice(1).map((x) => x.centre_id)));
-    return { works: overlappingClosures(picked, closures), cleaning: cleaningAlongside(picked, closures, neighbours) };
+    return nearbyAlongside(picked, closures, neighbours);
   }, [picked, outcomes, closures]);
 
   const closeCentre = (c: Centre) =>
@@ -117,7 +119,8 @@ export function SeniorsPage() {
           />
           <div className="flex flex-wrap items-center gap-2 text-sm">
             <span className="font-medium text-muted-foreground">
-              Real NEA closures{town ? ` in ${townLabel(town)}` : ''}:
+              Real NEA closures{town ? ` in ${townLabel(town)}` : ''}
+              <TagBadge tag="MEASURED" />:
             </span>
             {closuresQuery.loading && <Skeleton className="h-8 w-48" />}
             {!closuresQuery.loading &&
@@ -131,7 +134,7 @@ export function SeniorsPage() {
                     setSelection(picked?.closure_id === c.closure_id ? null : { kind: 'closure', closure: c })
                   }
                 >
-                  {c.name} · {c.type} · {dateRange(c)}
+                  {shortName(c.name)} · {c.type} · {dateRange(c)}
                 </Button>
               ))}
             {!closuresQuery.loading && pickable.length === 0 && (
@@ -142,13 +145,15 @@ export function SeniorsPage() {
           {notes.works.length > 0 && (
             <p className="text-sm text-muted-foreground">
               Also closed for works during these dates, so blocks skip them for the next centre still open:{' '}
-              {notes.works.map((c) => `${c.name} (${dateRange(c)})`).join('; ')}.
+              {notes.works.map(closureLabel).join('; ')}.
+              <TagBadge tag="MEASURED" />
             </p>
           )}
           {notes.cleaning.length > 0 && (
             <p className="text-sm text-muted-foreground">
               Cleaning at nearby centres during these dates, counted as open:{' '}
-              {notes.cleaning.map((c) => `${c.name} (${dateRange(c)})`).join('; ')}.
+              {notes.cleaning.map(closureLabel).join('; ')}.
+              <TagBadge tag="MEASURED" />
             </p>
           )}
         </CardContent>
@@ -164,6 +169,7 @@ export function SeniorsPage() {
             closure={closure}
             areas={areas}
             subzoneSeniors={subzoneSeniors}
+            subzonesError={subzonesQuery.error}
             centreById={centreById}
             fitTo={fitTo}
             onCentreClick={closeCentre}

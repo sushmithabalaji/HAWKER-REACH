@@ -207,9 +207,15 @@ describe('summarise', () => {
       block('already-worse', 'T2', [['C', 1000]], 3),
     ];
     const s = summarise(runScenario(blocks, { centreId: 'C', alsoClosed: [] }));
-    expect(s.blocks).toEqual({ 'cut-off': 2, 'already-without': 1, unaffected: 1 });
-    expect(s.seniors).toEqual({ 'cut-off': 15, 'already-without': 3, unaffected: 7 });
-    expect(s).toMatchObject({ seniorsNoOneCanWalk: 5, seniorsNowWorse: 3, blocksNoOneCanWalk: 1, blocksNowWorse: 1 });
+    expect(s).toEqual({
+      groups: {
+        'cut-off': { blocks: 2, seniors: 15 },
+        'already-without': { blocks: 1, seniors: 3 },
+        unaffected: { blocks: 1, seniors: 7 },
+      },
+      noOneCanWalk: { blocks: 1, seniors: 5 },
+      nowWorse: { blocks: 1, seniors: 3 },
+    });
   });
 });
 

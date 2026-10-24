@@ -1,3 +1,4 @@
+import { shortName } from '@/components/shared/centres';
 import { toNumber, toText, type RawRow } from '@/components/shared/queryValues';
 import type { Closure } from './scenario';
 
@@ -53,13 +54,15 @@ export function closureFor(picked: NeaClosure, closures: readonly NeaClosure[]):
   return { centreId: picked.centre_id, alsoClosed: [...alsoClosed] };
 }
 
-// Cleaning closures during the picked dates at centres the affected blocks move to.
-export function cleaningAlongside(
+// Closures during the picked dates at centres the affected blocks would move to (their second and
+// third nearest): works they skip, and cleaning that is a note only. Works elsewhere change nothing.
+export function nearbyAlongside(
   picked: NeaClosure,
   closures: readonly NeaClosure[],
   neighbourIds: ReadonlySet<string>
-): NeaClosure[] {
-  return alongside(picked, closures).filter((c) => c.type === 'cleaning' && neighbourIds.has(c.centre_id));
+): { works: NeaClosure[]; cleaning: NeaClosure[] } {
+  const nearby = alongside(picked, closures).filter((c) => neighbourIds.has(c.centre_id));
+  return { works: nearby.filter(isPickable), cleaning: nearby.filter((c) => c.type === 'cleaning') };
 }
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -73,4 +76,9 @@ export function dateRange(c: NeaClosure): string {
   const a = day(c.start_date);
   const b = day(c.end_date);
   return a.y === b.y ? `${a.text} – ${b.text} ${b.y}` : `${a.text} ${a.y} – ${b.text} ${b.y}`;
+}
+
+// "Kim Keat Palm (14 Sep – 13 Dec 2026)"
+export function closureLabel(c: NeaClosure): string {
+  return `${shortName(c.name)} (${dateRange(c)})`;
 }

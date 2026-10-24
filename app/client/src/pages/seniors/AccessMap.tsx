@@ -8,6 +8,7 @@ import type { Bounds } from '@/components/shared/basemapStyles';
 import { canPick, shortName, type Centre } from '@/components/shared/centres';
 import { useGeoData } from '@/components/shared/GeoData';
 import type { SubzoneProps } from '@/components/shared/subzones';
+import { QueryError } from '@/components/shared/QueryError';
 import { TagBadge } from '@/components/shared/TagBadge';
 import { ACCENT_HEX, INK_HEX, MULTIPLIER_HEX, NOT_AFFECTED_HEX, rgb, TIER_HEX } from './colours';
 import {
@@ -20,7 +21,7 @@ import {
   type Closure,
   type Tier,
 } from './scenario';
-import { LIMIT_MIN } from './settings';
+import { CUTOFF_M, LIMIT_MIN, SUPER_AGED_SHARE } from './settings';
 import { multiplierBand, multiplierBandLabel, MULTIPLIER_BREAKS, type SubzoneSeniors } from './subzoneSeniors';
 
 type View = 'tiers' | 'multiplier';
@@ -32,6 +33,7 @@ interface AccessMapProps {
   closure: Closure | null;
   areas: AreaCutOff[];
   subzoneSeniors: Map<string, SubzoneSeniors>;
+  subzonesError: string | null;
   centreById: Map<string, Centre>;
   fitTo: Bounds | null;
   onCentreClick: (centre: Centre) => void;
@@ -45,12 +47,15 @@ const TIER_MEANING: Record<Tier, string> = {
 };
 
 const metres = (m: number) => `${(Math.round(m / 10) * 10).toLocaleString('en-US')} m`;
+const NO_CENTRE = `none within ${CUTOFF_M / 1000} km`;
+
+type SubzoneFeature = Feature<Geometry, SubzoneProps>;
 
 function tierKey(): { tier: Tier; text: string }[] {
   const reach = tierReachM();
   return TIERS.map((tier, i) => ({
     tier,
-    text: `${tier} ${i < 3 ? `up to ${metres(reach[i])}` : `over ${metres(reach[2])} or none in 2 km`} · ${TIER_MEANING[tier]}`,
+    text: `${tier} ${i < 3 ? `up to ${metres(reach[i])}` : `over ${metres(reach[2])} or ${NO_CENTRE}`} · ${TIER_MEANING[tier]}`,
   }));
 }
 
@@ -70,6 +75,7 @@ export function AccessMap({
   closure,
   areas,
   subzoneSeniors,
+  subzonesError,
   centreById,
   fitTo,
   onCentreClick,
@@ -112,15 +118,14 @@ export function AccessMap({
         pickable: true,
         stroked: true,
         filled: true,
-        getFillColor: (f: Feature<Geometry, SubzoneProps>) => {
+        getFillColor: (f: SubzoneFeature) => {
           const band = multiplierBand(subzoneSeniors.get(f.properties.subzone_id)?.multiplier ?? null);
           return band === null ? [0, 0, 0, 0] : rgb(MULTIPLIER_HEX[band], 200);
         },
         // Subzones hit by the closure get a dark outline.
-        getLineColor: (f: Feature<Geometry, SubzoneProps>) =>
+        getLineColor: (f: SubzoneFeature) =>
           cutOffBySubzone.has(f.properties.subzone_id) ? rgb(INK_HEX) : [120, 120, 120, 120],
-        getLineWidth: (f: Feature<Geometry, SubzoneProps>) =>
-          cutOffBySubzone.has(f.properties.subzone_id) ? 2.5 : 0.5,
+        getLineWidth: (f: SubzoneFeature) => (cutOffBySubzone.has(f.properties.subzone_id) ? 2.5 : 0.5),
         lineWidthUnits: 'pixels',
         updateTriggers: {
           getFillColor: [subzoneSeniors],
@@ -154,36 +159,35 @@ export function AccessMap({
     return [blockLayer, centreLayer];
   }, [view, phase, blocks, centres, subzones, closure, closedIds, outcomeById, cutOffBySubzone, subzoneSeniors]);
 
-  const centreLabel = (id: string | null) => (id ? shortName(centreById.get(id)?.name ?? id) : 'none in 2 km');
+  const centreLabel = (id: string | null) => (id ? shortName(centreById.get(id)?.name ?? id) : NO_CENTRE);
 
-  const getTooltip = ({ object, layer }: PickingInfo) => {
-    if (!object) return null;
-    if (layer?.id === 'centres') {
-      const c = object as Centre;
-      return `${c.name}${c.is_interim ? '\nInterim: stays open' : '\nClick to close it, or click again to reopen'}`;
-    }
-    if (layer?.id === 'blocks') {
-      const b = object as AccessBlock;
-      const nearest = b.options[0];
-      const before = `Now: ${b.tier_now} · ${nearest ? `${metres(nearest.walk_m)} to ${centreLabel(nearest.centre_id)}` : 'no centre in 2 km'}`;
-      const o = outcomeById.get(b.block_id);
-      const after = o
-        ? `\nAfter: ${o.after} · ${o.afterWalkM !== null ? `${metres(o.afterWalkM)} to ` : ''}${centreLabel(o.afterCentreId)}`
-        : '';
-      return `${b.block_label}\n${before}${after}`;
-    }
-    if (layer?.id === 'multiplier') return (object as Feature<Geometry, SubzoneProps>).properties.name;
-    return null;
+  const blockTooltip = (b: AccessBlock) => {
+    const nearest = b.options[0];
+    const before = `Now: ${b.tier_now} · ${nearest ? `${metres(nearest.walk_m)} to ${centreLabel(nearest.centre_id)}` : NO_CENTRE}`;
+    const o = outcomeById.get(b.block_id);
+    const after = o
+      ? `\nAfter: ${o.after} · ${o.afterWalkM !== null ? `${metres(o.afterWalkM)} to ` : ''}${centreLabel(o.afterCentreId)}`
+      : '';
+    return `${b.block_label}\n${before}${after}`;
   };
 
+  // What hovering and clicking each pickable layer does, keyed by layer id.
+  const handlers: Record<string, { tooltip: (o: never) => string; click?: (o: never) => void }> = {
+    centres: {
+      tooltip: (c: Centre) =>
+        `${c.name}\n${c.is_interim ? 'Interim: stays open' : 'Click to close it, or click again to reopen'}`,
+      click: (c: Centre) => canPick(c) && onCentreClick(c),
+    },
+    blocks: { tooltip: blockTooltip },
+    multiplier: {
+      tooltip: (f: SubzoneFeature) => f.properties.name,
+      click: (f: SubzoneFeature) => setPopupId(f.properties.subzone_id),
+    },
+  };
+  const getTooltip = ({ object, layer }: PickingInfo) =>
+    object && layer ? (handlers[layer.id]?.tooltip(object as never) ?? null) : null;
   const onClick = ({ object, layer }: PickingInfo) => {
-    if (!object) return;
-    if (layer?.id === 'centres') {
-      const c = object as Centre;
-      if (canPick(c)) onCentreClick(c);
-    } else if (layer?.id === 'multiplier') {
-      setPopupId((object as Feature<Geometry, SubzoneProps>).properties.subzone_id);
-    }
+    if (object && layer) handlers[layer.id]?.click?.(object as never);
   };
 
   const popup = popupId ? subzoneSeniors.get(popupId) : undefined;
@@ -226,6 +230,11 @@ export function AccessMap({
           ) : (
             <Skeleton className="h-[560px] w-full" />
           )}
+          {view === 'multiplier' && subzonesError && (
+            <div className="absolute left-3 top-3 max-w-[80%]">
+              <QueryError what="Share aged 65+ by subzone" error={subzonesError} />
+            </div>
+          )}
           {view === 'multiplier' && popupId && (
             <div
               role="dialog"
@@ -256,7 +265,9 @@ export function AccessMap({
                     <span className="block text-xs text-muted-foreground">its share aged 65+ ÷ the HDB-wide share</span>
                   </div>
                   {popup.is_super_aged && (
-                    <div className="mt-1 font-medium text-primary">⚠ 21%+ aged 65+ (super-aged)</div>
+                    <div className="mt-1 font-medium text-primary">
+                      ⚠ {Math.round(SUPER_AGED_SHARE * 100)}%+ aged 65+ (super-aged)
+                    </div>
                   )}
                 </>
               ) : (
@@ -288,7 +299,7 @@ export function AccessMap({
                   not affected
                 </span>
               )}
-              <TagBadge tag="ASSUMPTION" />
+              <TagBadge tag="MODELLED" />
             </>
           ) : (
             <>
@@ -311,11 +322,18 @@ export function AccessMap({
           </span>
         </div>
         <p className="text-xs text-muted-foreground">
-          {view === 'tiers'
-            ? closure
-              ? `Coloured blocks are the ${(outcomes?.length ?? 0).toLocaleString('en-US')} whose nearest centre closed, shown by their walk ${phase === 'before' ? 'before' : 'after'} the closure. Grey blocks keep their nearest centre.`
-              : `Every HDB block by its walk to the nearest hawker centre at ${LIMIT_MIN} min. Click a centre to close it.`
-            : `Click an area for its share aged 65+. Bands split at ×${MULTIPLIER_BREAKS.join(', ×')}; blank areas have too few residents.`}
+          {view === 'tiers' && closure && (
+            <>
+              Coloured blocks are the {(outcomes?.length ?? 0).toLocaleString('en-US')} <TagBadge tag="MODELLED" />{' '}
+              whose nearest centre closed, shown by their walk {phase} the closure. Grey blocks keep their nearest
+              centre.
+            </>
+          )}
+          {view === 'tiers' &&
+            !closure &&
+            `Every HDB block by its walk to the nearest hawker centre at ${LIMIT_MIN} min. Click a centre to close it.`}
+          {view === 'multiplier' &&
+            `Click an area for its share aged 65+. Bands split at ×${MULTIPLIER_BREAKS.join(', ×')}; blank areas have too few residents.`}
         </p>
       </CardContent>
     </Card>

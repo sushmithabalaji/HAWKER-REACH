@@ -112,37 +112,33 @@ export function runScenario(blocks: readonly AccessBlock[], closure: Closure): B
     });
 }
 
+// Blocks and their estimated seniors, counted together for each outcome group.
+export interface Count {
+  blocks: number;
+  seniors: number;
+}
+
 export interface Summary {
-  blocks: Record<Group, number>;
-  seniors: Record<Group, number>;
-  blocksNoOneCanWalk: number;
-  seniorsNoOneCanWalk: number;
-  blocksNowWorse: number;
-  seniorsNowWorse: number;
+  groups: Record<Group, Count>;
+  noOneCanWalk: Count; // sub-line of cut off
+  nowWorse: Count; // sub-count of already without
 }
 
 export function summarise(outcomes: readonly BlockOutcome[]): Summary {
-  const zero = () => ({ 'cut-off': 0, 'already-without': 0, unaffected: 0 });
+  const zero = (): Count => ({ blocks: 0, seniors: 0 });
   const s: Summary = {
-    blocks: zero(),
-    seniors: zero(),
-    blocksNoOneCanWalk: 0,
-    seniorsNoOneCanWalk: 0,
-    blocksNowWorse: 0,
-    seniorsNowWorse: 0,
+    groups: { 'cut-off': zero(), 'already-without': zero(), unaffected: zero() },
+    noOneCanWalk: zero(),
+    nowWorse: zero(),
+  };
+  const add = (count: Count, seniors: number) => {
+    count.blocks += 1;
+    count.seniors += seniors;
   };
   for (const o of outcomes) {
-    const seniors = o.block.est_seniors;
-    s.blocks[o.group] += 1;
-    s.seniors[o.group] += seniors;
-    if (o.noOneCanWalk) {
-      s.blocksNoOneCanWalk += 1;
-      s.seniorsNoOneCanWalk += seniors;
-    }
-    if (o.nowWorse) {
-      s.blocksNowWorse += 1;
-      s.seniorsNowWorse += seniors;
-    }
+    add(s.groups[o.group], o.block.est_seniors);
+    if (o.noOneCanWalk) add(s.noOneCanWalk, o.block.est_seniors);
+    if (o.nowWorse) add(s.nowWorse, o.block.est_seniors);
   }
   return s;
 }

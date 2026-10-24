@@ -1,8 +1,9 @@
 import { describe, expect, test } from 'vitest';
 import {
-  cleaningAlongside,
   closureFor,
+  closureLabel,
   dateRange,
+  nearbyAlongside,
   overlappingClosures,
   pickableIn,
   toNeaClosure,
@@ -62,7 +63,12 @@ describe('overlapping closures', () => {
 
   test('cleaning at a neighbour is a note, not a closure', () => {
     expect(closureFor(kimKeat, closures).alsoClosed).not.toContain('HC_NEXT');
-    expect(ids(cleaningAlongside(kimKeat, closures, new Set(['HC_NEXT'])))).toEqual(['k4']);
+    expect(ids(nearbyAlongside(kimKeat, closures, new Set(['HC_NEXT'])).cleaning)).toEqual(['k4']);
+  });
+
+  test('the notes only list centres the affected blocks would move to', () => {
+    expect(ids(nearbyAlongside(kimKeat, closures, new Set(['HC_NEXT'])).works)).toEqual([]);
+    expect(ids(nearbyAlongside(kimKeat, closures, new Set(['HC_TB'])).works)).toEqual(['k2']);
   });
 });
 
@@ -86,4 +92,9 @@ test('toNeaClosure parses the query row', () => {
     remarks: null,
   });
   expect(c).toMatchObject({ duration_days: 61, remarks: '', start_date: '2026-11-01' });
+});
+
+test('closureLabel uses the short name', () => {
+  const c = { ...kimKeat, name: 'Toa Payoh Lorong 7 Blk 22 (Kim Keat Palm Market and Food Centre)' };
+  expect(closureLabel(c)).toBe('Kim Keat Palm (14 Sep – 13 Dec 2026)');
 });

@@ -1,15 +1,17 @@
 import type { ReactNode } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, Skeleton } from '@databricks/appkit-ui/react';
 import { shortName, type Centre } from '@/components/shared/centres';
+import { QueryError } from '@/components/shared/QueryError';
 import { TagBadge } from '@/components/shared/TagBadge';
 import type { NeaClosure } from './closures';
-import { roughCount, type Summary } from './scenario';
+import { roughCount, type Count, type Summary } from './scenario';
 import { LIMIT_MIN } from './settings';
 
 export interface Sensitivity {
-  at10: number | null;
-  at20: number | null;
-  alone: boolean; // false when other closures overlap, so 10/20 min leave them out
+  // Seniors cut off at each extra limit (access.sensitivity_limits_min), for the picked centre closing alone.
+  cutOffAt: { limitMin: number; seniors: number }[];
+  alone: boolean; // false when other closures overlap, which these figures leave out
+  error: string | null;
 }
 
 interface OutcomePanelProps {
@@ -21,10 +23,10 @@ interface OutcomePanelProps {
   loading: boolean;
 }
 
-// "about 1,235", or "<5" / "0" as they are.
-const about = (n: number) => {
+// An estimate of seniors in a sentence: "about 1,235", or "<5" and "0" as they are.
+const seniorsInWords = (n: number) => {
   const text = roughCount(n);
-  return /^\d/.test(text) && text !== '0' ? `about ${text}` : text;
+  return /^[1-9]/.test(text) ? `about ${text}` : text;
 };
 
 const Modelled = () => <TagBadge tag="MODELLED" />;
@@ -33,9 +35,19 @@ function Headline({ centre, picked, summary }: Pick<OutcomePanelProps, 'centre' 
   if (!centre || !summary) {
     return <>Pick a real NEA closure above, or click any hawker centre on the map to close it.</>;
   }
-  const closed = `${shortName(centre.name)} closed${picked ? ` for ${picked.duration_days} days` : ''}`;
-  const cutOff = summary.seniors['cut-off'];
-  if (summary.blocks['cut-off'] === 0) {
+  const closed = (
+    <>
+      {shortName(centre.name)} closed
+      {picked && (
+        <>
+          {' '}
+          for {picked.duration_days} days <TagBadge tag="MEASURED" />
+        </>
+      )}
+    </>
+  );
+  const cutOff = summary.groups['cut-off'];
+  if (cutOff.blocks === 0) {
     return (
       <>
         {closed}: no senior loses a {LIMIT_MIN}-min walk. Another centre is close enough.
@@ -44,12 +56,12 @@ function Headline({ centre, picked, summary }: Pick<OutcomePanelProps, 'centre' 
   }
   return (
     <>
-      {closed}: {about(cutOff)} seniors <Modelled /> now walk over {LIMIT_MIN} min to a hawker centre.
+      {closed}: {seniorsInWords(cutOff.seniors)} seniors <Modelled /> now walk over {LIMIT_MIN} min to a hawker centre.
       <span className="mt-2 block text-sm font-normal opacity-80">
-        {summary.blocksNoOneCanWalk > 0 ? (
+        {summary.noOneCanWalk.blocks > 0 ? (
           <>
-            {about(summary.seniorsNoOneCanWalk)} of them <Modelled /> have no centre anyone can walk to in {LIMIT_MIN}{' '}
-            min.
+            {seniorsInWords(summary.noOneCanWalk.seniors)} of them <Modelled /> have no centre anyone can walk to in{' '}
+            {LIMIT_MIN} min.
           </>
         ) : (
           <>Each of them can still reach a centre in {LIMIT_MIN} min at a typical or brisk pace.</>
@@ -59,19 +71,7 @@ function Headline({ centre, picked, summary }: Pick<OutcomePanelProps, 'centre' 
   );
 }
 
-function GroupRow({
-  title,
-  rule,
-  blocks,
-  seniors,
-  sub,
-}: {
-  title: string;
-  rule: string;
-  blocks: number;
-  seniors: number;
-  sub?: boolean;
-}) {
+function GroupRow({ title, rule, count, sub }: { title: string; rule: string; count: Count; sub?: boolean }) {
   return (
     <li className={`flex items-start gap-3 text-sm ${sub ? 'pl-5' : ''}`}>
       <span className="flex-1">
@@ -82,7 +82,7 @@ function GroupRow({
         <span className="text-muted-foreground">· {rule}</span>
       </span>
       <span className="whitespace-nowrap text-right font-mono text-xs text-muted-foreground">
-        {blocks.toLocaleString('en-US')} blocks · {roughCount(seniors)} seniors
+        {count.blocks.toLocaleString('en-US')} blocks · {roughCount(count.seniors)} seniors
         <Modelled />
       </span>
     </li>
@@ -100,7 +100,25 @@ function Tile({ value, label, loading }: { value: ReactNode; label: string; load
   );
 }
 
-// The right-hand column of Page 2: headline, outcome groups, number tiles and the 10/20 min sensitivity line.
+function SensitivityLine({ sensitivity }: { sensitivity: Sensitivity }) {
+  if (sensitivity.error) return <QueryError what="Other time limits" error={sensitivity.error} />;
+  if (sensitivity.cutOffAt.length === 0) return null;
+  return (
+    <p className="text-sm text-muted-foreground">
+      {sensitivity.cutOffAt.map(({ limitMin, seniors }, i) => (
+        <span key={limitMin}>
+          {i === 0 ? `If the limit were ${limitMin} min, ` : `; at ${limitMin} min, `}
+          {seniorsInWords(seniors)}
+          {i === 0 && ' seniors'} <Modelled />
+          {i === 0 && ' would be cut off'}
+        </span>
+      ))}
+      .{!sensitivity.alone && ' These are for this centre closing alone.'}
+    </p>
+  );
+}
+
+// The right-hand column of Page 2: headline, outcome groups, number tiles and the sensitivity line.
 export function OutcomePanel({ centre, picked, summary, areas, sensitivity, loading }: OutcomePanelProps) {
   const shown = centre && summary;
   return (
@@ -116,38 +134,11 @@ export function OutcomePanel({ centre, picked, summary, areas, sensitivity, load
           </CardHeader>
           <CardContent>
             <ul className="flex flex-col gap-2">
-              <GroupRow
-                title="Cut off"
-                rule="T1 → T2–T4"
-                blocks={summary.blocks['cut-off']}
-                seniors={summary.seniors['cut-off']}
-              />
-              <GroupRow
-                sub
-                title="No one can walk it"
-                rule="T1 → T4"
-                blocks={summary.blocksNoOneCanWalk}
-                seniors={summary.seniorsNoOneCanWalk}
-              />
-              <GroupRow
-                title="Already without access"
-                rule="T2–T4 before"
-                blocks={summary.blocks['already-without']}
-                seniors={summary.seniors['already-without']}
-              />
-              <GroupRow
-                sub
-                title="Now worse"
-                rule="T2/T3 → T4"
-                blocks={summary.blocksNowWorse}
-                seniors={summary.seniorsNowWorse}
-              />
-              <GroupRow
-                title="Unaffected"
-                rule="T1 → T1"
-                blocks={summary.blocks.unaffected}
-                seniors={summary.seniors.unaffected}
-              />
+              <GroupRow title="Cut off" rule="T1 → T2–T4" count={summary.groups['cut-off']} />
+              <GroupRow sub title="No one can walk it" rule="T1 → T4" count={summary.noOneCanWalk} />
+              <GroupRow title="Already without access" rule="T2–T4 before" count={summary.groups['already-without']} />
+              <GroupRow sub title="Now worse" rule="T2/T3 → T4" count={summary.nowWorse} />
+              <GroupRow title="Unaffected" rule="T1 → T1" count={summary.groups.unaffected} />
             </ul>
           </CardContent>
         </Card>
@@ -159,7 +150,7 @@ export function OutcomePanel({ centre, picked, summary, areas, sensitivity, load
           value={
             shown ? (
               <>
-                {roughCount(summary.seniors['cut-off'])}
+                {roughCount(summary.groups['cut-off'].seniors)}
                 <Modelled />
               </>
             ) : (
@@ -184,12 +175,7 @@ export function OutcomePanel({ centre, picked, summary, areas, sensitivity, load
         />
       </div>
 
-      {shown && sensitivity && sensitivity.at10 !== null && sensitivity.at20 !== null && (
-        <p className="text-sm text-muted-foreground">
-          If the limit were 10 min, {about(sensitivity.at10)} seniors <Modelled /> would be cut off; at 20 min,{' '}
-          {about(sensitivity.at20)} <Modelled />.{!sensitivity.alone && ' These are for this centre closing alone.'}
-        </p>
-      )}
+      {shown && sensitivity && <SensitivityLine sensitivity={sensitivity} />}
     </>
   );
 }
