@@ -1,6 +1,6 @@
 import type { TakeawayParts } from '@shared/closure-engine';
 import { shortName } from '@/components/shared/centres';
-import { count, roundTo10 } from './format';
+import { count, joinNames, roundTo10 } from './format';
 import type { WalkLimits } from './settings';
 
 const plural = (n: number, one: string, many: string) => `${count(n)} ${n === 1 ? one : many}`;
@@ -24,10 +24,6 @@ export function takeawaySentence(parts: TakeawayParts, { limitMin, cutoffM }: Wa
       ];
   const verdict = verdictSummary(parts.verdict.counts);
   return [...sentences, ...(verdict ? [verdict] : [])].join(' ');
-}
-
-function joinNames(names: string[]): string {
-  return names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names[0];
 }
 
 // How the added centres came out; null when only the anchor is chosen.

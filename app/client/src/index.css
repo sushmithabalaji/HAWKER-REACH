@@ -44,6 +44,10 @@
   --tag-modelled-bg: #e3e8f7;
   --tag-assumption: #8a3a08;
   --tag-assumption-bg: #ffe9d2;
+  /* Page 1's verdicts, from the wireframe (Feature1Ripple.dc.html) */
+  --status-red: #b42318;
+  --status-yellow: #d69e00;
+  --status-green: #1e7d4f;
   /* The top bar stays ink in either theme */
   --topbar: #16202a;
   --topbar-foreground: #e6eaee; /* tabs */
@@ -61,6 +65,9 @@
   --color-tag-modelled-bg: var(--tag-modelled-bg);
   --color-tag-assumption: var(--tag-assumption);
   --color-tag-assumption-bg: var(--tag-assumption-bg);
+  --color-status-red: var(--status-red);
+  --color-status-yellow: var(--status-yellow);
+  --color-status-green: var(--status-green);
   --color-topbar: var(--topbar);
   --color-topbar-foreground: var(--topbar-foreground);
   --color-topbar-strong: var(--topbar-strong);
