@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle, Skeleton } from '@databricks/
 import { shortName, type Centre } from '@/components/shared/centres';
 import { TagBadge } from '@/components/shared/TagBadge';
 import type { NeaClosure } from './closures';
-import { LIMIT_MIN, roughCount, type Summary } from './scenario';
+import { roughCount, type Summary } from './scenario';
+import { LIMIT_MIN } from './settings';
 
 export interface Sensitivity {
   at10: number | null;

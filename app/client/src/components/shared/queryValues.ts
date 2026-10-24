@@ -17,3 +17,12 @@ export function toNumber(v: RawValue): number {
 export function toBoolean(v: RawValue): boolean {
   return v === true || v === 'true';
 }
+
+// A missing value arrives as null, or as "" depending on the format; a column left out of the query is undefined.
+export function isMissing(v: RawValue | undefined): v is null | undefined | '' {
+  return v === undefined || v === null || v === '';
+}
+
+export function toNumberOrNull(v: RawValue | undefined): number | null {
+  return isMissing(v) ? null : toNumber(v);
+}

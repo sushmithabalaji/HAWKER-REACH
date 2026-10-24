@@ -6,6 +6,7 @@ import {
   summarise,
   tierOf,
   toAccessBlock,
+  toAccessBlocks,
   type AccessBlock,
   type Tier,
 } from './scenario';
@@ -58,17 +59,32 @@ describe('toAccessBlock', () => {
       third_centre_id: '',
       third_walk_m: '',
     });
-    expect(b.est_seniors).toBe(12.5);
-    expect(b.options).toEqual([
+    expect(b?.est_seniors).toBe(12.5);
+    expect(b?.options).toEqual([
       { centre_id: 'HC_1', walk_m: 400 },
       { centre_id: 'HC_2', walk_m: 1100.5 },
     ]);
   });
 
   test('a block with no centre in range has no options', () => {
-    const b = toAccessBlock({ block_id: 'B2', tier_now: 'T4', nearest_centre_id: null, nearest_walk_m: null });
-    expect(b.options).toEqual([]);
-    expect(b.tier_now).toBe('T4');
+    const b = toAccessBlock({
+      block_id: 'B2',
+      lon: '103.79',
+      lat: '1.44',
+      tier_now: 'T4',
+      nearest_centre_id: null,
+      nearest_walk_m: null,
+    });
+    expect(b?.options).toEqual([]);
+    expect(b?.tier_now).toBe('T4');
+  });
+
+  test('blocks with no coordinates are left out, so they never pull the map off Singapore', () => {
+    const rows = [
+      { block_id: 'B3', lon: '', lat: '1.3', tier_now: 'T1' },
+      { block_id: 'B4', lon: '103.8', lat: '1.3', tier_now: 'T1' },
+    ];
+    expect(toAccessBlocks(rows).map((b) => b.block_id)).toEqual(['B4']);
   });
 });
 

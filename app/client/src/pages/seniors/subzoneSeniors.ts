@@ -1,4 +1,4 @@
-import { toBoolean, toNumber, toText, type RawRow, type RawValue } from '@/components/shared/queryValues';
+import { toBoolean, toNumberOrNull, toText, type RawRow } from '@/components/shared/queryValues';
 
 // A row of gold.subzone_seniors (config/queries/seniors_subzones.sql).
 export interface SubzoneSeniors {
@@ -11,15 +11,13 @@ export interface SubzoneSeniors {
   is_super_aged: boolean;
 }
 
-const orNull = (v: RawValue | undefined) => (v === undefined || v === null || v === '' ? null : toNumber(v));
-
 export function toSubzoneSeniors(row: RawRow): SubzoneSeniors {
   return {
     subzone_id: toText(row.subzone_id),
     subzone_name: toText(row.subzone_name ?? ''),
     pln_area_n: toText(row.pln_area_n ?? ''),
-    pct_65p: orNull(row.pct_65p),
-    multiplier: orNull(row.multiplier),
+    pct_65p: toNumberOrNull(row.pct_65p),
+    multiplier: toNumberOrNull(row.multiplier),
     is_super_aged: toBoolean(row.is_super_aged ?? false),
   };
 }

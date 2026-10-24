@@ -17,7 +17,7 @@ import {
   type NeaClosure,
 } from './closures';
 import { OutcomePanel, type Sensitivity } from './OutcomePanel';
-import { areasCutOff, runScenario, summarise, toAccessBlock, type AccessBlock, type Closure } from './scenario';
+import { areasCutOff, runScenario, summarise, toAccessBlocks, type AccessBlock, type Closure } from './scenario';
 import { toSubzoneSeniors } from './subzoneSeniors';
 
 // What the user closed: a centre clicked or searched, or a real NEA closure picked from the list.
@@ -41,7 +41,10 @@ export function SeniorsPage() {
   const [town, setTown] = useState<string | null>(null);
   const [selection, setSelection] = useState<Selection>(null);
 
-  const blocks = useMemo(() => (blocksQuery.data as RawRow[] | null)?.map(toAccessBlock) ?? null, [blocksQuery.data]);
+  const blocks = useMemo(
+    () => (blocksQuery.data ? toAccessBlocks(blocksQuery.data as RawRow[]) : null),
+    [blocksQuery.data]
+  );
   const closures = useMemo(
     () => (closuresQuery.data as RawRow[] | null)?.map(toNeaClosure) ?? [],
     [closuresQuery.data]

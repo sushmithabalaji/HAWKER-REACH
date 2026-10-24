@@ -11,7 +11,6 @@ import type { SubzoneProps } from '@/components/shared/subzones';
 import { TagBadge } from '@/components/shared/TagBadge';
 import { ACCENT_HEX, INK_HEX, MULTIPLIER_HEX, NOT_AFFECTED_HEX, rgb, TIER_HEX } from './colours';
 import {
-  LIMIT_MIN,
   roughCount,
   TIERS,
   tierReachM,
@@ -21,6 +20,7 @@ import {
   type Closure,
   type Tier,
 } from './scenario';
+import { LIMIT_MIN } from './settings';
 import { multiplierBand, multiplierBandLabel, MULTIPLIER_BREAKS, type SubzoneSeniors } from './subzoneSeniors';
 
 type View = 'tiers' | 'multiplier';

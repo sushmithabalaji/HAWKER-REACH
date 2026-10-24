@@ -1,13 +1,15 @@
-import { assumptions } from '@shared/assumptions';
-import { toNumber, toText, type RawRow, type RawValue } from '@/components/shared/queryValues';
+import {
+  isMissing,
+  toNumber,
+  toNumberOrNull,
+  toText,
+  type RawRow,
+  type RawValue,
+} from '@/components/shared/queryValues';
+import { LIMIT_MIN, PACES } from './settings';
 
 export const TIERS = ['T1', 'T2', 'T3', 'T4'] as const;
 export type Tier = (typeof TIERS)[number];
-
-const value = (key: string) => Number(assumptions[key].value);
-// Slowest first: the distance each covers in the limit is the top of T1, T2 and T3.
-const PACES = [value('walk.pace.senior'), value('walk.pace.typical'), value('walk.pace.brisk')];
-export const LIMIT_MIN = value('walk.limit_min');
 
 // Same bands as tiers.py, which built tier_now in 04_gold_access.
 export function tierOf(walkM: number | null, limitMin = LIMIT_MIN): Tier {
@@ -21,7 +23,7 @@ export function tierReachM(limitMin = LIMIT_MIN): number[] {
   return PACES.map((pace) => pace * limitMin * 60);
 }
 
-// A row of gold.block_access (config/queries/seniors_blocks.sql), parsed by toAccessBlock.
+// A row of gold.block_access (config/queries/seniors_blocks.sql), parsed by toAccessBlocks.
 export interface AccessBlock {
   block_id: string;
   block_label: string;
@@ -35,15 +37,16 @@ export interface AccessBlock {
   options: { centre_id: string; walk_m: number }[];
 }
 
-// Missing centres arrive as null or "" depending on the format.
-const isMissing = (v: RawValue | undefined) => v === undefined || v === null || v === '';
-
 function toTier(v: RawValue): Tier {
   const t = toText(v);
   return (TIERS as readonly string[]).includes(t) ? (t as Tier) : 'T4';
 }
 
-export function toAccessBlock(row: RawRow): AccessBlock {
+// Null for a block with no coordinates, which the map couldn't place.
+export function toAccessBlock(row: RawRow): AccessBlock | null {
+  const lon = toNumberOrNull(row.lon);
+  const lat = toNumberOrNull(row.lat);
+  if (lon === null || lat === null) return null;
   const options = (['nearest', 'second', 'third'] as const).flatMap((rank) => {
     const id = row[`${rank}_centre_id`];
     const walk = row[`${rank}_walk_m`];
@@ -54,12 +57,16 @@ export function toAccessBlock(row: RawRow): AccessBlock {
     block_label: toText(row.block_label ?? ''),
     subzone_id: toText(row.subzone_id ?? ''),
     pln_area_n: toText(row.pln_area_n ?? ''),
-    lon: toNumber(row.lon ?? null),
-    lat: toNumber(row.lat ?? null),
-    est_seniors: isMissing(row.est_seniors) ? 0 : toNumber(row.est_seniors),
+    lon,
+    lat,
+    est_seniors: toNumberOrNull(row.est_seniors) ?? 0,
     tier_now: toTier(row.tier_now),
     options,
   };
+}
+
+export function toAccessBlocks(rows: readonly RawRow[]): AccessBlock[] {
+  return rows.flatMap((row) => toAccessBlock(row) ?? []);
 }
 
 // The centre picked to close, plus any other renovation or redevelopment closure overlapping its dates.
