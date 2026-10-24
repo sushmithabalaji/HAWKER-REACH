@@ -32,6 +32,7 @@ describe('headlineTiles', () => {
         value: '≈1,230',
         label: 'displaced diners a day',
         note: '+40 diners a day newly unserved (no centre within 2 km)',
+        tooltip: null,
         tag: 'MODELLED',
         source: 'gold.block_options',
       },
@@ -39,6 +40,7 @@ describe('headlineTiles', () => {
         value: '+3.2',
         label: 'biggest load increase, extra diners per stall',
         note: 'Toa Payoh West · +34%',
+        tooltip: null,
         tag: 'MODELLED',
         source: 'gold.block_options · gold.centres · gold.centre_demand',
       },
@@ -46,6 +48,7 @@ describe('headlineTiles', () => {
         value: '3 · 5 · 1,208',
         label: 'blocks losing a centre within 15 min',
         note: 'at senior · typical · brisk pace',
+        tooltip: null,
         tag: 'MODELLED',
         source: 'gold.block_options',
       },
@@ -53,6 +56,7 @@ describe('headlineTiles', () => {
         value: 'Red',
         label: 'plan verdict',
         note: '1 red · 2 yellow · 0 green',
+        tooltip: null,
         tag: 'MODELLED',
         source: 'gold.block_options · gold.centres · gold.centre_demand',
       },
@@ -85,5 +89,11 @@ describe('headlineTiles', () => {
       value: '—',
       note: 'Adam Road · no stalls recorded · +12%',
     });
+  });
+
+  test('a rise above +100% carries the worst-case tooltip', () => {
+    const steep = { ...tiles.biggestLoad.centre!, pctOverBaseline: 263 };
+    const [, load] = headlineTiles({ ...tiles, biggestLoad: { ...tiles.biggestLoad, centre: steep } }, limits);
+    expect(load.tooltip).toMatch(/^A worst case: whole blocks move/);
   });
 });

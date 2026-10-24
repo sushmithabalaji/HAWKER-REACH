@@ -26,6 +26,8 @@ export interface AccessLoss {
 export interface PlanResult {
   /** Diners per day whose nearest centre closes and who move to another centre. */
   displacedDinersPerDay: number;
+  /** Every block whose nearest centre closes, whether it moves or is left with none; for the map. */
+  displacedBlockIds: string[];
   /** Open centres taking displaced diners, most extra diners first. */
   receivers: Receiver[];
   /** Blocks left with no open centre within the cutoff because of the plan. */
@@ -316,6 +318,7 @@ export function evaluatePlan(
 
   return {
     displacedDinersPerDay: displaced,
+    displacedBlockIds: planOutcome.displacedBlockIds,
     receivers,
     unserved,
     accessLoss,
@@ -381,6 +384,7 @@ interface Regrouped {
   accessLoss: Record<Pace, AccessLoss>;
   /** Blocks losing a centre within the limit at senior pace, plus blocks newly unserved at any distance. */
   cutOffBlockIds: Set<string>;
+  displacedBlockIds: string[];
 }
 
 /** Moves every block whose nearest centre is closed, whole, to its nearest open centre. */
@@ -394,9 +398,11 @@ function regroup({ blocks, limitM }: Prepared, closed: Set<string>): Regrouped {
   ) as Record<Pace, AccessLoss>;
 
   const cutOffBlockIds = new Set<string>();
+  const displacedBlockIds: string[] = [];
   for (const block of blocks) {
     const before = block.options[0];
     if (!before || !closed.has(before.centreId)) continue;
+    displacedBlockIds.push(block.id);
     const after = block.options.find((o) => !closed.has(o.centreId));
     for (const pace of PACES) {
       if (before.walkM <= limitM[pace] && !(after && after.walkM <= limitM[pace])) {
@@ -416,7 +422,7 @@ function regroup({ blocks, limitM }: Prepared, closed: Set<string>): Regrouped {
     displacedFrom.set(before.centreId, (displacedFrom.get(before.centreId) ?? 0) + block.dinersPerDay);
     extra.set(after.centreId, (extra.get(after.centreId) ?? 0) + block.dinersPerDay);
   }
-  return { extra, displacedFrom, displaced, unserved, accessLoss, cutOffBlockIds };
+  return { extra, displacedFrom, displaced, unserved, accessLoss, cutOffBlockIds, displacedBlockIds };
 }
 
 function perStall({ centres }: Prepared, centreId: string, extraDinersPerDay: number): number | null {

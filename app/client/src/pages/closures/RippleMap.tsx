@@ -1,22 +1,33 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { Button } from '@databricks/appkit-ui/react';
 import type { PickingInfo } from '@deck.gl/core';
-import { LineLayer, ScatterplotLayer, TextLayer } from '@deck.gl/layers';
+import { IconLayer, LineLayer, ScatterplotLayer, TextLayer } from '@deck.gl/layers';
 import type { CentreRow, PlanResult, Receiver } from '@shared/closure-engine';
 import { BaseMap } from '@/components/shared/BaseMap';
 import type { Bounds } from '@/components/shared/basemapStyles';
 import { canPick, shortName } from '@/components/shared/centres';
 import { HIGHLIGHT_HEX, INK_HEX, INTERIM_HEX, rgb, WHITE_HEX } from '@/components/shared/mapColours';
-import { TOP_RECEIVERS } from './settings';
-import { count, pctOverBaseline } from './format';
+import { BLOCK_HEX, blockBin, type BlockPoint } from './blocks';
+import { TOP_RECEIVERS, WALK_LIMITS } from './settings';
+import { count, pctOverBaseline, roundTo10 } from './format';
+import { worstCaseNote } from './notes';
+import { rippleFrame, SETTLED, type RippleFrame } from './ripple';
 
 const OTHER_HEX = '#9AA5B1';
 const RECEIVER_HEX = '#2F86B0';
+// The "possibly under-counted" badge on the map: a dashed ring (deck.gl has no dashed strokes, so it is an icon).
+const DASHED_RING = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><circle cx="32" cy="32" r="29" fill="none" stroke="${INK_HEX}" stroke-width="3" stroke-dasharray="7 5"/></svg>`
+)}`;
 
 interface RippleMapProps {
   centres: CentreRow[];
   /** The anchor first, then the centres closing at the same time. */
   closed: CentreRow[];
   result: PlanResult | null;
+  blocks: Map<string, BlockPoint>;
+  /** The tooltip for a possibly under-counted centre, or null for any other. */
+  undercountNote: (centreId: string) => string | null;
   onCentreClick: (centre: CentreRow) => void;
   className?: string;
 }
@@ -30,6 +41,10 @@ interface PlacedReceiver extends Receiver {
 const position = (c: CentreRow): [number, number] => [c.lon, c.lat];
 // Near enough for picking the nearest of a few closed centres within Singapore.
 const squaredDistance = (a: [number, number], b: [number, number]) => (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2;
+const lerp = (a: [number, number], b: [number, number], t: number): [number, number] => [
+  a[0] + (b[0] - a[0]) * t,
+  a[1] + (b[1] - a[1]) * t,
+];
 
 function boundsOf(points: [number, number][]): Bounds | null {
   if (points.length === 0) return null;
@@ -38,9 +53,42 @@ function boundsOf(points: [number, number][]): Bounds | null {
   return [Math.min(...lons), Math.min(...lats), Math.max(...lons), Math.max(...lats)];
 }
 
-// Page 1's map (#11, map layers): where the closed centres' diners go. Static for now; the ripple
-// animation, displaced blocks and access outlines come in #16.
-export function RippleMap({ centres, closed, result, onCentreClick, className }: RippleMapProps) {
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+// Plays the ripple once each time `plan` changes or Replay is pressed; settled at once with reduced motion.
+function useRipple(plan: unknown, replays: number): RippleFrame {
+  const [frame, setFrame] = useState<RippleFrame>(SETTLED);
+  const reduced = prefersReducedMotion();
+  useEffect(() => {
+    if (!plan || reduced) return;
+    let raf = 0;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const next = rippleFrame(now - start);
+      setFrame(next);
+      if (!next.done) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [plan, replays, reduced]);
+  return reduced ? SETTLED : frame;
+}
+
+// Page 1's map (#11, map layers): where the closed centres' diners go, with the ripple, the displaced
+// blocks and the blocks that lose a walkable centre.
+export function RippleMap({
+  centres,
+  closed,
+  result,
+  blocks,
+  undercountNote,
+  onCentreClick,
+  className,
+}: RippleMapProps) {
+  const [showBlocks, setShowBlocks] = useState(false);
+  const [replays, setReplays] = useState(0);
+  const frame = useRipple(result, replays);
   const centreById = useMemo(() => new Map(centres.map((c) => [c.centre_id, c])), [centres]);
 
   const receivers = useMemo<PlacedReceiver[]>(
@@ -57,6 +105,14 @@ export function RippleMap({ centres, closed, result, onCentreClick, className }:
     [result, centreById, closed]
   );
   const top = useMemo(() => receivers.slice(0, TOP_RECEIVERS), [receivers]);
+  const displaced = useMemo(
+    () => (result?.displacedBlockIds ?? []).flatMap((id) => blocks.get(id) ?? []),
+    [result, blocks]
+  );
+  const losingAccess = useMemo(
+    () => (result?.accessLoss.senior.blockIds ?? []).flatMap((id) => blocks.get(id) ?? []),
+    [result, blocks]
+  );
 
   // Frame the closed centres and the centres taking most of their diners.
   const fitTo = useMemo(() => boundsOf([...closed.map(position), ...top.map((r) => r.position)]), [closed, top]);
@@ -65,6 +121,11 @@ export function RippleMap({ centres, closed, result, onCentreClick, className }:
     const shownIds = new Set([...receivers.map((r) => r.centreId), ...closed.map((c) => c.centre_id)]);
     const maxExtra = Math.max(1, ...receivers.map((r) => r.extraDinersPerDay));
     const maxShare = Math.max(0.01, ...top.map((r) => r.shareOfDisplaced));
+    const radius = (r: PlacedReceiver) => (5 + 17 * Math.sqrt(r.extraDinersPerDay / maxExtra)) * frame.receivers;
+    const flagged = [
+      ...closed.map((c) => ({ id: c.centre_id, at: position(c), size: 30 })),
+      ...receivers.map((r) => ({ id: r.centreId, at: r.position, size: 2 * radius(r) + 10 })),
+    ].filter((f) => undercountNote(f.id) !== null);
 
     const others = new ScatterplotLayer<CentreRow>({
       id: 'centres',
@@ -79,14 +140,51 @@ export function RippleMap({ centres, closed, result, onCentreClick, className }:
       getLineColor: rgb(WHITE_HEX),
       getFillColor: (c) => rgb(c.is_interim ? INTERIM_HEX : OTHER_HEX),
     });
+    const blockDots = new ScatterplotLayer<BlockPoint>({
+      id: 'blocks',
+      data: showBlocks ? displaced : [],
+      pickable: true,
+      getPosition: (b) => [b.lon, b.lat],
+      radiusUnits: 'pixels',
+      getRadius: 3.5,
+      getFillColor: (b) => rgb(BLOCK_HEX[blockBin(b.residents)], 230),
+    });
+    // Always drawn, so access loss is never hidden (#11, story 13).
+    const accessRings = new ScatterplotLayer<BlockPoint>({
+      id: 'access',
+      data: losingAccess,
+      pickable: true,
+      getPosition: (b) => [b.lon, b.lat],
+      radiusUnits: 'pixels',
+      getRadius: 5,
+      filled: false,
+      stroked: true,
+      lineWidthUnits: 'pixels',
+      getLineWidth: 1.5,
+      getLineColor: rgb(INK_HEX),
+    });
+    const rings = new ScatterplotLayer<CentreRow>({
+      id: 'rings',
+      data: frame.done ? [] : closed,
+      getPosition: position,
+      radiusUnits: 'pixels',
+      getRadius: 8 + 52 * frame.rings,
+      filled: false,
+      stroked: true,
+      lineWidthUnits: 'pixels',
+      getLineWidth: 2,
+      getLineColor: rgb(HIGHLIGHT_HEX, Math.round(220 * (1 - frame.rings))),
+      updateTriggers: { getRadius: frame.rings, getLineColor: frame.rings },
+    });
     const lines = new LineLayer<PlacedReceiver>({
       id: 'lines',
-      data: top,
+      data: frame.lines > 0 ? top : [],
       getSourcePosition: (r) => r.from,
-      getTargetPosition: (r) => r.position,
+      getTargetPosition: (r) => lerp(r.from, r.position, frame.lines),
       widthUnits: 'pixels',
       getWidth: (r) => 2 + 10 * (r.shareOfDisplaced / maxShare),
       getColor: rgb(HIGHLIGHT_HEX, 170),
+      updateTriggers: { getTargetPosition: frame.lines },
     });
     const sized = new ScatterplotLayer<PlacedReceiver>({
       id: 'receivers',
@@ -95,12 +193,22 @@ export function RippleMap({ centres, closed, result, onCentreClick, className }:
       getPosition: (r) => r.position,
       radiusUnits: 'pixels',
       // Area grows with extra diners
-      getRadius: (r) => 5 + 17 * Math.sqrt(r.extraDinersPerDay / maxExtra),
+      getRadius: radius,
       stroked: true,
       lineWidthUnits: 'pixels',
       getLineWidth: 1.5,
       getLineColor: rgb(WHITE_HEX),
       getFillColor: rgb(RECEIVER_HEX, 200),
+      updateTriggers: { getRadius: frame.receivers },
+    });
+    const dashed = new IconLayer<(typeof flagged)[number]>({
+      id: 'undercounted',
+      data: flagged,
+      getPosition: (f) => f.at,
+      getIcon: () => ({ url: DASHED_RING, id: 'dashed-ring', width: 64, height: 64, anchorX: 32, anchorY: 32 }),
+      sizeUnits: 'pixels',
+      getSize: (f) => f.size,
+      updateTriggers: { getSize: frame.receivers },
     });
     const crosses = new TextLayer<CentreRow>({
       id: 'closed',
@@ -115,7 +223,7 @@ export function RippleMap({ centres, closed, result, onCentreClick, className }:
     });
     const labels = new TextLayer<PlacedReceiver>({
       id: 'labels',
-      data: top,
+      data: frame.done ? top : [],
       getPosition: (r) => r.position,
       getText: (r) =>
         `${shortName(r.name)} · ${Math.round(r.shareOfDisplaced * 100)}% · +${count(Math.round(r.extraDinersPerDay))}/day`,
@@ -128,11 +236,12 @@ export function RippleMap({ centres, closed, result, onCentreClick, className }:
       backgroundPadding: [4, 2],
       fontFamily: 'system-ui, sans-serif',
     });
-    return [others, lines, sized, crosses, labels];
-  }, [centres, closed, receivers, top]);
+    return [others, blockDots, accessRings, rings, lines, sized, dashed, crosses, labels];
+  }, [centres, closed, receivers, top, displaced, losingAccess, showBlocks, frame, undercountNote]);
 
   // What hovering and clicking each pickable layer does, keyed by layer id.
   const pickCentre = (c: CentreRow) => canPick(c) && onCentreClick(c);
+  const withNotes = (...lines: (string | null)[]) => lines.filter(Boolean).join('\n');
   const handlers: Record<string, { tooltip: (o: never) => string; click?: (o: never) => void }> = {
     centres: {
       tooltip: (c: CentreRow) =>
@@ -141,9 +250,14 @@ export function RippleMap({ centres, closed, result, onCentreClick, className }:
     },
     receivers: {
       tooltip: (r: PlacedReceiver) =>
-        `${r.name}\n+${count(Math.round(r.extraDinersPerDay))} diners a day (${pctOverBaseline(r.pctOverBaseline)})` +
-        `\n${r.extraDinersPerStall === null ? 'No stalls recorded' : `+${r.extraDinersPerStall.toFixed(1)} per stall`}` +
-        ` · ${Math.round(r.shareOfDisplaced * 100)}% of displaced diners`,
+        withNotes(
+          r.name,
+          `+${count(Math.round(r.extraDinersPerDay))} diners a day (${pctOverBaseline(r.pctOverBaseline)})`,
+          `${r.extraDinersPerStall === null ? 'No stalls recorded' : `+${r.extraDinersPerStall.toFixed(1)} per stall`}` +
+            ` · ${Math.round(r.shareOfDisplaced * 100)}% of displaced diners`,
+          worstCaseNote(r.pctOverBaseline),
+          undercountNote(r.centreId) && `Possibly under-counted: ${undercountNote(r.centreId)}`
+        ),
       click: (r: PlacedReceiver) => {
         const c = centreById.get(r.centreId);
         if (c) pickCentre(c);
@@ -151,7 +265,16 @@ export function RippleMap({ centres, closed, result, onCentreClick, className }:
     },
     closed: {
       tooltip: (c: CentreRow) =>
-        `${c.name}\n${c.centre_id === closed[0]?.centre_id ? 'Closed: the anchor' : 'Closed at the same time'}`,
+        withNotes(
+          c.name,
+          c.centre_id === closed[0]?.centre_id ? 'Closed: the anchor' : 'Closed at the same time',
+          undercountNote(c.centre_id) && `Possibly under-counted: ${undercountNote(c.centre_id)}`
+        ),
+    },
+    blocks: { tooltip: (b: BlockPoint) => `Displaced block · about ${count(roundTo10(b.residents))} residents` },
+    access: {
+      tooltip: (b: BlockPoint) =>
+        `About ${count(roundTo10(b.residents))} residents\nLoses its only centre within ${WALK_LIMITS.limitMin} min at senior pace`,
     },
   };
   const getTooltip = ({ object, layer }: PickingInfo) =>
@@ -160,5 +283,22 @@ export function RippleMap({ centres, closed, result, onCentreClick, className }:
     if (object && layer) handlers[layer.id]?.click?.(object as never);
   };
 
-  return <BaseMap layers={layers} getTooltip={getTooltip} onClick={onClick} fitTo={fitTo} className={className} />;
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <Button
+          variant={showBlocks ? 'default' : 'outline'}
+          size="sm"
+          aria-pressed={showBlocks}
+          onClick={() => setShowBlocks((s) => !s)}
+        >
+          Displaced blocks
+        </Button>
+        <Button variant="outline" size="sm" disabled={!result} onClick={() => setReplays((n) => n + 1)}>
+          ↻ Replay ripple
+        </Button>
+      </div>
+      <BaseMap layers={layers} getTooltip={getTooltip} onClick={onClick} fitTo={fitTo} className={className} />
+    </div>
+  );
 }

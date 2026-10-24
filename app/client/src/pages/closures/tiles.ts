@@ -4,11 +4,14 @@ import { shortName } from '@/components/shared/centres';
 import { count, pctOverBaseline, roundTo10 } from './format';
 import type { WalkLimits } from './settings';
 import { countsText } from './verdicts';
+import { worstCaseNote } from './notes';
 
 export interface HeadlineTile {
   value: string;
   label: string;
   note: string | null;
+  /** Shown on hover, e.g. the worst-case note on a rise above +100%. */
+  tooltip: string | null;
   tag: Tag;
   source: string;
 }
@@ -28,6 +31,7 @@ export function headlineTiles(tiles: Tiles, { cutoffM }: WalkLimits): HeadlineTi
       label: 'displaced diners a day',
       note:
         unserved > 0 ? `+${count(unserved)} diners a day newly unserved (no centre within ${cutoffM / 1000} km)` : null,
+      tooltip: null,
       tag: displaced.tag,
       source: displaced.source,
     },
@@ -39,6 +43,7 @@ export function headlineTiles(tiles: Tiles, { cutoffM }: WalkLimits): HeadlineTi
             .filter(Boolean)
             .join(' · ')
         : 'no centre takes extra diners',
+      tooltip: load ? worstCaseNote(load.pctOverBaseline) : null,
       tag: biggestLoad.tag,
       source: biggestLoad.source,
     },
@@ -46,6 +51,7 @@ export function headlineTiles(tiles: Tiles, { cutoffM }: WalkLimits): HeadlineTi
       value: [accessLoss.senior, accessLoss.typical, accessLoss.brisk].map(count).join(' · '),
       label: `blocks losing a centre within ${accessLoss.limitMin} min`,
       note: 'at senior · typical · brisk pace',
+      tooltip: null,
       tag: accessLoss.tag,
       source: accessLoss.source,
     },
@@ -53,6 +59,7 @@ export function headlineTiles(tiles: Tiles, { cutoffM }: WalkLimits): HeadlineTi
       value: verdict.status ? STATUS_WORD[verdict.status] : '—',
       label: 'plan verdict',
       note: verdict.status ? countsText(verdict.counts) : 'add centres above to check whether they can close together',
+      tooltip: null,
       tag: verdict.tag,
       source: verdict.source,
     },

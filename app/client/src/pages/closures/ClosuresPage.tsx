@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Button, Skeleton } from '@databricks/appkit-ui/react';
 import { assumedNumber, assumptions } from '@shared/assumptions';
 import { evaluatePlan, PlanError, type CentreRow, type PlanResult } from '@shared/closure-engine';
@@ -9,6 +9,8 @@ import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/share
 import { QueryError } from '@/components/shared/QueryError';
 import { TagBadge } from '@/components/shared/TagBadge';
 import { addToPlan, EMPTY_PLAN, removeFromPlan, withAnchor, type Plan } from './plan';
+import { medianResidentsPerStall, undercountReason } from './notes';
+import { BLOCK_HEX, BLOCK_LABELS, blockPoints } from './blocks';
 import { RippleMap } from './RippleMap';
 import { TOP_RECEIVERS, WALK_LIMITS } from './settings';
 import { takeawaySentence } from './takeaway';
@@ -18,12 +20,18 @@ import { VerdictPanel } from './VerdictPanel';
 import { STATUS_STYLE, TONE_CLASS } from './verdicts';
 
 const MAX_SELECTED = assumedNumber('plan.max_extra_centres');
+const UNDERCOUNT_FACTOR = assumedNumber('undercount_factor');
 
 type Outcome = { result: PlanResult; error: null } | { result: null; error: string } | null;
 
 // Page 1 · Closure scenarios (for NEA planners): if this centre closes, where do its diners go, and
-// what else can safely close at the same time?
+// what else can safely close at the same time? Retry remounts the page, which reruns its queries.
 export function ClosuresPage() {
+  const [attempt, setAttempt] = useState(0);
+  return <ClosuresContent key={attempt} onRetry={() => setAttempt((n) => n + 1)} />;
+}
+
+function ClosuresContent({ onRetry }: { onRetry: () => void }) {
   const { data, error } = usePlanData();
   const [plan, setPlan] = useState<Plan>(EMPTY_PLAN);
   const [limitMessage, setLimitMessage] = useState<string | null>(null);
@@ -38,6 +46,20 @@ export function ClosuresPage() {
     [plan, centreById]
   );
   const anchor = plan.anchorId ? (centreById.get(plan.anchorId) ?? null) : null;
+
+  const blocks = useMemo(() => blockPoints(data?.blockOptions ?? []), [data]);
+  const undercountNote = useCallback(
+    (centreId: string): string | null => {
+      const demand = data?.centreDemand.find((d) => d.centre_id === centreId);
+      if (!data || !demand?.possibly_undercounted) return null;
+      return undercountReason(
+        demand.residents_per_stall,
+        medianResidentsPerStall(data.centreDemand),
+        UNDERCOUNT_FACTOR
+      );
+    },
+    [data]
+  );
 
   const outcome: Outcome = useMemo(() => {
     if (!data || !plan.anchorId) return null;
@@ -139,7 +161,14 @@ export function ClosuresPage() {
         </PanelContent>
       </Panel>
 
-      {error && <QueryError what="Blocks or centres" error={error} />}
+      {error && (
+        <div className="flex flex-wrap items-center gap-2">
+          <QueryError what="Blocks or centres" error={error} />
+          <Button variant="outline" size="sm" onClick={onRetry}>
+            Retry
+          </Button>
+        </div>
+      )}
 
       <MapRow
         map={
@@ -153,18 +182,30 @@ export function ClosuresPage() {
                   centres={data.centres}
                   closed={closed}
                   result={result}
+                  blocks={blocks}
+                  undercountNote={undercountNote}
                   onCentreClick={pickAnchor}
                   className="h-[560px]"
                 />
               ) : (
-                <Skeleton className="h-[560px] w-full" />
+                <Skeleton className="h-[600px] w-full" />
               )}
               <p className="text-xs text-muted-foreground">
                 × closed centre · circles sized by extra diners a day · lines to the{' '}
                 {result ? `top ${TOP_RECEIVERS} centres` : 'centres'} taking their diners, from the nearest closed
-                centre, thicker for a bigger share
+                centre, thicker for a bigger share · dashed ring: possibly under-counted · dark ring: a block that loses
+                its only centre within {WALK_LIMITS.limitMin} min at senior pace
                 <TagBadge tag="MODELLED" />
               </p>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                Displaced blocks (est. residents):
+                {BLOCK_LABELS.map((label, i) => (
+                  <span key={label} className="flex items-center gap-1">
+                    <span className="inline-block h-3 w-3 rounded-full" style={{ background: BLOCK_HEX[i] }} />
+                    {label}
+                  </span>
+                ))}
+              </div>
               <p className="text-xs text-muted-foreground">
                 Reads gold.block_options · gold.centres · gold.centre_demand. Diners go to the nearest open centre by
                 walking distance.
@@ -174,7 +215,12 @@ export function ClosuresPage() {
         }
         side={
           result && anchor ? (
-            <VerdictPanel anchorName={shortName(anchor.name)} result={result} onRemove={remove} />
+            <VerdictPanel
+              anchorName={shortName(anchor.name)}
+              result={result}
+              undercountNote={undercountNote}
+              onRemove={remove}
+            />
           ) : (
             <Panel>
               <PanelContent>
@@ -189,6 +235,12 @@ export function ClosuresPage() {
       />
 
       {outcome?.error && <QueryError what="This plan" error={outcome.error} />}
+      {result && anchor && undercountNote(anchor.centre_id) && (
+        <p role="note" className="rounded-md border border-highlight bg-highlight-tint p-3 text-sm text-highlight">
+          ⚠ {shortName(anchor.name)} is possibly under-counted: {undercountNote(anchor.centre_id)} Its displaced diners
+          are a floor, not an estimate.
+        </p>
+      )}
       {result && (
         <>
           <p className="text-base leading-relaxed">
@@ -197,11 +249,16 @@ export function ClosuresPage() {
           </p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {headlineTiles(result.tiles, WALK_LIMITS).map((t) => (
-              <Panel key={t.label}>
+              <Panel key={t.label} title={t.tooltip ?? undefined}>
                 <PanelContent className="h-full gap-1">
                   <span className="font-mono text-2xl leading-tight">{t.value}</span>
                   <span className="text-sm">{t.label}</span>
-                  {t.note && <span className="flex-1 text-xs text-muted-foreground">{t.note}</span>}
+                  {t.note && (
+                    <span className="flex-1 text-xs text-muted-foreground">
+                      {t.note}
+                      {t.tooltip && ' ⓘ'}
+                    </span>
+                  )}
                   <span>
                     <TagBadge tag={t.tag} />
                   </span>

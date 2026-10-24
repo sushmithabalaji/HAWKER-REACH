@@ -20,7 +20,7 @@ export function takeawaySentence(parts: TakeawayParts, { limitMin, cutoffM }: Wa
         cutOff(parts, limitMin, cutoffM),
       ]
     : [
-        `${closing} displaces no modelled diners: no HDB block uses ${names.length > 1 ? 'them' : 'it'} as its nearest centre.`,
+        `No HDB block uses ${joinNames(names)} as its nearest centre, so closing ${names.length > 1 ? 'them' : 'it'} displaces no modelled diners.`,
       ];
   const verdict = verdictSummary(parts.verdict.counts);
   return [...sentences, ...(verdict ? [verdict] : [])].join(' ');
