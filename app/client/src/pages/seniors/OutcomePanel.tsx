@@ -124,7 +124,7 @@ export function OutcomePanel({ centre, picked, summary, areas, sensitivity, load
   const shown = centre && summary;
   return (
     <>
-      <section className="rounded-xl bg-topbar px-[18px] py-4 text-lg font-medium leading-snug text-white">
+      <section className="rounded-xl bg-topbar px-panel py-4 text-lg font-medium leading-snug text-topbar-strong">
         {loading ? 'Loading blocks…' : <Headline centre={centre} picked={picked} summary={summary} />}
       </section>
 

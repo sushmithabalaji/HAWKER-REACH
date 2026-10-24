@@ -1,10 +1,11 @@
 @import '@databricks/appkit-ui/styles.css';
 
 /*
- * HawkerReach's look, from the wireframe (docs/wireframes/v1/source/*.dc.html). Light is the default
- * whatever the OS setting: `:root:not(.dark)` outranks AppKit's prefers-color-scheme block, and the
- * `.dark` class still gets AppKit's dark tokens (not designed for; the wireframe has no dark mode).
- * Every pair here meets WCAG AA; the lowest is the highlight on its tint, 5.5:1.
+ * HawkerReach's look, from the wireframe (docs/wireframes/v1/source/*.dc.html). Light whatever the OS
+ * setting: index.html puts `class="light"` on <html>, which turns off AppKit's prefers-color-scheme
+ * dark block, so none of its dark tokens leak in. The `.dark` class still gets AppKit's dark tokens
+ * (not designed for; the wireframe has no dark mode). Every pair here meets WCAG AA; the lowest is
+ * the highlight on its tint, 5.5:1.
  */
 :root:not(.dark) {
   color-scheme: light;
@@ -45,7 +46,8 @@
   --tag-assumption-bg: #ffe9d2;
   /* The top bar stays ink in either theme */
   --topbar: #16202a;
-  --topbar-foreground: #e6eaee;
+  --topbar-foreground: #e6eaee; /* tabs */
+  --topbar-strong: #ffffff; /* app name, current tab's ring, text on ink cards */
 }
 
 @theme inline {
@@ -61,4 +63,7 @@
   --color-tag-assumption-bg: var(--tag-assumption-bg);
   --color-topbar: var(--topbar);
   --color-topbar-foreground: var(--topbar-foreground);
+  --color-topbar-strong: var(--topbar-strong);
+  /* The wireframe's 18px: card padding, the gap beside the map, the page's top and bottom */
+  --spacing-panel: 18px;
 }

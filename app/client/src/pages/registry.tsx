@@ -11,8 +11,8 @@ export interface PageEntry {
   assumptions: AssumptionLine[];
 }
 
-// Adding a page is one entry here: it gets a route, a sidebar link and an Assumptions panel.
-// Listed in sidebar order; the first page is where "/" lands.
+// Adding a page is one entry here: it gets a route, a tab in the top bar and an Assumptions panel.
+// Listed in tab order; the first page is where "/" lands.
 export const pages: PageEntry[] = [
   {
     path: '/seniors',

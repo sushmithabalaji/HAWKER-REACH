@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Skeleton, ToggleGroup, ToggleGroupItem } from '@databricks/appkit-ui/react';
+import { Button, Skeleton, ToggleGroup } from '@databricks/appkit-ui/react';
 import { Panel, PanelContent } from '@/components/shared/Panel';
 import type { PickingInfo } from '@deck.gl/core';
 import { GeoJsonLayer, ScatterplotLayer } from '@deck.gl/layers';
@@ -10,6 +10,7 @@ import { canPick, type Centre } from '@/components/shared/centres';
 import { useGeoData } from '@/components/shared/GeoData';
 import type { SubzoneProps } from '@/components/shared/subzones';
 import { QueryError } from '@/components/shared/QueryError';
+import { InkToggleItem } from '@/components/shared/InkToggleItem';
 import { TagBadge } from '@/components/shared/TagBadge';
 import { centresLayer } from '@/components/shared/centresLayer';
 import { HIGHLIGHT_HEX, INK_HEX, rgb, WHITE_HEX } from '@/components/shared/mapColours';
@@ -29,9 +30,6 @@ import { LIMIT_MIN, SUPER_AGED_SHARE } from './settings';
 import { multiplierBand, multiplierBandLabel, MULTIPLIER_BREAKS, type SubzoneSeniors } from './subzoneSeniors';
 
 type View = 'tiers' | 'multiplier';
-
-// Selected toggles are ink with white text, as in the wireframe.
-const SELECTED_INK = 'data-[state=on]:bg-primary data-[state=on]:text-primary-foreground';
 type Phase = 'before' | 'after';
 
 interface AccessMapProps {
@@ -189,12 +187,8 @@ export function AccessMap({
             value={view}
             onValueChange={(v) => v && (setView(v as View), setPopupId(null))}
           >
-            <ToggleGroupItem className={SELECTED_INK} value="tiers">
-              Access tiers
-            </ToggleGroupItem>
-            <ToggleGroupItem className={SELECTED_INK} value="multiplier">
-              Vulnerability multiplier
-            </ToggleGroupItem>
+            <InkToggleItem value="tiers">Access tiers</InkToggleItem>
+            <InkToggleItem value="multiplier">Vulnerability multiplier</InkToggleItem>
           </ToggleGroup>
           {view === 'tiers' && closure && (
             <ToggleGroup
@@ -204,12 +198,8 @@ export function AccessMap({
               value={phase}
               onValueChange={(v) => v && setPhase(v as Phase)}
             >
-              <ToggleGroupItem className={SELECTED_INK} value="before">
-                Before
-              </ToggleGroupItem>
-              <ToggleGroupItem className={SELECTED_INK} value="after">
-                After the closure
-              </ToggleGroupItem>
+              <InkToggleItem value="before">Before</InkToggleItem>
+              <InkToggleItem value="after">After the closure</InkToggleItem>
             </ToggleGroup>
           )}
         </div>

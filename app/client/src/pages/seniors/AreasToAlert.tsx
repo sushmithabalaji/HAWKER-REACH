@@ -1,4 +1,5 @@
 import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/shared/Panel';
+import { Pill } from '@/components/shared/Pill';
 import { TagBadge } from '@/components/shared/TagBadge';
 import { roughCount, type AreaCutOff } from './scenario';
 import { LIMIT_MIN, SUPER_AGED_SHARE } from './settings';
@@ -37,8 +38,8 @@ export function AreasToAlert({ areas, subzoneSeniors, names }: AreasToAlertProps
                   <span className="flex-1">
                     <strong>{names.subzone(a.subzone_id)}</strong>
                     {s?.is_super_aged && (
-                      <span className="ml-2 inline-block rounded-full bg-highlight-tint px-2 py-px align-middle text-[11px] font-semibold text-highlight">
-                        ⚠ {SUPER_AGED_PCT}%+ aged 65+
+                      <span className="ml-2">
+                        <Pill tone="highlight">⚠ {SUPER_AGED_PCT}%+ aged 65+</Pill>
                       </span>
                     )}
                     <span className="block text-xs text-muted-foreground">

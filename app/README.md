@@ -21,12 +21,12 @@ The app's service principal needs gold-only read grants: `Sql/01_app_grants.sql`
 | What | Where |
 |---|---|
 | A page | `client/src/pages/<page>/`, with its component and its `assumptions.ts` |
-| Adding a page to the sidebar and routes | one entry in `client/src/pages/registry.tsx` (`path`, `label`, `element`, `assumptions`) |
+| Adding a page to the top bar and routes | one entry in `client/src/pages/registry.tsx` (`path`, `label`, `element`, `assumptions`) |
 | A read | `config/queries/<page>_<name>.sql` (`shared_<name>.sql` for a read several pages share, e.g. `shared_centres`), gold tables only, named parameters. Run `npm run typegen`, then call it with `useAnalyticsQuery('<page>_<name>', params)` |
 | A custom server route | only for what a SQL file can't do, in `server/server.ts`. Check with the shell owner (Spec 1) first |
 | Pure TypeScript both sides use | `shared/` (no React, Express or AppKit imports), imported as `@shared/...` |
-| Shared UI | `client/src/components/shared/`: `Panel` (every section is one), `MapRow` (map beside a side column), `TagBadge`, `AssumptionsPanel`, `QueryError`, `BaseMap`, `CentreSearch` |
-| Colours and fonts | Theme tokens in `client/src/index.css`, from the wireframe: use `bg-card`, `text-muted-foreground`, `border`, `text-highlight` (the orange) and so on, not hex values. IBM Plex Sans, with `font-mono` (IBM Plex Mono) for numbers and table headers |
+| Shared UI | `client/src/components/shared/`: `Panel` (every section is one), `MapRow` (map beside a side column), `Pill`, `InkToggleItem`, `TagBadge`, `AssumptionsPanel`, `QueryError`, `BaseMap`, `CentreSearch` |
+| Colours and fonts | Theme tokens in `client/src/index.css`, from the wireframe: use `bg-card`, `text-muted-foreground`, `border`, `text-highlight` (the orange; `primary` is ink, as the wireframe's selected controls and main button are) and so on, not hex values. deck.gl layers take colours from `mapColours.ts`, and `centresLayer` draws hawker centres as the wireframe does. IBM Plex Sans, with `font-mono` (IBM Plex Mono) for numbers and table headers |
 | Query results | AppKit's JSON format sends every value as a string (`"103.81"`, `"false"`) even though the generated types say number or boolean, and a string column holding JSON (like `subzone_shapes.geometry`) arrives already parsed. Parse before use with `toNumber` / `toBoolean` in `components/shared/queryValues.ts` |
 | Tests | Vitest, `<name>.test.ts` next to the code. `npm test` |
 

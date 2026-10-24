@@ -5,7 +5,7 @@ import { pages } from './pages/registry';
 
 const tabClass = ({ isActive }: { isActive: boolean }) =>
   `rounded-md px-3.5 py-2.5 text-sm transition-colors ${
-    isActive ? 'bg-card font-semibold text-foreground' : 'text-topbar-foreground hover:bg-white/10'
+    isActive ? 'bg-card font-semibold text-foreground' : 'text-topbar-foreground hover:bg-topbar-foreground/10'
   }`;
 
 // The wireframe's shell: a full-width ink bar with the app name and one tab per registered page
@@ -13,7 +13,7 @@ const tabClass = ({ isActive }: { isActive: boolean }) =>
 function Layout() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="flex flex-wrap items-center gap-x-6 gap-y-2.5 bg-topbar px-4 py-3 text-white sm:px-8">
+      <header className="flex flex-wrap items-center gap-x-6 gap-y-2.5 bg-topbar px-4 py-3 text-topbar-strong sm:px-8">
         <h1 className="text-xl font-bold">HawkerReach</h1>
         <nav aria-label="Pages" className="flex flex-wrap gap-1">
           {pages.map((page) => (
@@ -24,7 +24,7 @@ function Layout() {
         </nav>
       </header>
 
-      <main className="mx-auto flex w-full max-w-[1440px] flex-col gap-3.5 px-4 py-[18px] sm:px-8">
+      <main className="mx-auto flex w-full max-w-[1440px] flex-col gap-3.5 px-4 py-panel sm:px-8">
         <GeoDataProvider>
           <Outlet />
         </GeoDataProvider>

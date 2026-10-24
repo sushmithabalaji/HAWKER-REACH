@@ -9,7 +9,7 @@ export function Panel({ className, ...props }: ComponentProps<typeof Card>) {
 }
 
 export function PanelHeader({ className, ...props }: ComponentProps<typeof CardHeader>) {
-  return <CardHeader className={cn('gap-1 px-[18px]', className)} {...props} />;
+  return <CardHeader className={cn('gap-1 px-panel', className)} {...props} />;
 }
 
 export function PanelTitle({ className, ...props }: ComponentProps<typeof CardTitle>) {
@@ -17,5 +17,5 @@ export function PanelTitle({ className, ...props }: ComponentProps<typeof CardTi
 }
 
 export function PanelContent({ className, ...props }: ComponentProps<typeof CardContent>) {
-  return <CardContent className={cn('flex flex-col gap-3 px-[18px]', className)} {...props} />;
+  return <CardContent className={cn('flex flex-col gap-3 px-panel', className)} {...props} />;
 }
