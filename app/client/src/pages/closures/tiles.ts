@@ -3,7 +3,7 @@ import type { Tag } from '@shared/tags';
 import { shortName } from '@/components/shared/centres';
 import { count, pctOverBaseline, roundTo10 } from './format';
 import type { WalkLimits } from './settings';
-import { countsText } from './verdicts';
+import { countsText, STATUS_STYLE } from './verdicts';
 import { worstCaseNote } from './notes';
 
 export interface HeadlineTile {
@@ -56,7 +56,7 @@ export function headlineTiles(tiles: Tiles, { cutoffM }: WalkLimits): HeadlineTi
       source: accessLoss.source,
     },
     {
-      value: verdict.status ? STATUS_WORD[verdict.status] : '—',
+      value: verdict.status ? `${STATUS_STYLE[verdict.status].icon} ${STATUS_WORD[verdict.status]}` : '—',
       label: 'plan verdict',
       note: verdict.status ? countsText(verdict.counts) : 'add centres above to check whether they can close together',
       tooltip: null,

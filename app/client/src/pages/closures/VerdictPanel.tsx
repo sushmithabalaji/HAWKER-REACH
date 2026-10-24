@@ -106,13 +106,13 @@ function VerdictCardItem({
 export function VerdictPanel({
   anchorName,
   result,
-  undercountNote,
+  undercountNotes,
   onRemove,
 }: {
   anchorName: string;
   result: PlanResult;
-  /** The tooltip for a possibly under-counted centre, or null for any other. */
-  undercountNote: (centreId: string) => string | null;
+  /** The badge tooltip for each possibly under-counted centre, by centre_id. */
+  undercountNotes: Map<string, string>;
   onRemove: (centreId: string) => void;
 }) {
   const [openId, setOpenId] = useState<string | null>(null);
@@ -162,7 +162,7 @@ export function VerdictPanel({
             <VerdictCardItem
               key={card.centreId}
               card={card}
-              undercountReason={undercountNote(card.centreId)}
+              undercountReason={undercountNotes.get(card.centreId) ?? null}
               open={openId === card.centreId}
               onToggle={() => setOpenId(openId === card.centreId ? null : card.centreId)}
               onRemove={() => onRemove(card.centreId)}

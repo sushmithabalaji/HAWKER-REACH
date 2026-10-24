@@ -22,6 +22,19 @@ export function undercountReason(residentsPerStall: number, median: number, fact
   );
 }
 
+// The badge tooltip for every possibly under-counted centre, keyed by centre_id.
+export function undercountNotes(
+  demand: Pick<CentreDemandRow, 'centre_id' | 'residents_per_stall' | 'possibly_undercounted'>[],
+  factor: number
+): Map<string, string> {
+  const median = medianResidentsPerStall(demand);
+  return new Map(
+    demand
+      .filter((d) => d.possibly_undercounted)
+      .map((d) => [d.centre_id, undercountReason(d.residents_per_stall, median, factor)])
+  );
+}
+
 // A rise above +100% gets a note that it's a worst case (#16).
 export function worstCaseNote(pct: Receiver['pctOverBaseline']): string | null {
   return pct !== 'new' && pct > 100

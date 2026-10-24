@@ -7,6 +7,7 @@ export interface RippleFrame {
   done: boolean;
 }
 
+export const START: RippleFrame = { rings: 0, lines: 0, receivers: 0, done: false };
 export const SETTLED: RippleFrame = { rings: 1, lines: 1, receivers: 1, done: true };
 export const RIPPLE_STEP_MS = 600;
 

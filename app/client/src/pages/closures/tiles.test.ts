@@ -53,7 +53,7 @@ describe('headlineTiles', () => {
         source: 'gold.block_options',
       },
       {
-        value: 'Red',
+        value: '✕ Red',
         label: 'plan verdict',
         note: '1 red · 2 yellow · 0 green',
         tooltip: null,

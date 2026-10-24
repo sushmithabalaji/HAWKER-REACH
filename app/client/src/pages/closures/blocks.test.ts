@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import type { BlockOptionRow } from '@shared/closure-engine';
-import { blockBin, blockPoints } from './blocks';
+import { blockBand, blockPoints } from './blocks';
 
 const row = (block_id: string, rank: number): BlockOptionRow => ({
   block_id,
@@ -23,8 +23,16 @@ describe('blockPoints', () => {
   });
 });
 
-describe('blockBin', () => {
-  test("the wireframe's resident bins: under 250, 250–1,000, 1,000–2,500, 2,500+", () => {
-    expect([0, 249, 250, 999, 1000, 2500, 9000].map(blockBin)).toEqual([0, 0, 1, 1, 2, 3, 3]);
+describe('blockBand', () => {
+  test("the wireframe's resident bands: under 250, 250–1,000, 1,000–2,500, 2,500+", () => {
+    expect([0, 249, 250, 999, 1000, 2500, 9000].map((n) => blockBand(n).label)).toEqual([
+      'under 250',
+      'under 250',
+      '250–1,000',
+      '250–1,000',
+      '1,000–2,500',
+      '2,500+',
+      '2,500+',
+    ]);
   });
 });

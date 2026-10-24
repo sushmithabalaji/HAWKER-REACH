@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo, useState, type Dispatch, type SetStateAction } from 'react';
 import { Button, Skeleton } from '@databricks/appkit-ui/react';
 import { assumedNumber, assumptions } from '@shared/assumptions';
 import { evaluatePlan, PlanError, type CentreRow, type PlanResult } from '@shared/closure-engine';
@@ -9,8 +9,8 @@ import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/share
 import { QueryError } from '@/components/shared/QueryError';
 import { TagBadge } from '@/components/shared/TagBadge';
 import { addToPlan, EMPTY_PLAN, removeFromPlan, withAnchor, type Plan } from './plan';
-import { medianResidentsPerStall, undercountReason } from './notes';
-import { BLOCK_HEX, BLOCK_LABELS, blockPoints } from './blocks';
+import { undercountNotes as notesFor } from './notes';
+import { BLOCK_BANDS, blockPoints } from './blocks';
 import { RippleMap } from './RippleMap';
 import { TOP_RECEIVERS, WALK_LIMITS } from './settings';
 import { takeawaySentence } from './takeaway';
@@ -26,14 +26,23 @@ type Outcome = { result: PlanResult; error: null } | { result: null; error: stri
 
 // Page 1 · Closure scenarios (for NEA planners): if this centre closes, where do its diners go, and
 // what else can safely close at the same time? Retry remounts the page, which reruns its queries.
+// The plan lives here, so a retry keeps the centres the planner picked.
 export function ClosuresPage() {
   const [attempt, setAttempt] = useState(0);
-  return <ClosuresContent key={attempt} onRetry={() => setAttempt((n) => n + 1)} />;
+  const [plan, setPlan] = useState<Plan>(EMPTY_PLAN);
+  return <ClosuresContent key={attempt} plan={plan} setPlan={setPlan} onRetry={() => setAttempt((n) => n + 1)} />;
 }
 
-function ClosuresContent({ onRetry }: { onRetry: () => void }) {
+function ClosuresContent({
+  plan,
+  setPlan,
+  onRetry,
+}: {
+  plan: Plan;
+  setPlan: Dispatch<SetStateAction<Plan>>;
+  onRetry: () => void;
+}) {
   const { data, error } = usePlanData();
-  const [plan, setPlan] = useState<Plan>(EMPTY_PLAN);
   const [limitMessage, setLimitMessage] = useState<string | null>(null);
 
   const centreById = useMemo(() => new Map((data?.centres ?? []).map((c) => [c.centre_id, c])), [data]);
@@ -48,18 +57,7 @@ function ClosuresContent({ onRetry }: { onRetry: () => void }) {
   const anchor = plan.anchorId ? (centreById.get(plan.anchorId) ?? null) : null;
 
   const blocks = useMemo(() => blockPoints(data?.blockOptions ?? []), [data]);
-  const undercountNote = useCallback(
-    (centreId: string): string | null => {
-      const demand = data?.centreDemand.find((d) => d.centre_id === centreId);
-      if (!data || !demand?.possibly_undercounted) return null;
-      return undercountReason(
-        demand.residents_per_stall,
-        medianResidentsPerStall(data.centreDemand),
-        UNDERCOUNT_FACTOR
-      );
-    },
-    [data]
-  );
+  const undercountNotes = useMemo(() => notesFor(data?.centreDemand ?? [], UNDERCOUNT_FACTOR), [data]);
 
   const outcome: Outcome = useMemo(() => {
     if (!data || !plan.anchorId) return null;
@@ -183,7 +181,7 @@ function ClosuresContent({ onRetry }: { onRetry: () => void }) {
                   closed={closed}
                   result={result}
                   blocks={blocks}
-                  undercountNote={undercountNote}
+                  undercountNotes={undercountNotes}
                   onCentreClick={pickAnchor}
                   className="h-[560px]"
                 />
@@ -193,16 +191,16 @@ function ClosuresContent({ onRetry }: { onRetry: () => void }) {
               <p className="text-xs text-muted-foreground">
                 × closed centre · circles sized by extra diners a day · lines to the{' '}
                 {result ? `top ${TOP_RECEIVERS} centres` : 'centres'} taking their diners, from the nearest closed
-                centre, thicker for a bigger share · dashed ring: possibly under-counted · dark ring: a block that loses
-                its only centre within {WALK_LIMITS.limitMin} min at senior pace
+                centre, thicker for a bigger share · dashed ring: possibly under-counted · dark ring: a block left with
+                no centre within {WALK_LIMITS.limitMin} min at senior pace
                 <TagBadge tag="MODELLED" />
               </p>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                 Displaced blocks (est. residents):
-                {BLOCK_LABELS.map((label, i) => (
-                  <span key={label} className="flex items-center gap-1">
-                    <span className="inline-block h-3 w-3 rounded-full" style={{ background: BLOCK_HEX[i] }} />
-                    {label}
+                {BLOCK_BANDS.map((band) => (
+                  <span key={band.label} className="flex items-center gap-1">
+                    <span className="inline-block h-3 w-3 rounded-full" style={{ background: band.hex }} />
+                    {band.label}
                   </span>
                 ))}
               </div>
@@ -218,7 +216,7 @@ function ClosuresContent({ onRetry }: { onRetry: () => void }) {
             <VerdictPanel
               anchorName={shortName(anchor.name)}
               result={result}
-              undercountNote={undercountNote}
+              undercountNotes={undercountNotes}
               onRemove={remove}
             />
           ) : (
@@ -235,10 +233,11 @@ function ClosuresContent({ onRetry }: { onRetry: () => void }) {
       />
 
       {outcome?.error && <QueryError what="This plan" error={outcome.error} />}
-      {result && anchor && undercountNote(anchor.centre_id) && (
+      {result && anchor && undercountNotes.has(anchor.centre_id) && (
         <p role="note" className="rounded-md border border-highlight bg-highlight-tint p-3 text-sm text-highlight">
-          ⚠ {shortName(anchor.name)} is possibly under-counted: {undercountNote(anchor.centre_id)} Its displaced diners
-          are a floor, not an estimate.
+          ⚠ {shortName(anchor.name)} is possibly under-counted: {undercountNotes.get(anchor.centre_id)} Its displaced
+          diners are a floor, not an estimate.
+          <TagBadge tag="MODELLED" />
         </p>
       )}
       {result && (
@@ -269,6 +268,16 @@ function ClosuresContent({ onRetry }: { onRetry: () => void }) {
           </div>
         </>
       )}
+      <Panel>
+        <PanelHeader>
+          <PanelTitle>Demand dispersion and waste</PanelTitle>
+        </PanelHeader>
+        <PanelContent>
+          <p className="text-sm text-muted-foreground">
+            Extra diners and waste per centre, and centres to schedule alongside, come with Spec 4.
+          </p>
+        </PanelContent>
+      </Panel>
     </div>
   );
 }
