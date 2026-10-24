@@ -8,14 +8,14 @@ import { MapRow } from '@/components/shared/MapRow';
 import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/shared/Panel';
 import { QueryError } from '@/components/shared/QueryError';
 import { TagBadge } from '@/components/shared/TagBadge';
-import { addToPlan, EMPTY_PLAN, withAnchor, type Plan } from './plan';
+import { addToPlan, EMPTY_PLAN, removeFromPlan, withAnchor, type Plan } from './plan';
 import { RippleMap } from './RippleMap';
 import { TOP_RECEIVERS, WALK_LIMITS } from './settings';
 import { takeawaySentence } from './takeaway';
 import { headlineTiles } from './tiles';
 import { usePlanData } from './usePlanData';
 import { VerdictPanel } from './VerdictPanel';
-import { STATUS_STYLE } from './verdicts';
+import { STATUS_STYLE, TONE_CLASS } from './verdicts';
 
 const MAX_SELECTED = assumedNumber('plan.max_extra_centres');
 
@@ -61,7 +61,7 @@ export function ClosuresPage() {
     setLimitMessage(next.message);
   };
   const remove = (id: string) => {
-    setPlan((p) => ({ ...p, selectedIds: p.selectedIds.filter((s) => s !== id) }));
+    setPlan((p) => removeFromPlan(p, id));
     setLimitMessage(null);
   };
   const describe = (c: Centre) => {
@@ -86,6 +86,7 @@ export function ClosuresPage() {
           <div className="flex flex-col gap-2">
             <span className="text-sm font-semibold">
               Also close at the same time <span className="font-normal">(up to {MAX_SELECTED})</span>
+              <TagBadge tag="ASSUMPTION" />
             </span>
             {plan.selectedIds.length > 0 && (
               <ul className="flex flex-wrap gap-1.5" aria-label="Centres closing at the same time">
@@ -99,7 +100,7 @@ export function ClosuresPage() {
                       className="inline-flex items-center gap-1 rounded-full bg-muted py-0.5 pl-2.5 pr-1 text-sm"
                     >
                       {style && (
-                        <span aria-label={style.word} style={{ color: style.colour }} className="font-bold">
+                        <span aria-label={style.word} className={`font-bold ${TONE_CLASS[style.tone].text}`}>
                           {style.icon}
                         </span>
                       )}
@@ -178,7 +179,8 @@ export function ClosuresPage() {
             <Panel>
               <PanelContent>
                 <p className="text-sm text-muted-foreground">
-                  {data ? 'Pick an anchor centre to see where its diners go.' : 'Loading blocks and centres…'}
+                  {outcome?.error ??
+                    (data ? 'Pick an anchor centre to see where its diners go.' : 'Loading blocks and centres…')}
                 </p>
               </PanelContent>
             </Panel>

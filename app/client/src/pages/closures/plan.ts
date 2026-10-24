@@ -23,6 +23,10 @@ export function addToPlan(
   return { plan: { ...plan, selectedIds: [...plan.selectedIds, id] }, message: null };
 }
 
+export function removeFromPlan(plan: Plan, centreId: string): Plan {
+  return { ...plan, selectedIds: plan.selectedIds.filter((id) => id !== centreId) };
+}
+
 export function withAnchor(plan: Plan, anchorId: string): Plan {
   return { anchorId, selectedIds: plan.selectedIds.filter((id) => id !== anchorId) };
 }

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { addToPlan, withAnchor, type Plan } from './plan';
+import { addToPlan, removeFromPlan, withAnchor, type Plan } from './plan';
 
 const plan = (anchorId: string | null, selectedIds: string[] = []): Plan => ({ anchorId, selectedIds });
 const centre = (centre_id: string, is_interim = false) => ({ centre_id, is_interim });
@@ -22,6 +22,12 @@ describe('addToPlan', () => {
     expect(addToPlan(p, centre('A'), 5).plan).toBe(p);
     expect(addToPlan(p, centre('B'), 5).plan).toBe(p);
     expect(addToPlan(p, centre('I', true), 5).plan).toBe(p);
+  });
+});
+
+describe('removeFromPlan', () => {
+  test('removes an added centre and keeps the rest in order', () => {
+    expect(removeFromPlan(plan('A', ['B', 'C', 'D']), 'C')).toEqual(plan('A', ['B', 'D']));
   });
 });
 

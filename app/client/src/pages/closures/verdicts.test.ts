@@ -41,7 +41,7 @@ describe('cardView', () => {
       status: 'red',
       icon: '✕',
       word: 'Do not close together',
-      colour: '#B42318',
+      tone: 'red',
       reason: red.reason,
       possiblyUndercounted: false,
       neaActions:
@@ -66,7 +66,7 @@ describe('cardView', () => {
     expect(cardView({ ...quiet, status: 'yellow' }, 15)).toMatchObject({
       icon: '!',
       word: 'Close with caution',
-      colour: '#D69E00',
+      tone: 'yellow',
       neaActions: null,
       overlaps: [],
       readMore: { pushes: [], accessLoss: 'No block loses a centre within 15 min because it closes too' },
@@ -74,7 +74,7 @@ describe('cardView', () => {
     expect(cardView({ ...quiet, status: 'green' }, 15)).toMatchObject({
       icon: '✓',
       word: 'Safe to close together',
-      colour: '#1E7D4F',
+      tone: 'green',
     });
   });
 
@@ -103,7 +103,7 @@ describe('planLineView', () => {
       status: 'red',
       icon: '✕',
       word: 'Do not close together',
-      colour: '#B42318',
+      tone: 'red',
       counts: '1 red · 2 yellow · 0 green',
       anchorProblems: ['Closing Kim Keat Palm on its own pushes X to 162.1 extra diners per stall.'],
     });

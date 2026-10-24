@@ -14,8 +14,13 @@ const day = (iso: string) => {
 };
 
 // "14 Sep – 13 Dec 2026", or across years "1 Dec 2026 – 31 Mar 2027", from YYYY-MM-DD dates.
-export function period(startDate: string, endDate: string): string {
+export function closurePeriod(startDate: string, endDate: string): string {
   const a = day(startDate);
   const b = day(endDate);
   return a.y === b.y ? `${a.text} – ${b.text} ${b.y}` : `${a.text} ${a.y} – ${b.text} ${b.y}`;
+}
+
+// "A", "A and B", "A, B and C".
+export function joinNames(names: string[]): string {
+  return names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names[0];
 }

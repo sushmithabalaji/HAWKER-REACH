@@ -122,6 +122,7 @@ describe('evaluatePlan: verdict cards', () => {
     };
     expect(reasonFor(2123.066)).toContain('leaves 1 more block (2,125 seniors)');
     expect(reasonFor(3.4)).toContain('leaves 1 more block (<5 seniors)');
+    expect(reasonFor(0)).toContain('leaves 1 more block (0 seniors)');
   });
 
   it('checks Access before Load, and the reason names the rule and its numbers', () => {

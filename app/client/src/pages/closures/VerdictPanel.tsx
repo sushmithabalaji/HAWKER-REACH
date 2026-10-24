@@ -1,22 +1,21 @@
 import { useState } from 'react';
 import { Button } from '@databricks/appkit-ui/react';
-import type { PlanResult } from '@shared/closure-engine';
+import type { PlanResult, Status } from '@shared/closure-engine';
 import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/shared/Panel';
 import { Pill } from '@/components/shared/Pill';
 import { TagBadge } from '@/components/shared/TagBadge';
 import { WALK_LIMITS } from './settings';
-import { cardView, planLineView, STATUS_STYLE, type CardView } from './verdicts';
+import { cardView, planLineView, STATUS_STYLE, TONE_CLASS, type CardView } from './verdicts';
 
 const UNDERCOUNT_REASON =
   'The model counts HDB residents only, so a centre whose diners are mostly workers, visitors or private-housing residents has fewer modelled diners than real ones';
 
-function StatusMark({ icon, word, colour }: { icon: string; word: string; colour: string }) {
+function StatusMark({ icon, word, tone }: { icon: string; word: string; tone: Status }) {
   return (
-    <span className="inline-flex items-center gap-1.5 font-semibold" style={{ color: colour }}>
+    <span className={`inline-flex items-center gap-1.5 font-semibold ${TONE_CLASS[tone].text}`}>
       <span
         aria-hidden
-        className="inline-flex h-5 w-5 items-center justify-center rounded-full text-xs text-white"
-        style={{ background: colour }}
+        className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-xs text-white ${TONE_CLASS[tone].bg}`}
       >
         {icon}
       </span>
@@ -25,7 +24,7 @@ function StatusMark({ icon, word, colour }: { icon: string; word: string; colour
   );
 }
 
-function Card({
+function VerdictCardItem({
   card,
   open,
   onToggle,
@@ -37,7 +36,7 @@ function Card({
   onRemove: () => void;
 }) {
   return (
-    <li className="flex flex-col gap-2 rounded-md border-l-4 bg-muted/40 p-3" style={{ borderLeftColor: card.colour }}>
+    <li className={`flex flex-col gap-2 rounded-md border-l-4 bg-muted/40 p-3 ${TONE_CLASS[card.tone].border}`}>
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
         <StatusMark {...card} />
         <span className="font-medium">{card.name}</span>
@@ -70,7 +69,8 @@ function Card({
             <TagBadge tag="MODELLED" />
           </p>
           <div>
-            Centres it pushes:
+            Centres it pushes
+            <TagBadge tag="MODELLED" />:
             {card.readMore.pushes.length === 0 ? (
               ' none'
             ) : (
@@ -123,7 +123,7 @@ export function VerdictPanel({
         <PanelTitle>Can these close with {anchorName}?</PanelTitle>
         <div className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">
           {Object.values(STATUS_STYLE).map((s) => (
-            <span key={s.word} style={{ color: s.colour }}>
+            <span key={s.word} className={TONE_CLASS[s.tone].text}>
               {s.icon} {s.word}
             </span>
           ))}
@@ -131,16 +131,19 @@ export function VerdictPanel({
       </PanelHeader>
       <PanelContent>
         {line ? (
-          <div className="flex flex-col gap-1 rounded-md border p-3" style={{ borderColor: line.colour }}>
+          <div className={`flex flex-col gap-1 rounded-md border p-3 ${TONE_CLASS[line.tone].border}`}>
             <div className="flex flex-wrap items-center gap-2 text-sm">
               <span className="font-medium">Whole plan:</span>
               <StatusMark {...line} />
               <span className="text-muted-foreground">{line.counts}</span>
               <TagBadge tag="MODELLED" />
             </div>
+            <p className="text-xs text-muted-foreground">
+              Coloured by the added centres. What {anchorName} does on its own is listed, not counted.
+            </p>
             {line.anchorProblems.map((p) => (
               <p key={p} className="text-sm text-muted-foreground">
-                Already on its own: {p}
+                {p}
               </p>
             ))}
           </div>
@@ -151,7 +154,7 @@ export function VerdictPanel({
         )}
         <ul className="flex flex-col gap-2">
           {cards.map((card) => (
-            <Card
+            <VerdictCardItem
               key={card.centreId}
               card={card}
               open={openId === card.centreId}

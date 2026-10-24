@@ -508,7 +508,8 @@ function joinNames(parts: string[]): string {
 
 // Seniors per block are estimates, so they are shown to the nearest 5, and under 5 as "<5" (ASSUMPTIONS.md, display rounding).
 function roughSeniors(n: number): string {
-  return n < 5 ? '<5' : (Math.round(n / 5) * 5).toLocaleString('en-US');
+  if (n < 5) return n > 0 ? '<5' : '0';
+  return (Math.round(n / 5) * 5).toLocaleString('en-US');
 }
 
 function fmt(n: number): string {

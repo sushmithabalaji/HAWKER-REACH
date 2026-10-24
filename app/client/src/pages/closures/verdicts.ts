@@ -1,12 +1,20 @@
 import type { PlanLine, Status, VerdictCard } from '@shared/closure-engine';
 import { shortName } from '@/components/shared/centres';
-import { period } from './format';
+import { closurePeriod, joinNames } from './format';
 
-// Each status is shown with an icon and a word as well as its colour (#11, story 36). Colours from the wireframe.
-export const STATUS_STYLE: Record<Status, { icon: string; word: string; colour: string }> = {
-  red: { icon: '✕', word: 'Do not close together', colour: '#B42318' },
-  yellow: { icon: '!', word: 'Close with caution', colour: '#D69E00' },
-  green: { icon: '✓', word: 'Safe to close together', colour: '#1E7D4F' },
+// Each status is shown with an icon and a word as well as its colour (#11, story 36). The colour is
+// the theme's --status-<tone> token (index.css), from the wireframe.
+export const STATUS_STYLE: Record<Status, { icon: string; word: string; tone: Status }> = {
+  red: { icon: '✕', word: 'Do not close together', tone: 'red' },
+  yellow: { icon: '!', word: 'Close with caution', tone: 'yellow' },
+  green: { icon: '✓', word: 'Safe to close together', tone: 'green' },
+};
+
+// Theme classes for each status (index.css --status-<tone>), written out so Tailwind keeps them.
+export const TONE_CLASS: Record<Status, { text: string; bg: string; border: string }> = {
+  red: { text: 'text-status-red', bg: 'bg-status-red', border: 'border-status-red' },
+  yellow: { text: 'text-status-yellow', bg: 'bg-status-yellow', border: 'border-status-yellow' },
+  green: { text: 'text-status-green', bg: 'bg-status-green', border: 'border-status-green' },
 };
 
 export interface CardView {
@@ -15,7 +23,7 @@ export interface CardView {
   status: Status;
   icon: string;
   word: string;
-  colour: string;
+  tone: Status;
   reason: string;
   possiblyUndercounted: boolean;
   /** Null when no centre it pushes passes the NEA actions threshold. */
@@ -25,10 +33,6 @@ export interface CardView {
 }
 
 const perStall = (n: number) => `+${n.toFixed(1)}`;
-
-function joinAnd(items: string[]): string {
-  return items.length > 1 ? `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}` : items[0];
-}
 
 // A verdict card as Page 1 shows it (#11, Verdict card).
 export function cardView(card: VerdictCard, limitMin: number): CardView {
@@ -45,12 +49,12 @@ export function cardView(card: VerdictCard, limitMin: number): CardView {
     possiblyUndercounted: card.possiblyUndercounted,
     neaActions:
       actions.length > 0
-        ? `NEA actions: extra bins, more frequent collection and extra cleaning checks at ${joinAnd(actions)}.`
+        ? `NEA actions: extra bins, more frequent collection and extra cleaning checks at ${joinNames(actions)}.`
         : null,
     overlaps: card.overlaps.map(
       (o) =>
-        `Its ${o.own.type} (${period(o.own.startDate, o.own.endDate)}) overlaps ${shortName(o.withName)}’s ` +
-        `${o.other.type} (${period(o.other.startDate, o.other.endDate)}).`
+        `Its ${o.own.type} (${closurePeriod(o.own.startDate, o.own.endDate)}) overlaps ${shortName(o.withName)}’s ` +
+        `${o.other.type} (${closurePeriod(o.other.startDate, o.other.endDate)}).`
     ),
     readMore: {
       share: `${Math.round(card.shareOfDisplaced * 100)}% of the plan’s displaced diners have it as their nearest centre`,
@@ -74,7 +78,7 @@ export interface PlanLineView {
   status: Status;
   icon: string;
   word: string;
-  colour: string;
+  tone: Status;
   counts: string;
   anchorProblems: string[];
 }
