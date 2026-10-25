@@ -13,6 +13,7 @@ import { AreaSupports, SupportPill } from './SupportPills';
 import {
   blockReason,
   OTHER_LABEL,
+  OTHER_NOTE,
   rankAreas,
   supportCsv,
   TOP_AREAS,
@@ -115,7 +116,7 @@ export function SupportList({ areas, others, closedName, priorityIds, subzoneSen
             {filter.showAll || !filter.canToggle
               ? `${shown.length} ${shown.length === 1 ? 'area' : 'areas'}`
               : `Top ${TOP_AREAS} of ${rows.length} areas`}{' '}
-            · {blocks} blocks · after {closedName} closes
+            {blocks > 0 && `· ${blocks} ${blocks === 1 ? 'block' : 'blocks'} `}· after {closedName} closes
           </Pill>
         )}
       </PanelHeader>
@@ -128,7 +129,7 @@ export function SupportList({ areas, others, closedName, priorityIds, subzoneSen
         {closedName && areas.length === 0 && (
           <p className="rounded-md bg-muted p-3 text-sm text-muted-foreground">
             No senior loses a {LIMIT_MIN}-min walk when {closedName} closes, so no one needs extra support.
-            {others.length > 0 && ' The areas below have a longer walk or lose a backup centre.'}
+            {others.length > 0 && ' The areas below are still touched by the closure.'}
           </p>
         )}
         {shown.length > 0 && (
@@ -158,7 +159,7 @@ export function SupportList({ areas, others, closedName, priorityIds, subzoneSen
                         <Vulnerability seniors={subzoneSeniors.get(row.area.subzone_id)} />
                       </td>
                       <td className="px-3 py-2">–</td>
-                      <td className="px-3 py-2">No extra support needed</td>
+                      <td className="px-3 py-2">{OTHER_NOTE[row.area.kind]}</td>
                     </tr>
                   ) : (
                     <Fragment key={row.area.subzone_id}>

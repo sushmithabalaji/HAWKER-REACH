@@ -136,10 +136,17 @@ export function supportList(
 }
 
 // Areas the closure touches without cutting seniors off, listed after the ones that need support.
-export type OtherKind = 'longer-walk' | 'backup';
+export type OtherKind = 'already-far' | 'longer-walk' | 'backup';
 export const OTHER_LABEL: Record<OtherKind, string> = {
+  'already-far': 'Already a long walk',
   'longer-walk': 'Longer walk',
   backup: 'Loses a backup centre',
+};
+// What the support column says for each kind.
+export const OTHER_NOTE: Record<OtherKind, string> = {
+  'already-far': 'Already without a walkable centre; check existing support',
+  'longer-walk': 'No extra support needed',
+  backup: 'No extra support needed',
 };
 
 export interface OtherArea {
@@ -148,9 +155,13 @@ export interface OtherArea {
   kind: OtherKind;
 }
 
-// Subzones with no senior cut off where the closure still changes things: a longer walk (the nearest centre
-// closes, but seniors can still walk to the next), then a lost backup (the closed centre is a block's second
-// or third nearest). Each group most seniors first; a subzone appears once, in its first group.
+// Subzones with no senior cut off where the closure still changes things, in order: already a long walk
+// (the nearest centre closes, and seniors were already beyond a senior's walk before it), a longer walk (the
+// nearest centre closes, but seniors can still walk to the next), then a lost backup (the closed centre is a
+// block's second or third nearest). Each group most seniors first. A subzone appears once, in its first
+// group: `seen` grows as each group is taken, so the order of the calls below is the order of the groups.
+// Seniors are every senior in the touched blocks. Blocks whose nearest centre is an overlapping closure are
+// that closure's scenario, so they're left out, as in runScenario.
 export function otherAffected(
   blocks: readonly AccessBlock[],
   closure: Closure,
@@ -170,9 +181,13 @@ export function otherAffected(
     for (const a of areas) seen.add(a.subzone_id);
     return areas;
   };
+  const alreadyFar = group(
+    'already-far',
+    outcomes.filter((o) => o.group === 'already-without').map((o) => o.block)
+  );
   const longer = group(
     'longer-walk',
-    outcomes.filter((o) => o.group !== 'cut-off').map((o) => o.block)
+    outcomes.filter((o) => o.group === 'unaffected').map((o) => o.block)
   );
   const backup = group(
     'backup',
@@ -181,7 +196,7 @@ export function otherAffected(
         b.options[0] && !closed.has(b.options[0].centre_id) && b.options.slice(1).some((o) => closed.has(o.centre_id))
     )
   );
-  return [...longer, ...backup];
+  return [...alreadyFar, ...longer, ...backup];
 }
 
 // The support list shows this many areas until the user asks for all of them.

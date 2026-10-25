@@ -295,11 +295,23 @@ describe('otherAffected', () => {
       ],
       99
     ),
+    block('already-far', 'FAR', 'T2', [['C', 1000]], 3),
+    block(
+      'other-closure',
+      'OVERLAP',
+      'T1',
+      [
+        ['X', 300],
+        ['C', 600],
+      ],
+      50
+    ),
   ];
-  const closure = { centreId: 'C', alsoClosed: [] };
+  const closure = { centreId: 'C', alsoClosed: ['X'] };
 
-  test('longer walks first, then lost backups, each most seniors first, skipping cut-off and untouched areas', () => {
+  test('already far, then longer walks, then lost backups, skipping cut-off, untouched and overlap areas', () => {
     expect(otherAffected(blocks, closure, runScenario(blocks, closure))).toEqual([
+      { subzone_id: 'FAR', seniors: 3, kind: 'already-far' },
       { subzone_id: 'LONGER', seniors: 7, kind: 'longer-walk' },
       { subzone_id: 'BIG', seniors: 40, kind: 'backup' },
       { subzone_id: 'BACKUP', seniors: 4, kind: 'backup' },
