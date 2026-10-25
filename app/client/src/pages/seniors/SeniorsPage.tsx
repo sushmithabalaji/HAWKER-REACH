@@ -11,7 +11,7 @@ import { QueryError } from '@/components/shared/QueryError';
 import { AccessMap } from './AccessMap';
 import { closureFor, dateRange, nearbyWorks, pickableIn, toNeaClosure, type NeaClosure } from './closures';
 import { SupportList } from './SupportList';
-import { supportList } from './support';
+import { otherAffected, supportList } from './support';
 import { OutcomePanel } from './OutcomePanel';
 import {
   areasCutOff,
@@ -95,6 +95,10 @@ export function SeniorsPage() {
             .map((a) => ({ subzoneId: a.subzone_id, name: names.subzone(a.subzone_id), seniors: a.seniors }))
         : null,
     [areas, priorityIds, names]
+  );
+  const others = useMemo(
+    () => (blocks && closure && outcomes ? otherAffected(blocks, closure, outcomes) : []),
+    [blocks, closure, outcomes]
   );
   const shifts = useMemo(() => (outcomes ? levelShifts(outcomes) : []), [outcomes]);
   const severity = summary && priorityIds ? severityOf(summary, priorityIds.size) : null;
@@ -203,6 +207,7 @@ export function SeniorsPage() {
       <SupportList
         key={closureKey}
         areas={supportAreas}
+        others={others}
         priorityIds={priorityIds}
         subzoneSeniors={subzoneSeniors}
         closedName={closedCentre ? shortName(closedCentre.name) : null}

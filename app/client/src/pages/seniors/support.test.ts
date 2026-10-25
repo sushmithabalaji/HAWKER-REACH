@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { runScenario, type AccessBlock, type Tier } from './scenario';
-import { rankAreas, supportList, supportCsv, supportFor } from './support';
+import { otherAffected, rankAreas, supportList, supportCsv, supportFor } from './support';
 
 const notSuperAged = () => false;
 
@@ -244,5 +244,77 @@ describe('rankAreas', () => {
 
   test('unchanged until the priority areas are known', () => {
     expect(rankAreas(areas, null).map((a) => a.subzone_id)).toEqual(['A', 'B', 'C', 'D']);
+  });
+});
+
+describe('otherAffected', () => {
+  const blocks = [
+    block('cut', 'CUT', 'T1', [['C', 300]], 10),
+    block('cut-same-sz', 'CUT', 'T1', [
+      ['C', 300],
+      ['D', 500],
+    ]),
+    block(
+      'walkable',
+      'LONGER',
+      'T1',
+      [
+        ['C', 300],
+        ['D', 600],
+      ],
+      7
+    ),
+    block(
+      'backup',
+      'BACKUP',
+      'T1',
+      [
+        ['D', 300],
+        ['C', 600],
+      ],
+      4
+    ),
+    block(
+      'big-backup',
+      'BIG',
+      'T1',
+      [
+        ['D', 300],
+        ['E', 500],
+        ['C', 900],
+      ],
+      40
+    ),
+    block(
+      'untouched',
+      'NONE',
+      'T1',
+      [
+        ['D', 300],
+        ['E', 500],
+      ],
+      99
+    ),
+    block('already-far', 'FAR', 'T2', [['C', 1000]], 3),
+    block(
+      'other-closure',
+      'OVERLAP',
+      'T1',
+      [
+        ['X', 300],
+        ['C', 600],
+      ],
+      50
+    ),
+  ];
+  const closure = { centreId: 'C', alsoClosed: ['X'] };
+
+  test('already far, then longer walks, then lost backups, skipping cut-off, untouched and overlap areas', () => {
+    expect(otherAffected(blocks, closure, runScenario(blocks, closure))).toEqual([
+      { subzone_id: 'FAR', seniors: 3, kind: 'already-far' },
+      { subzone_id: 'LONGER', seniors: 7, kind: 'longer-walk' },
+      { subzone_id: 'BIG', seniors: 40, kind: 'backup' },
+      { subzone_id: 'BACKUP', seniors: 4, kind: 'backup' },
+    ]);
   });
 });
