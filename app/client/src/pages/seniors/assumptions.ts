@@ -1,7 +1,9 @@
 import type { AssumptionLine } from '@shared/assumptions';
-import { CUTOFF_M } from './settings';
-import { MEAL_SUPPORT_RULE } from './support';
+import { CUTOFF_M, LIMIT_MIN, SEVERE_NO_WALK_SENIORS, SEVERE_PRIORITY_AREAS, SUPER_AGED_PCT } from './settings';
+import { SUPPORT_RULES, SUPPORTS } from './support';
 
+// Page 2's Assumptions panel: only what a reader needs to trust and act on the page (#91). Method notes
+// for the team live in ASSUMPTIONS.md, not here.
 export const seniorsAssumptions: AssumptionLine[] = [
   { key: 'walk.pace.senior' },
   { key: 'walk.pace.typical' },
@@ -15,9 +17,21 @@ export const seniorsAssumptions: AssumptionLine[] = [
     status: 'decided',
   },
   {
-    text: 'Seniors per block: the subzone’s HDB residents aged 65+, spread over its blocks by flat type',
+    text: 'Map colours: OK is T1, Concerning is T2 and T3 together, Highly vulnerable is T4',
+    tag: 'ASSUMPTION',
+    source: 'Team decision (ASSUMPTIONS.md, map legends)',
+    status: 'decided',
+  },
+  {
+    text: `Walks follow footpaths (OpenStreetMap) to the nearest open NEA hawker centre within ${CUTOFF_M / 1000} km`,
     tag: 'MODELLED',
-    source: 'silver.blocks.est_seniors (02_silver), from SingStat HDB residents by age and subzone',
+    source: 'silver.dist_matrix (03_dist_matrix), OpenStreetMap',
+    status: 'decided',
+  },
+  {
+    text: 'Seniors per block are estimates from SingStat HDB residents aged 65+ in each subzone',
+    tag: 'MODELLED',
+    source: 'silver.blocks.est_seniors (02_silver), SingStat HDB residents by age and subzone',
     status: 'decided',
   },
   {
@@ -27,69 +41,65 @@ export const seniorsAssumptions: AssumptionLine[] = [
     status: 'sourced',
   },
   {
-    text: 'Outcome groups, for blocks whose nearest centre closes: cut off (T1 → T2–T4; no one can walk it is T1 → T4), already without access (T2–T4 before; now worse is T2/T3 → T4), unaffected (T1 → T1)',
+    text: `Seniors cut off: their walk to a centre was within ${LIMIT_MIN} min at a senior pace before the closure and isn’t after it. In Details, the other blocks whose centre closed: already without access (T2–T4 before; now worse is T2/T3 → T4) and unaffected (T1 → T1)`,
     tag: 'MODELLED',
     source: 'ASSUMPTIONS.md (outcome groups), matching gold.access_sensitivity',
     status: 'decided',
   },
+  { key: 'access.sensitivity_limits_min' },
   {
-    text: 'Areas where the AAC should check in: subzones with at least one senior cut off by the closure',
-    tag: 'MODELLED',
-    source: 'ASSUMPTIONS.md (Areas to alert)',
-    status: 'decided',
-  },
-  {
-    text: `Suggested support: ${MEAL_SUPPORT_RULE}`,
+    text: `Priority areas: a block where no one can walk to a centre, or ${SUPER_AGED_PCT}%+ of HDB residents aged 65+`,
     tag: 'ASSUMPTION',
-    source: 'Team decision (ASSUMPTIONS.md, meal-support rule)',
+    source: 'Team decision (ASSUMPTIONS.md, priority areas)',
     status: 'decided',
   },
   {
-    text: 'Meal-support list and Areas to alert: blocks whose seniors are cut off (T1 → T2–T4) by the closure',
-    tag: 'MODELLED',
-    source: 'ASSUMPTIONS.md (outcome groups)',
-    status: 'decided',
+    text: `Severity: Severe at ${SEVERE_PRIORITY_AREAS}+ priority areas or ${SEVERE_NO_WALK_SENIORS}+ seniors no one can walk for, Moderate with any priority area, Low when seniors only have a longer walk`,
+    tag: 'ASSUMPTION',
+    source: 'Team proposal (ASSUMPTIONS.md, severity, #79)',
+    status: 'open',
   },
+  { key: 'access.severity.severe_priority_areas' },
+  { key: 'access.severity.severe_no_walk_seniors' },
   {
-    text: `Walk distances: the shortest route along the OpenStreetMap walking network from each block to its three nearest centres within ${CUTOFF_M / 1000} km`,
+    text: 'Alternative centre: the open centre nearest any of the area’s cut-off blocks',
     tag: 'MODELLED',
-    source: 'silver.dist_matrix (03_dist_matrix), OpenStreetMap',
+    source: 'gold.block_access (second and third nearest centres)',
     status: 'decided',
   },
+  ...SUPPORTS.map(
+    (support): AssumptionLine => ({
+      text: `${support}: when ${SUPPORT_RULES[support]}`,
+      tag: 'ASSUMPTION',
+      source: 'Team decision (ASSUMPTIONS.md, suggested support, #78)',
+      status: 'decided',
+    })
+  ),
+  { key: 'access.food_point_min_seniors' },
   {
     text: 'Share aged 65+: a subzone’s HDB residents aged 65+ ÷ its HDB residents',
     tag: 'MEASURED',
     source: 'SingStat HDB residents by age and subzone (gold.subzone_seniors)',
     status: 'sourced',
   },
-  { key: 'access.sensitivity_limits_min' },
   { key: 'access.super_aged_share' },
-  { key: 'access.min_subzone_residents' },
   {
-    text: 'Vulnerability multiplier: a subzone’s share aged 65+ ÷ the HDB-wide share aged 65+. Shown on its own map view and never combined into a score',
+    text: 'Vulnerability multiplier: a subzone’s share aged 65+ ÷ the HDB-wide share aged 65+',
     tag: 'MODELLED',
     source: 'gold.subzone_seniors (04_gold_access)',
     status: 'decided',
   },
   {
-    limitation:
-      'Our share aged 65+ counts SingStat HDB residents; the official 21% super-aged figure counts citizens, so the two are close but not the same',
-  },
-  {
-    text: 'Seniors counts are shown to the nearest 5, and under 5 as "<5", because seniors per block are estimates',
+    text: 'Vulnerability bands: Low under ×0.85, Moderate ×0.85–1.1, High ×1.1–1.35, Extremely vulnerable ×1.35+',
     tag: 'ASSUMPTION',
-    source: 'Team decision (ASSUMPTIONS.md, display rounding)',
+    source: 'Team decision (ASSUMPTIONS.md, map legends)',
     status: 'decided',
   },
   {
-    limitation:
-      'A picked NEA closure also treats renovation or redevelopment at other centres during the same dates as closed; cleaning at a neighbour (a few days) is a note only',
+    text: 'Data: HDB property information and building outlines (data.gov.sg), NEA hawker centres and closure dates, URA Master Plan subzones, SingStat HDB residents by age and subzone',
+    tag: 'MEASURED',
+    source: 'data.gov.sg, NEA, URA, SingStat (via the hawkerreach gold tables)',
+    status: 'sourced',
   },
-  {
-    limitation:
-      'The 10 and 20 min figures are for the picked centre closing alone, so they leave out other closures at the same time',
-  },
-  {
-    limitation: 'Subzone outlines on the map are simplified to about 15 m, so borders are approximate at street level',
-  },
+  { limitation: 'Coffee shops and food courts are not counted: only NEA hawker centres' },
 ];

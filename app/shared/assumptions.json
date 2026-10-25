@@ -148,13 +148,37 @@
       "spec1"
     ]
   },
-  "access.meal_support_walk_min": {
-    "name": "Walking buddy if the nearest open centre is within this walk at the senior pace",
-    "value": 30,
-    "unit": "min",
+  "access.food_point_min_seniors": {
+    "name": "Temporary food point if at least this many seniors in one area have no open centre within the walking cutoff",
+    "value": 100,
+    "unit": "seniors",
     "tag": "ASSUMPTION",
-    "source": "Team decision (ASSUMPTIONS.md, meal-support rule)",
-    "status": "decided",
+    "source": "Team proposal (ASSUMPTIONS.md, suggested support, #78); not yet checked against AAC or NEA practice",
+    "status": "open",
+    "owner": "Sushmitha",
+    "used_by": [
+      "spec1"
+    ]
+  },
+  "access.severity.severe_priority_areas": {
+    "name": "A closure is Severe if at least this many priority areas lose their walk",
+    "value": 3,
+    "unit": "areas",
+    "tag": "ASSUMPTION",
+    "source": "Team proposal (ASSUMPTIONS.md, severity, #79); not yet checked with AACs",
+    "status": "open",
+    "owner": "Sushmitha",
+    "used_by": [
+      "spec1"
+    ]
+  },
+  "access.severity.severe_no_walk_seniors": {
+    "name": "A closure is Severe if at least this many seniors are left with no centre anyone can walk to",
+    "value": 50,
+    "unit": "seniors",
+    "tag": "ASSUMPTION",
+    "source": "Team proposal (ASSUMPTIONS.md, severity, #79); not yet checked with AACs",
+    "status": "open",
     "owner": "Sushmitha",
     "used_by": [
       "spec1"

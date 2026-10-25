@@ -7,12 +7,12 @@ import { shortName, townLabel, type Centre } from '@/components/shared/centres';
 import { MapRow } from '@/components/shared/MapRow';
 import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/shared/Panel';
 import { QueryError } from '@/components/shared/QueryError';
-import { TagBadge } from '@/components/shared/TagBadge';
 import { localToday, type WindowEdit } from './closureWindow';
 import { addToPlan, EMPTY_PLAN, removeFromPlan, withAnchor, type Plan } from './plan';
 import { undercountNotes as notesFor } from './notes';
 import { blockPoints } from './blocks';
 import { DemandWaste } from './DemandWaste';
+import { InfoPopover } from './InfoPopover';
 import { ScheduleAlongside } from './ScheduleAlongside';
 import { RippleMap } from './RippleMap';
 import { TOP_RECEIVERS, WALK_LIMITS } from './settings';
@@ -136,7 +136,6 @@ function ClosuresContent({
           <div className="flex flex-col gap-2">
             <span className="text-sm font-semibold">
               Also close at the same time <span className="font-normal">(up to {MAX_SELECTED})</span>
-              <TagBadge tag="ASSUMPTION" />
             </span>
             {plan.selectedIds.length > 0 && (
               <ul className="flex flex-wrap gap-1.5" aria-label="Centres closing at the same time">
@@ -219,15 +218,8 @@ function ClosuresContent({
                 <Skeleton className="h-[600px] w-full" />
               )}
               <p className="text-xs text-muted-foreground">
-                × closed centre · circles sized by extra diners a day · lines to the{' '}
-                {result ? `top ${TOP_RECEIVERS} centres` : 'centres'} taking their diners, from the nearest closed
-                centre · dashed ring: possibly under-counted · dark ring (when shown): a block left with no centre
-                within {WALK_LIMITS.limitMin} min at senior pace
-                <TagBadge tag="MODELLED" />
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Reads gold.block_options · gold.centres · gold.centre_demand. Diners go to the nearest open centre by
-                walking distance.
+                × closed · circle size: extra diners a day · lines: top {TOP_RECEIVERS} centres taking its diners ·
+                dashed ring: possibly under-counted
               </p>
             </PanelContent>
           </Panel>
@@ -258,31 +250,27 @@ function ClosuresContent({
         <p role="note" className="rounded-md border border-highlight bg-highlight-tint p-3 text-sm text-highlight">
           ⚠ {shortName(anchor.name)} is possibly under-counted: {undercountNotes.get(anchor.centre_id)} Its displaced
           diners are a floor, not an estimate.
-          <TagBadge tag="MODELLED" />
         </p>
       )}
       {result && (
         <>
-          <p className="text-base leading-relaxed">
-            {takeawaySentence(result.takeaway, WALK_LIMITS)}
-            <TagBadge tag="MODELLED" />
-          </p>
+          <Panel className="border-foreground/20 bg-muted/40">
+            <PanelContent>
+              <p className="text-lg font-medium leading-relaxed">{takeawaySentence(result.takeaway, WALK_LIMITS)}</p>
+            </PanelContent>
+          </Panel>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {headlineTiles(result.tiles, WALK_LIMITS).map((t) => (
-              <Panel key={t.label} title={t.tooltip ?? undefined}>
+              <Panel key={t.label}>
                 <PanelContent className="h-full gap-1">
-                  <span className="font-mono text-2xl leading-tight">{t.value}</span>
-                  <span className="text-sm">{t.label}</span>
+                  <span className="font-mono text-3xl font-semibold leading-tight">{t.value}</span>
+                  <span className="text-sm font-medium">{t.label}</span>
                   {t.note && (
-                    <span className="flex-1 text-xs text-muted-foreground">
+                    <span className="text-xs text-muted-foreground">
                       {t.note}
-                      {t.tooltip && ' ⓘ'}
+                      {t.tooltip && <InfoPopover label="Worst case">{t.tooltip}</InfoPopover>}
                     </span>
                   )}
-                  <span>
-                    <TagBadge tag={t.tag} />
-                  </span>
-                  <span className="text-xs text-muted-foreground">{t.source}</span>
                 </PanelContent>
               </Panel>
             ))}

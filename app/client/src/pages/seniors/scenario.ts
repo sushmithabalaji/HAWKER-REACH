@@ -6,7 +6,7 @@ import {
   type RawRow,
   type RawValue,
 } from '@/components/shared/queryValues';
-import { LIMIT_MIN, PACES } from './settings';
+import { LIMIT_MIN, PACES, SEVERE_NO_WALK_SENIORS, SEVERE_PRIORITY_AREAS } from './settings';
 
 export const TIERS = ['T1', 'T2', 'T3', 'T4'] as const;
 export type Tier = (typeof TIERS)[number];
@@ -16,11 +16,6 @@ export function tierOf(walkM: number | null, limitMin = LIMIT_MIN): Tier {
   if (walkM === null) return 'T4';
   const i = PACES.findIndex((pace) => walkM <= pace * limitMin * 60);
   return i === -1 ? 'T4' : TIERS[i];
-}
-
-// The furthest walk in T1, T2 and T3 at this limit.
-export function tierReachM(limitMin = LIMIT_MIN): number[] {
-  return PACES.map((pace) => pace * limitMin * 60);
 }
 
 // A row of gold.block_access (config/queries/seniors_blocks.sql), parsed by toAccessBlocks.
@@ -147,6 +142,7 @@ export interface AreaCutOff {
   subzone_id: string;
   seniors: number;
   blocks: number;
+  noOneCanWalk: boolean; // a block went T1 → T4
 }
 
 // Subzones with seniors cut off, most first: the areas whose AAC should check in.
@@ -155,12 +151,37 @@ export function areasCutOff(outcomes: readonly BlockOutcome[]): AreaCutOff[] {
   for (const o of outcomes) {
     if (o.group !== 'cut-off') continue;
     const id = o.block.subzone_id;
-    const area = bySubzone.get(id) ?? { subzone_id: id, seniors: 0, blocks: 0 };
+    const area = bySubzone.get(id) ?? { subzone_id: id, seniors: 0, blocks: 0, noOneCanWalk: false };
     area.seniors += o.block.est_seniors;
     area.blocks += 1;
+    area.noOneCanWalk ||= o.noOneCanWalk;
     bySubzone.set(id, area);
   }
   return [...bySubzone.values()].sort((a, b) => b.seniors - a.seniors);
+}
+
+// A priority area needs help first: a block where no one can walk to a centre, or a super-aged subzone
+// (ASSUMPTIONS.md, priority areas). It filters the lists and never changes their order.
+export function isPriority(area: AreaCutOff, superAged: boolean): boolean {
+  return area.noOneCanWalk || superAged;
+}
+
+// The subzone ids of the priority areas, given which subzones are super-aged.
+export function priorityAreaIds(
+  areas: readonly AreaCutOff[],
+  isSuperAged: (subzoneId: string) => boolean
+): Set<string> {
+  return new Set(areas.filter((a) => isPriority(a, isSuperAged(a.subzone_id))).map((a) => a.subzone_id));
+}
+
+// How serious a closure is for seniors, by the rule in ASSUMPTIONS.md (Page 2 layout, severity). Null when
+// no senior is cut off.
+export type Severity = 'Severe' | 'Moderate' | 'Low';
+
+export function severityOf(summary: Summary, priorityAreas: number): Severity | null {
+  if (summary.groups['cut-off'].seniors === 0) return null;
+  if (priorityAreas >= SEVERE_PRIORITY_AREAS || summary.noOneCanWalk.seniors >= SEVERE_NO_WALK_SENIORS) return 'Severe';
+  return priorityAreas > 0 ? 'Moderate' : 'Low';
 }
 
 // Seniors per block are estimates, so counts are shown to the nearest 5.

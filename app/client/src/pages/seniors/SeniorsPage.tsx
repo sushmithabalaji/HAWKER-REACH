@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Button, Skeleton, useAnalyticsQuery } from '@databricks/appkit-ui/react';
 import { Panel, PanelContent } from '@/components/shared/Panel';
 import type { Bounds } from '@/components/shared/basemapStyles';
@@ -9,20 +9,21 @@ import { useGeoData } from '@/components/shared/GeoData';
 import { NO_PARAMS, toNumber, toText, type RawRow } from '@/components/shared/queryValues';
 import { QueryError } from '@/components/shared/QueryError';
 import { AccessMap } from './AccessMap';
-import { TagBadge } from '@/components/shared/TagBadge';
-import {
-  closureFor,
-  closureLabel,
-  dateRange,
-  nearbyAlongside,
-  pickableIn,
-  toNeaClosure,
-  type NeaClosure,
-} from './closures';
-import { AreasToAlert } from './AreasToAlert';
-import { MealSupportList } from './MealSupportList';
+import { closureFor, dateRange, nearbyAlongside, pickableIn, toNeaClosure, type NeaClosure } from './closures';
+import { WhatToDo } from './WhatToDo';
+import { SupportList } from './SupportList';
+import { supportList } from './support';
 import { OutcomePanel, type Sensitivity } from './OutcomePanel';
-import { areasCutOff, runScenario, summarise, toAccessBlocks, type AccessBlock, type Closure } from './scenario';
+import {
+  areasCutOff,
+  priorityAreaIds,
+  runScenario,
+  severityOf,
+  summarise,
+  toAccessBlocks,
+  type AccessBlock,
+  type Closure,
+} from './scenario';
 import { makeNames } from './names';
 import { SENSITIVITY_LIMITS_MIN } from './settings';
 import { toSubzoneSeniors } from './subzoneSeniors';
@@ -77,6 +78,21 @@ export function SeniorsPage() {
   const outcomes = useMemo(() => (blocks && closure ? runScenario(blocks, closure) : null), [blocks, closure]);
   const summary = useMemo(() => (outcomes ? summarise(outcomes) : null), [outcomes]);
   const areas = useMemo(() => (outcomes ? areasCutOff(outcomes) : []), [outcomes]);
+  // Null until the super-aged flags load (or if they fail), so no super-aged area is hidden as non-priority.
+  const subzonesReady = !!subzonesQuery.data && !subzonesQuery.error;
+  const isSuperAged = useCallback((id: string) => subzoneSeniors.get(id)?.is_super_aged ?? false, [subzoneSeniors]);
+  const priorityIds = useMemo(
+    () => (subzonesReady ? priorityAreaIds(areas, isSuperAged) : null),
+    [areas, isSuperAged, subzonesReady]
+  );
+  const supportAreas = useMemo(
+    () => (outcomes ? supportList(outcomes, subzonesReady ? isSuperAged : null) : []),
+    [outcomes, isSuperAged, subzonesReady]
+  );
+  const supportsBySubzone = useMemo(() => new Map(supportAreas.map((a) => [a.subzone_id, a.supports])), [supportAreas]);
+  const severity = summary && priorityIds ? severityOf(summary, priorityIds.size) : null;
+  // The lists reset to priority areas only whenever the closure changes, overlapping closures included.
+  const closureKey = closure ? [closure.centreId, ...closure.alsoClosed].join('|') : '';
 
   const sensitivity: Sensitivity | null = useMemo(() => {
     if (!closure) return null;
@@ -100,7 +116,7 @@ export function SeniorsPage() {
   const pickable = useMemo(() => pickableIn(closures, town), [closures, town]);
   const closedCentre = closure ? (centreById.get(closure.centreId) ?? null) : null;
   const picked = selection?.kind === 'closure' ? selection.closure : null;
-  const notes = useMemo(() => {
+  const alongside = useMemo(() => {
     if (!picked || !outcomes) return { works: [], cleaning: [] };
     const neighbours = new Set(outcomes.flatMap((o) => o.block.options.slice(1).map((x) => x.centre_id)));
     return nearbyAlongside(picked, closures, neighbours);
@@ -130,8 +146,7 @@ export function SeniorsPage() {
           />
           <div className="flex flex-wrap items-center gap-2 text-sm">
             <span className="font-medium text-muted-foreground">
-              Real NEA closures{town ? ` in ${townLabel(town)}` : ''}
-              <TagBadge tag="MEASURED" />:
+              Real NEA closures{town ? ` in ${townLabel(town)}` : ''}:
             </span>
             {closuresQuery.loading && <Skeleton className="h-8 w-48" />}
             {!closuresQuery.loading &&
@@ -152,22 +167,7 @@ export function SeniorsPage() {
             {!closuresQuery.loading && pickable.length === 0 && (
               <span className="text-muted-foreground">none current or upcoming</span>
             )}
-            <span className="text-muted-foreground">· or click any centre on the map</span>
           </div>
-          {notes.works.length > 0 && (
-            <p className="text-sm text-muted-foreground">
-              Also closed for works during these dates, so blocks skip them for the next centre still open:{' '}
-              {notes.works.map(closureLabel).join('; ')}.
-              <TagBadge tag="MEASURED" />
-            </p>
-          )}
-          {notes.cleaning.length > 0 && (
-            <p className="text-sm text-muted-foreground">
-              Cleaning at nearby centres during these dates, counted as open:{' '}
-              {notes.cleaning.map(closureLabel).join('; ')}.
-              <TagBadge tag="MEASURED" />
-            </p>
-          )}
         </PanelContent>
       </Panel>
 
@@ -180,6 +180,7 @@ export function SeniorsPage() {
             outcomes={outcomes}
             closure={closure}
             areas={areas}
+            priorityIds={priorityIds}
             subzoneSeniors={subzoneSeniors}
             subzonesError={subzonesQuery.error}
             names={names}
@@ -192,28 +193,35 @@ export function SeniorsPage() {
             <OutcomePanel
               centre={closedCentre}
               picked={picked}
+              alongside={alongside}
               summary={summary}
-              areas={areas.length}
+              priorityAreas={priorityIds?.size ?? null}
+              severity={severity}
+              severityPending={!subzonesReady}
               sensitivity={sensitivity}
               loading={!blocks}
             />
-            {closedCentre && outcomes && <AreasToAlert areas={areas} subzoneSeniors={subzoneSeniors} names={names} />}
+            {closedCentre && outcomes && (
+              <WhatToDo
+                key={closureKey}
+                areas={areas}
+                subzoneSeniors={subzoneSeniors}
+                priorityIds={priorityIds}
+                supportsBySubzone={supportsBySubzone}
+                names={names}
+              />
+            )}
           </>
         }
       />
 
-      <MealSupportList
-        outcomes={outcomes}
+      <SupportList
+        key={closureKey}
+        areas={supportAreas}
+        priorityIds={priorityIds}
         closedName={closedCentre ? shortName(closedCentre.name) : null}
         names={names}
       />
-
-      <p className="text-xs text-muted-foreground">
-        Sources: HDB property information and building outlines (data.gov.sg) · NEA hawker centres and closure dates ·
-        URA Master Plan subzones · SingStat HDB residents by age and subzone. Walks are along the OpenStreetMap walking
-        network to the nearest open NEA hawker centre (silver.dist_matrix). Coffee shops and food courts are not
-        counted.
-      </p>
     </>
   );
 }

@@ -14,9 +14,10 @@ Where this file disagrees with the wireframe, this file wins.
 | Age-group control | Under 65 / 65–74 / 75–84 / 85+, at 1.3 / 1.2 / 1.0 / 0.8 m/s | Removed from the MVP. Seniors (65+) walk at 1.0 m/s everywhere. |
 | "Slower walkers lose more" panel | On Page 2 | Removed. Replaced by the sensitivity line ("If the limit were 10 or 20 min…"). |
 | "AACs to alert" | Ranked by seniors affected × multiplier | Renamed "Areas to alert": one row per subzone, sorted by seniors cut off, with `is_super_aged` as a badge and no multiplied score. |
+| Priority areas | Every area to alert listed alike (#32) | Replaces #32's "list every area" rule: only priority areas show by default (see below); the rest are behind "Show all". Still no multiplied score: priority filters the list and the order stays by seniors cut off. (#77) |
 | AAC column | Phase 2 | Still Phase 2, plus a spike ticket on AAC data sources. |
 | Seniors per block | Subzone 65+ residents spread evenly over its blocks | `silver.blocks.est_seniors`, weighted by flat type. |
-| Number tags | Page 1 only | Every number on Page 2 too, each with a line in the shared Assumptions panel. |
+| Number tags | Page 1 only | Every number on Page 2 has a line in the Assumptions panel, which carries its tag. Since #91 tags aren't shown beside numbers on Page 2 (as on Page 1, #80). |
 | Print brief | In the wireframe | Deferred. CSV download (built in React) stays in the MVP. |
 | Page 2 data sources | Some silver | Gold only. Spec 1 adds `gold.centres` and `gold.centre_closures` for both pages. |
 
@@ -50,10 +51,31 @@ Where this file disagrees with the wireframe, this file wins.
   | ↳ Now worse | T2/T3 → T4 (sub-count) |
   | Unaffected | T1 → T1 |
 
-- **Meal-support rule** (column label "Suggested support"):
-  - **Walking buddy:** nearest open centre after the closure is ≤ 1,800 m away (30 min at 1.0 m/s)
-  - **Meal delivery:** it's further, or there's no centre within 2 km
-  - Fixed and not editable. One row per subzone (the stricter suggestion wins), with block rows underneath. CSV exports at block level.
+- **Suggested support** (#78, replaces the meal-support rule; walking buddy is dropped, since asking seniors to walk further isn't the answer). Each area shows its **alternative centre** (the open centre nearest any of its cut-off blocks, with the walk; where its shuttle goes) and only the supports its conditions trigger, each with a short reason on hover:
+  - **Shuttle:** an open centre is still within 2 km. One shuttle per subzone picks up from its cut-off blocks and goes to the nearest open centre.
+  - **Meal delivery or vouchers:** a cut-off block has no open centre within 2 km.
+  - **Volunteer check-ins:** a super-aged area where some block has no centre anyone can walk to (T1 → T4).
+  - **Temporary food point:** at least `access.food_point_min_seniors` (100, status `open`) seniors cut off by the closure in the area have no open centre within 2 km. Blocks that were already without a walkable centre before the closure aren't counted.
+  - Check-ins wait until `subzone_seniors` loads, so they never quietly drop out.
+  - "No open centre within 2 km" means the block's second and third nearest centres are closed or out of range (gold keeps three per block).
+  - Each block row keeps its own support (shuttle or meals). The CSV has `block_support` and `area_supports` columns.
+  - **Not built yet:** community meal points (no data on where they are), and a "may be crowded" flag on the alternative centre (it needs the closure engine's receivers from Spec 2's `centre_demand`; #86).
+- **Priority areas** (#77): an area to alert is a priority if a block in it went T1 → T4 (no one can walk to a centre) or it is super-aged (21%+ aged 65+).
+  - Areas to alert and the support list show priority areas only, with a "Show all N affected areas" toggle that adds the rest, muted.
+  - On the vulnerability map, only priority areas get the dark outline.
+  - The CSV keeps every affected block, with a `priority` column (yes / no).
+  - If no area is a priority, the lists say "No area needs urgent help" and how many areas have a longer walk.
+  - Until the super-aged flags load (or if `subzone_seniors` fails), the rule can't run, so every area shows as before.
+- **Page 2 layout** (#79): the right-hand column reads closure → impact → severity → what to do.
+  - **Closing:** the centre, its closure type, dates and days, and any works closures nearby at the same time.
+  - **Impact:** seniors who lose a 15-min walk, and how many of them no one can walk for.
+  - **Severity** (ASSUMPTION, status `open`): **Severe** at `access.severity.severe_priority_areas` (3) or more priority areas, or `access.severity.severe_no_walk_seniors` (50) or more seniors no one can walk for; **Moderate** with any priority area; **Low** when seniors only have a longer walk. Shown once the super-aged flags load.
+  - **What to do** (was "Areas to alert"): the top 5 priority areas with the supports each needs, linking to the support list, which has every area, the "Show all" toggle, every block and the download. Severity waits for `subzone_seniors`, with a line saying so.
+  - **No helper text** (#91): Page 2 shows no tags beside numbers and no small grey explanatory lines, only what happened, who is affected, how serious it is and what to do, plus empty and loading states. The Assumptions panel keeps only lines a reader needs; method notes (rounding to 5, outline simplification, small-subzone cutoff, HDB residents vs citizens, overlap handling, Phase 2 and follow-up notes) live in this file only.
+  - The outcome groups, the 10 and 20 min figures and cleaning nearby are behind "Details". The sources paragraph moved into the Assumptions panel; block rows in the support list are behind a per-area "Show N blocks".
+- **Map legends** (#75): plain words instead of tier codes and bare multipliers.
+  - Access tiers show three levels of concern: **OK** (T1, a senior can walk there in 15 min), **Concerning** (T2 and T3, too far for a senior to walk) and **Highly vulnerable** (T4, no one can walk there). T2 and T3 share the amber colour; the tier codes stay in the model, the block tooltip and the CSV.
+  - The vulnerability multiplier has four named bands: **Low vulnerability** (under ×0.85), **Moderate** (×0.85–1.1), **High** (×1.1–1.35) and **Extremely vulnerable** (×1.35+), on a purple ramp that gets stronger as the number goes up and can't be mistaken for the access colours. The wireframe's lowest two bands (split at ×0.6) are merged. The subzone popup leads with the band name.
 - **Display rounding:** seniors counts are shown to the nearest 5, and under 5 as "<5", since seniors per block are estimates. Block counts are exact. (Decided in #31.)
 - **Town:** planning area (`pln_area_n`). The town filters the closure list and frames the map. The affected blocks include any block whose nearest centre closed, even across a town border.
 
@@ -102,7 +124,7 @@ Where this file disagrees with the wireframe, this file wins.
 |---|---|
 | MEASURED | centre locations, closure dates, stall counts, SingStat residents (rounded to 10) |
 | MODELLED | walk distances, tiers, seniors per block, seniors cut off, multiplier, diners per centre / overload |
-| ASSUMPTION | 1.0/1.2/1.4 m/s, the 15-min limit, the 2 km cutoff, the 21% threshold, the 30-min meal-support rule, eating share, waste per meal |
+| ASSUMPTION | 1.0/1.2/1.4 m/s, the 15-min limit, the 2 km cutoff, the 21% threshold, the suggested-support rules and food-point threshold, eating share, waste per meal |
 
 ## App shell
 

@@ -1,11 +1,9 @@
-import type { ReactNode } from 'react';
 import { Skeleton } from '@databricks/appkit-ui/react';
-import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/shared/Panel';
+import { Panel, PanelContent } from '@/components/shared/Panel';
 import { shortName, type Centre } from '@/components/shared/centres';
 import { QueryError } from '@/components/shared/QueryError';
-import { TagBadge } from '@/components/shared/TagBadge';
-import type { NeaClosure } from './closures';
-import { roughCount, type Count, type Summary } from './scenario';
+import { closureLabel, dateRange, type NeaClosure } from './closures';
+import { roughCount, type Count, type Severity, type Summary } from './scenario';
 import { LIMIT_MIN } from './settings';
 
 export interface Sensitivity {
@@ -18,8 +16,12 @@ export interface Sensitivity {
 interface OutcomePanelProps {
   centre: Centre | null;
   picked: NeaClosure | null;
+  // Other closures near the picked one during its dates: works count as closed, cleaning as open.
+  alongside: { works: NeaClosure[]; cleaning: NeaClosure[] };
   summary: Summary | null;
-  areas: number;
+  priorityAreas: number | null; // null until the super-aged flags load
+  severity: Severity | null; // null with no senior cut off, or until priority areas are known
+  severityPending: boolean; // the share aged 65+ is still loading or failed, so severity can't be worked out
   sensitivity: Sensitivity | null;
   loading: boolean;
 }
@@ -30,45 +32,80 @@ const seniorsInWords = (n: number) => {
   return /^[1-9]/.test(text) ? `about ${text}` : text;
 };
 
-const Modelled = () => <TagBadge tag="MODELLED" />;
+const SEVERITY_STYLE: Record<Severity, string> = {
+  Severe: 'bg-highlight text-white',
+  Moderate: 'bg-highlight-tint text-highlight',
+  Low: 'bg-muted text-foreground',
+};
 
-function Headline({ centre, picked, summary }: Pick<OutcomePanelProps, 'centre' | 'picked' | 'summary'>) {
-  if (!centre || !summary) {
-    return <>Pick a real NEA closure above, or click any hawker centre on the map to close it.</>;
-  }
-  const closed = (
-    <>
-      {shortName(centre.name)} closed
-      {picked && (
-        <>
-          {' '}
-          for {picked.duration_days} days <TagBadge tag="MEASURED" />
-        </>
-      )}
-    </>
-  );
-  const cutOff = summary.groups['cut-off'];
-  if (cutOff.blocks === 0) {
-    return (
-      <>
-        {closed}: no senior loses a {LIMIT_MIN}-min walk. Another centre is close enough.
-      </>
-    );
-  }
+// 1 · What's closing.
+function ClosingCard({
+  centre,
+  picked,
+  alongside,
+}: Pick<OutcomePanelProps, 'picked' | 'alongside'> & { centre: Centre }) {
   return (
-    <>
-      {closed}: {seniorsInWords(cutOff.seniors)} seniors <Modelled /> now walk over {LIMIT_MIN} min to a hawker centre.
-      <span className="mt-2 block text-sm font-normal opacity-80">
-        {summary.noOneCanWalk.blocks > 0 ? (
+    <section className="rounded-xl bg-topbar px-panel py-4 text-topbar-strong">
+      <div className="text-xs font-medium uppercase tracking-wide opacity-80">Closing</div>
+      <div className="text-xl font-semibold leading-snug">{shortName(centre.name)}</div>
+      <div className="text-sm opacity-80">
+        {picked ? (
           <>
-            {seniorsInWords(summary.noOneCanWalk.seniors)} of them <Modelled /> have no centre anyone can walk to in{' '}
-            {LIMIT_MIN} min.
+            {picked.type} · {dateRange(picked)} · {picked.duration_days} days
           </>
         ) : (
-          <>Each of them can still reach a centre in {LIMIT_MIN} min at a typical or brisk pace.</>
+          'Closed on the map to test it'
         )}
-      </span>
-    </>
+      </div>
+      {alongside.works.length > 0 && (
+        <div className="mt-1 text-xs opacity-80">Also closed then: {alongside.works.map(closureLabel).join('; ')}</div>
+      )}
+    </section>
+  );
+}
+
+// 2 · Impact on seniors.
+function ImpactCard({ summary }: { summary: Summary }) {
+  const cutOff = summary.groups['cut-off'];
+  return (
+    <Panel>
+      <PanelContent className="gap-1">
+        {cutOff.seniors === 0 ? (
+          <p className="text-base font-medium">
+            No senior loses a {LIMIT_MIN}-min walk. Another centre is close enough.
+          </p>
+        ) : (
+          <>
+            <div className="font-mono text-4xl font-semibold leading-none text-highlight">
+              {roughCount(cutOff.seniors)}
+            </div>
+            <div className="text-base font-medium">seniors lose a {LIMIT_MIN}-min walk to a hawker centre</div>
+            <div className="text-sm text-muted-foreground">
+              {summary.noOneCanWalk.blocks > 0 ? (
+                <>{seniorsInWords(summary.noOneCanWalk.seniors)} of them have no centre anyone can walk to.</>
+              ) : (
+                <>Each of them can still reach a centre in {LIMIT_MIN} min at a typical or brisk pace.</>
+              )}
+            </div>
+          </>
+        )}
+      </PanelContent>
+    </Panel>
+  );
+}
+
+// 3 · How serious.
+function SeverityCard({ severity, priorityAreas }: { severity: Severity; priorityAreas: number }) {
+  return (
+    <Panel>
+      <PanelContent className="flex-row items-center gap-3">
+        <span className={`rounded-md px-2.5 py-1 text-sm font-bold ${SEVERITY_STYLE[severity]}`}>{severity}</span>
+        <span className="text-sm">
+          <strong className="font-mono">{priorityAreas}</strong>{' '}
+          {priorityAreas === 1 ? 'priority area needs' : 'priority areas need'} help first
+        </span>
+      </PanelContent>
+    </Panel>
   );
 }
 
@@ -84,25 +121,12 @@ function GroupRow({ title, rule, count, sub }: { title: string; rule: string; co
       </span>
       <span className="whitespace-nowrap text-right font-mono text-xs text-muted-foreground">
         {count.blocks.toLocaleString('en-US')} blocks · {roughCount(count.seniors)} seniors
-        <Modelled />
       </span>
     </li>
   );
 }
 
-function Tile({ value, label, loading }: { value: ReactNode; label: string; loading: boolean }) {
-  return (
-    <Panel>
-      <PanelContent className="gap-0 px-3.5">
-        {loading ? <Skeleton className="h-8 w-16" /> : <div className="font-mono text-2xl text-highlight">{value}</div>}
-        <div className="text-sm text-muted-foreground">{label}</div>
-      </PanelContent>
-    </Panel>
-  );
-}
-
 function SensitivityLine({ sensitivity }: { sensitivity: Sensitivity }) {
-  if (sensitivity.error) return <QueryError what="Other time limits" error={sensitivity.error} />;
   if (sensitivity.cutOffAt.length === 0) return null;
   return (
     <p className="text-sm text-muted-foreground">
@@ -110,7 +134,7 @@ function SensitivityLine({ sensitivity }: { sensitivity: Sensitivity }) {
         <span key={limitMin}>
           {i === 0 ? `If the limit were ${limitMin} min, ` : `; at ${limitMin} min, `}
           {seniorsInWords(seniors)}
-          {i === 0 && ' seniors'} <Modelled />
+          {i === 0 && ' seniors'}
           {i === 0 && ' would be cut off'}
         </span>
       ))}
@@ -119,64 +143,76 @@ function SensitivityLine({ sensitivity }: { sensitivity: Sensitivity }) {
   );
 }
 
-// The right-hand column of Page 2: headline, outcome groups, number tiles and the sensitivity line.
-export function OutcomePanel({ centre, picked, summary, areas, sensitivity, loading }: OutcomePanelProps) {
-  const shown = centre && summary;
+// The outcome groups, the 10 and 20 min figures and cleaning nearby, for anyone checking the numbers.
+function Details({
+  summary,
+  sensitivity,
+  cleaning,
+}: {
+  summary: Summary;
+  sensitivity: Sensitivity | null;
+  cleaning: NeaClosure[];
+}) {
+  return (
+    <details className="rounded-xl border bg-card px-panel py-3">
+      <summary className="cursor-pointer text-sm font-medium">Details</summary>
+      <div className="mt-3 flex flex-col gap-3">
+        <ul className="flex flex-col gap-2">
+          <GroupRow title="Cut off" rule="T1 → T2–T4" count={summary.groups['cut-off']} />
+          <GroupRow sub title="No one can walk it" rule="T1 → T4" count={summary.noOneCanWalk} />
+          <GroupRow title="Already without access" rule="T2–T4 before" count={summary.groups['already-without']} />
+          <GroupRow sub title="Now worse" rule="T2/T3 → T4" count={summary.nowWorse} />
+          <GroupRow title="Unaffected" rule="T1 → T1" count={summary.groups.unaffected} />
+        </ul>
+        {sensitivity && !sensitivity.error && <SensitivityLine sensitivity={sensitivity} />}
+        {cleaning.length > 0 && (
+          <p className="text-sm text-muted-foreground">
+            Cleaning nearby during these dates, counted as open: {cleaning.map(closureLabel).join('; ')}.
+          </p>
+        )}
+      </div>
+    </details>
+  );
+}
+
+// The right-hand column of Page 2, in the order a reader needs it: what's closing, the impact on seniors,
+// how serious it is, then (in WhatToDo) what to do. The detail behind the numbers is behind "Details".
+export function OutcomePanel({
+  centre,
+  picked,
+  alongside,
+  summary,
+  priorityAreas,
+  severity,
+  severityPending,
+  sensitivity,
+  loading,
+}: OutcomePanelProps) {
+  if (loading) {
+    return (
+      <div role="status">
+        <Skeleton className="h-40 w-full rounded-xl" />
+        <span className="sr-only">Loading blocks…</span>
+      </div>
+    );
+  }
+  if (!centre || !summary) {
+    return (
+      <section className="rounded-xl bg-topbar px-panel py-4 text-lg font-medium leading-snug text-topbar-strong">
+        Pick a real NEA closure above, or click any hawker centre on the map to close it.
+      </section>
+    );
+  }
   return (
     <>
-      <section className="rounded-xl bg-topbar px-panel py-4 text-lg font-medium leading-snug text-topbar-strong">
-        {loading ? 'Loading blocks…' : <Headline centre={centre} picked={picked} summary={summary} />}
-      </section>
-
-      {shown && (
-        <Panel>
-          <PanelHeader>
-            <PanelTitle>Blocks whose nearest centre was {shortName(centre.name)}</PanelTitle>
-          </PanelHeader>
-          <PanelContent>
-            <ul className="flex flex-col gap-2">
-              <GroupRow title="Cut off" rule="T1 → T2–T4" count={summary.groups['cut-off']} />
-              <GroupRow sub title="No one can walk it" rule="T1 → T4" count={summary.noOneCanWalk} />
-              <GroupRow title="Already without access" rule="T2–T4 before" count={summary.groups['already-without']} />
-              <GroupRow sub title="Now worse" rule="T2/T3 → T4" count={summary.nowWorse} />
-              <GroupRow title="Unaffected" rule="T1 → T1" count={summary.groups.unaffected} />
-            </ul>
-          </PanelContent>
-        </Panel>
+      <ClosingCard centre={centre} picked={picked} alongside={alongside} />
+      <ImpactCard summary={summary} />
+      {severity && priorityAreas !== null && <SeverityCard severity={severity} priorityAreas={priorityAreas} />}
+      {severityPending && summary.groups['cut-off'].seniors > 0 && (
+        <p className="text-sm text-muted-foreground">How serious this is shows once the share aged 65+ has loaded.</p>
       )}
-
-      <div className="grid grid-cols-2 gap-3">
-        <Tile
-          loading={loading}
-          value={
-            shown ? (
-              <>
-                {roughCount(summary.groups['cut-off'].seniors)}
-                <Modelled />
-              </>
-            ) : (
-              '–'
-            )
-          }
-          label={`seniors lose a ${LIMIT_MIN}-min walk (estimate)`}
-        />
-        <Tile
-          loading={loading}
-          value={
-            shown ? (
-              <>
-                {areas}
-                <Modelled />
-              </>
-            ) : (
-              '–'
-            )
-          }
-          label="areas where the AAC should check in"
-        />
-      </div>
-
-      {shown && sensitivity && <SensitivityLine sensitivity={sensitivity} />}
+      {sensitivity?.error && <QueryError what="Other time limits" error={sensitivity.error} />}
+      <Details summary={summary} sensitivity={sensitivity} cleaning={alongside.cleaning} />
     </>
   );
 }

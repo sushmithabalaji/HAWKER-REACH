@@ -11,10 +11,13 @@ export const PACES = [
 export const LIMIT_MIN = assumedNumber('walk.limit_min');
 export const CUTOFF_M = assumedNumber('walk.cutoff_m');
 export const SUPER_AGED_SHARE = assumedNumber('access.super_aged_share');
+export const SUPER_AGED_PCT = Math.round(SUPER_AGED_SHARE * 100);
 // "10, 20": the extra limits gold.access_sensitivity was run at.
 export const SENSITIVITY_LIMITS_MIN = String(assumptions['access.sensitivity_limits_min'].value)
   .split(',')
   .map((v) => Number(v.trim()));
-export const MEAL_SUPPORT_WALK_MIN = assumedNumber('access.meal_support_walk_min');
-// 1,800 m: how far a senior walks in the meal-support time (ASSUMPTIONS.md, meal-support rule).
-export const MEAL_SUPPORT_WALK_M = PACES[0] * MEAL_SUPPORT_WALK_MIN * 60;
+// A temporary food point if at least this many seniors in one area have no open centre in range.
+export const FOOD_POINT_MIN_SENIORS = assumedNumber('access.food_point_min_seniors');
+// A closure is Severe at either of these (ASSUMPTIONS.md, severity).
+export const SEVERE_PRIORITY_AREAS = assumedNumber('access.severity.severe_priority_areas');
+export const SEVERE_NO_WALK_SENIORS = assumedNumber('access.severity.severe_no_walk_seniors');

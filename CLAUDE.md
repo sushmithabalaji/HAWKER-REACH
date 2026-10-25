@@ -22,7 +22,7 @@ The spec's owner builds all of its tickets.
 - Changing something another spec depends on (gold table columns, the app shell, assumptions) needs a comment on that spec's issue tagging its owner before merging.
 - Each notebook has one owner. Clear notebook outputs before committing.
 - Only the owning notebook writes a shared table in `hawkerreach`. Experiments write to a personal schema, `hawkerreach.dev_<name>`.
-- Every number shown in the app carries a MEASURED, MODELLED or ASSUMPTION tag and a line in the Assumptions panel.
+- Every number shown in the app has a line in its page's Assumptions panel, which carries its MEASURED, MODELLED or ASSUMPTION tag.
 - No routing at click time: the app reads precomputed gold tables.
 - The browser never queries Databricks directly; every query goes through a Node `/api` route.
 

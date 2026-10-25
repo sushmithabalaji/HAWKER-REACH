@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import { Button } from '@databricks/appkit-ui/react';
+import { assumedNumber } from '@shared/assumptions';
 import type { PlanResult, Status } from '@shared/closure-engine';
 import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/shared/Panel';
 import { Pill } from '@/components/shared/Pill';
-import { TagBadge } from '@/components/shared/TagBadge';
+import { InfoPopover } from './InfoPopover';
 import { WALK_LIMITS } from './settings';
 import { cardView, planLineView, STATUS_STYLE, TONE_CLASS, type CardView } from './verdicts';
+
+const pct = (key: string) => `${Math.round(assumedNumber(key) * 100)}%`;
 
 function StatusMark({ icon, word, tone }: { icon: string; word: string; tone: Status }) {
   return (
@@ -45,37 +48,23 @@ function VerdictCardItem({
           </span>
         )}
       </div>
-      <p className="text-sm">
-        {card.reason}
-        <TagBadge tag="MODELLED" />
-      </p>
-      {card.neaActions && (
-        <p className="text-sm">
-          {card.neaActions}
-          <TagBadge tag="MODELLED" />
-        </p>
-      )}
+      <p className="text-sm">{card.reason}</p>
+      {card.neaActions && <p className="text-sm">{card.neaActions}</p>}
       {card.overlaps.map((note) => (
         <p key={note} className="text-sm text-muted-foreground">
           {note}
-          <TagBadge tag="MEASURED" />
         </p>
       ))}
       {card.ownProblems.map((problem) => (
         <p key={problem} className="text-sm text-muted-foreground">
           On its own: {problem}
-          <TagBadge tag="MODELLED" />
         </p>
       ))}
       {open && (
         <div className="flex flex-col gap-1 text-sm">
-          <p>
-            {card.readMore.share}
-            <TagBadge tag="MODELLED" />
-          </p>
+          <p>{card.readMore.share}</p>
           <div>
-            Centres it pushes
-            <TagBadge tag="MODELLED" />:
+            Centres it pushes:
             {card.readMore.pushes.length === 0 ? (
               ' none'
             ) : (
@@ -86,13 +75,10 @@ function VerdictCardItem({
               </ul>
             )}
           </div>
-          <p>
-            {card.readMore.accessLoss}
-            <TagBadge tag="MODELLED" />
-          </p>
+          <p>{card.readMore.accessLoss}</p>
           <p className="text-xs text-muted-foreground">
-            What happens only because {card.name} closes together with the rest of the plan, compared with each closing
-            apart · gold.block_options · gold.centres · gold.centre_demand · gold.centre_closures
+            Only what happens because {card.name} closes together with the rest of the plan, compared with each closing
+            separately.
           </p>
         </div>
       )}
@@ -128,7 +114,16 @@ export function VerdictPanel({
   return (
     <Panel>
       <PanelHeader>
-        <PanelTitle>Can these close with {anchorName}?</PanelTitle>
+        <PanelTitle>
+          Can these close with {anchorName}?{' '}
+          <InfoPopover label="How each colour is decided">
+            Only what happens because two centres close together counts. Red: the added centre takes{' '}
+            {pct('verdict.share.red')} or more of the other closures&rsquo; diners, cuts off a block that neither
+            closure cuts off alone, or makes a third centre more than {pct('verdict.load.red_pct')} busier only when
+            both close. Yellow: {pct('verdict.share.yellow')} or more of their diners, or a third centre more than{' '}
+            {pct('verdict.load.yellow_pct')} busier.
+          </InfoPopover>
+        </PanelTitle>
         <div className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">
           {Object.values(STATUS_STYLE).map((s) => (
             <span key={s.word} className={TONE_CLASS[s.tone].text}>
@@ -141,14 +136,15 @@ export function VerdictPanel({
         {line ? (
           <div className={`flex flex-col gap-1 rounded-md border p-3 ${TONE_CLASS[line.tone].border}`}>
             <div className="flex flex-wrap items-center gap-2 text-sm">
-              <span className="font-medium">Whole plan:</span>
+              <span className="font-medium">
+                Whole plan:
+                <InfoPopover label="How the whole plan is coloured">
+                  Coloured by the added centres. What {anchorName} does on its own is listed, not counted.
+                </InfoPopover>
+              </span>
               <StatusMark {...line} />
               <span className="text-muted-foreground">{line.counts}</span>
-              <TagBadge tag="MODELLED" />
             </div>
-            <p className="text-xs text-muted-foreground">
-              Coloured by the added centres. What {anchorName} does on its own is listed, not counted.
-            </p>
             {line.anchorProblems.map((p) => (
               <p key={p} className="text-sm text-muted-foreground">
                 {p}

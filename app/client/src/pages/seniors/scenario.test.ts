@@ -1,7 +1,10 @@
 import { describe, expect, test } from 'vitest';
 import {
   areasCutOff,
+  isPriority,
+  priorityAreaIds,
   roughCount,
+  severityOf,
   roundedCount,
   runScenario,
   summarise,
@@ -265,9 +268,76 @@ describe('areasCutOff', () => {
       ),
     ];
     expect(areasCutOff(runScenario(blocks, { centreId: 'C', alsoClosed: [] }))).toEqual([
-      { subzone_id: 'SZ2', seniors: 9, blocks: 1 },
-      { subzone_id: 'SZ1', seniors: 6, blocks: 2 },
+      { subzone_id: 'SZ2', seniors: 9, blocks: 1, noOneCanWalk: false },
+      { subzone_id: 'SZ1', seniors: 6, blocks: 2, noOneCanWalk: false },
     ]);
+  });
+
+  test('marks a subzone where a block has no centre anyone can walk to', () => {
+    const blocks = [
+      block(
+        'a',
+        'T1',
+        [
+          ['C', 300],
+          ['D', 1000],
+        ],
+        4,
+        'SZ1'
+      ),
+      block('b', 'T1', [['C', 300]], 3, 'SZ1'),
+    ];
+    expect(areasCutOff(runScenario(blocks, { centreId: 'C', alsoClosed: [] }))).toEqual([
+      { subzone_id: 'SZ1', seniors: 7, blocks: 2, noOneCanWalk: true },
+    ]);
+  });
+});
+
+describe('isPriority', () => {
+  const area = (noOneCanWalk: boolean) => ({ subzone_id: 'SZ1', seniors: 10, blocks: 1, noOneCanWalk });
+
+  test('a subzone where no one can walk to a centre, or a super-aged one, is a priority', () => {
+    expect(isPriority(area(true), false)).toBe(true);
+    expect(isPriority(area(false), true)).toBe(true);
+    expect(isPriority(area(true), true)).toBe(true);
+  });
+
+  test('a subzone with only a longer walk, and not super-aged, is not', () => {
+    expect(isPriority(area(false), false)).toBe(false);
+  });
+});
+
+describe('priorityAreaIds', () => {
+  test('keeps the areas where no one can walk or that are super-aged', () => {
+    const areas = [
+      { subzone_id: 'WALK', seniors: 10, blocks: 1, noOneCanWalk: true },
+      { subzone_id: 'OLD', seniors: 10, blocks: 1, noOneCanWalk: false },
+      { subzone_id: 'NEITHER', seniors: 10, blocks: 1, noOneCanWalk: false },
+    ];
+    expect(priorityAreaIds(areas, (id) => id === 'OLD')).toEqual(new Set(['WALK', 'OLD']));
+  });
+});
+
+describe('severityOf', () => {
+  const summaryWith = (cutOff: number, noOneCanWalk: number) => {
+    const s = summarise([]);
+    s.groups['cut-off'].seniors = cutOff;
+    s.noOneCanWalk.seniors = noOneCanWalk;
+    return s;
+  };
+
+  test('none when no senior is cut off', () => {
+    expect(severityOf(summaryWith(0, 0), 0)).toBeNull();
+  });
+
+  test('severe at 3 priority areas or 50 seniors no one can walk for', () => {
+    expect(severityOf(summaryWith(200, 0), 3)).toBe('Severe');
+    expect(severityOf(summaryWith(200, 50), 1)).toBe('Severe');
+  });
+
+  test('moderate with any priority area, low with none', () => {
+    expect(severityOf(summaryWith(200, 49), 2)).toBe('Moderate');
+    expect(severityOf(summaryWith(200, 0), 0)).toBe('Low');
   });
 });
 

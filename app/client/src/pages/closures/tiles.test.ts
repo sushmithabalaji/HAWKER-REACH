@@ -27,39 +27,31 @@ const tiles: Tiles = {
 };
 
 describe('headlineTiles', () => {
-  test('the four tiles, each with its tag and source', () => {
+  test('the four tiles: value, label and one line', () => {
     expect(headlineTiles(tiles, limits)).toEqual([
       {
         value: '≈1,230',
         label: 'displaced diners a day',
         note: '+40 diners a day newly unserved (no centre within 2 km)',
         tooltip: null,
-        tag: 'MODELLED',
-        source: 'gold.block_options',
       },
       {
         value: '+3.2',
-        label: 'biggest load increase, extra diners per stall',
+        label: 'extra diners per stall at the worst-hit centre',
         note: 'Toa Payoh West · +34%',
         tooltip: null,
-        tag: 'MODELLED',
-        source: 'gold.block_options · gold.centres · gold.centre_demand',
       },
       {
         value: '3 · 5 · 1,208',
         label: 'blocks losing a centre within 15 min',
         note: 'at senior · typical · brisk pace',
         tooltip: null,
-        tag: 'MODELLED',
-        source: 'gold.block_options',
       },
       {
         value: '✕ Red',
         label: 'plan verdict',
         note: '1 red · 2 yellow · 0 green',
         tooltip: null,
-        tag: 'MODELLED',
-        source: 'gold.block_options · gold.centres · gold.centre_demand',
       },
     ]);
   });
