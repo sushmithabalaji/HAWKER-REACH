@@ -11,7 +11,7 @@ import { TagBadge } from '@/components/shared/TagBadge';
 import { localToday, type WindowEdit } from './closureWindow';
 import { addToPlan, EMPTY_PLAN, removeFromPlan, withAnchor, type Plan } from './plan';
 import { undercountNotes as notesFor } from './notes';
-import { BLOCK_BANDS, blockPoints } from './blocks';
+import { blockPoints } from './blocks';
 import { DispersionTabs } from './DispersionTabs';
 import { ScheduleTab } from './ScheduleTab';
 import { RippleMap } from './RippleMap';
@@ -221,19 +221,10 @@ function ClosuresContent({
               <p className="text-xs text-muted-foreground">
                 × closed centre · circles sized by extra diners a day · lines to the{' '}
                 {result ? `top ${TOP_RECEIVERS} centres` : 'centres'} taking their diners, from the nearest closed
-                centre, thicker for a bigger share · dashed ring: possibly under-counted · dark ring: a block left with
-                no centre within {WALK_LIMITS.limitMin} min at senior pace
+                centre · dashed ring: possibly under-counted · dark ring (when shown): a block left with no centre
+                within {WALK_LIMITS.limitMin} min at senior pace
                 <TagBadge tag="MODELLED" />
               </p>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                Displaced blocks (est. residents):
-                {BLOCK_BANDS.map((band) => (
-                  <span key={band.label} className="flex items-center gap-1">
-                    <span className="inline-block h-3 w-3 rounded-full" style={{ background: band.hex }} />
-                    {band.label}
-                  </span>
-                ))}
-              </div>
               <p className="text-xs text-muted-foreground">
                 Reads gold.block_options · gold.centres · gold.centre_demand. Diners go to the nearest open centre by
                 walking distance.
