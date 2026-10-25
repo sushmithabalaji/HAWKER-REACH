@@ -10,22 +10,16 @@ import { NO_PARAMS, toNumber, toText, type RawRow } from '@/components/shared/qu
 import { QueryError } from '@/components/shared/QueryError';
 import { AccessMap } from './AccessMap';
 import { TagBadge } from '@/components/shared/TagBadge';
-import {
-  closureFor,
-  closureLabel,
-  dateRange,
-  nearbyAlongside,
-  pickableIn,
-  toNeaClosure,
-  type NeaClosure,
-} from './closures';
+import { closureFor, dateRange, nearbyAlongside, pickableIn, toNeaClosure, type NeaClosure } from './closures';
 import { AreasToAlert } from './AreasToAlert';
 import { SupportList } from './SupportList';
+import { supportList } from './support';
 import { OutcomePanel, type Sensitivity } from './OutcomePanel';
 import {
   areasCutOff,
   priorityAreaIds,
   runScenario,
+  severityOf,
   summarise,
   toAccessBlocks,
   type AccessBlock,
@@ -92,6 +86,12 @@ export function SeniorsPage() {
     () => (subzonesReady ? priorityAreaIds(areas, isSuperAged) : null),
     [areas, isSuperAged, subzonesReady]
   );
+  const supportAreas = useMemo(
+    () => (outcomes ? supportList(outcomes, subzonesReady ? isSuperAged : null) : []),
+    [outcomes, isSuperAged, subzonesReady]
+  );
+  const supportsBySubzone = useMemo(() => new Map(supportAreas.map((a) => [a.subzone_id, a.supports])), [supportAreas]);
+  const severity = summary && priorityIds ? severityOf(summary, priorityIds.size) : null;
   // The lists reset to priority areas only whenever the closure changes, overlapping closures included.
   const closureKey = closure ? [closure.centreId, ...closure.alsoClosed].join('|') : '';
 
@@ -171,20 +171,6 @@ export function SeniorsPage() {
             )}
             <span className="text-muted-foreground">· or click any centre on the map</span>
           </div>
-          {notes.works.length > 0 && (
-            <p className="text-sm text-muted-foreground">
-              Also closed for works during these dates, so blocks skip them for the next centre still open:{' '}
-              {notes.works.map(closureLabel).join('; ')}.
-              <TagBadge tag="MEASURED" />
-            </p>
-          )}
-          {notes.cleaning.length > 0 && (
-            <p className="text-sm text-muted-foreground">
-              Cleaning at nearby centres during these dates, counted as open:{' '}
-              {notes.cleaning.map(closureLabel).join('; ')}.
-              <TagBadge tag="MEASURED" />
-            </p>
-          )}
         </PanelContent>
       </Panel>
 
@@ -210,8 +196,10 @@ export function SeniorsPage() {
             <OutcomePanel
               centre={closedCentre}
               picked={picked}
+              alongside={notes}
               summary={summary}
               priorityAreas={priorityIds?.size ?? null}
+              severity={severity}
               sensitivity={sensitivity}
               loading={!blocks}
             />
@@ -221,6 +209,7 @@ export function SeniorsPage() {
                 areas={areas}
                 subzoneSeniors={subzoneSeniors}
                 priorityIds={priorityIds}
+                supportsBySubzone={supportsBySubzone}
                 names={names}
               />
             )}
@@ -230,19 +219,12 @@ export function SeniorsPage() {
 
       <SupportList
         key={closureKey}
-        outcomes={outcomes}
+        areas={supportAreas}
         priorityIds={priorityIds}
-        isSuperAged={subzonesReady ? isSuperAged : null}
+        checkInsPending={!subzonesReady}
         closedName={closedCentre ? shortName(closedCentre.name) : null}
         names={names}
       />
-
-      <p className="text-xs text-muted-foreground">
-        Sources: HDB property information and building outlines (data.gov.sg) · NEA hawker centres and closure dates ·
-        URA Master Plan subzones · SingStat HDB residents by age and subzone. Walks are along the OpenStreetMap walking
-        network to the nearest open NEA hawker centre (silver.dist_matrix). Coffee shops and food courts are not
-        counted.
-      </p>
     </>
   );
 }

@@ -18,3 +18,6 @@ export const SENSITIVITY_LIMITS_MIN = String(assumptions['access.sensitivity_lim
   .map((v) => Number(v.trim()));
 // A temporary food point if at least this many seniors in one area have no open centre in range.
 export const FOOD_POINT_MIN_SENIORS = assumedNumber('access.food_point_min_seniors');
+// A closure is Severe at either of these (ASSUMPTIONS.md, severity).
+export const SEVERE_PRIORITY_AREAS = assumedNumber('access.severity.severe_priority_areas');
+export const SEVERE_NO_WALK_SENIORS = assumedNumber('access.severity.severe_no_walk_seniors');

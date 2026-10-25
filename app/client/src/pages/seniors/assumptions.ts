@@ -1,5 +1,5 @@
 import type { AssumptionLine } from '@shared/assumptions';
-import { CUTOFF_M, SUPER_AGED_PCT } from './settings';
+import { CUTOFF_M, SEVERE_NO_WALK_SENIORS, SEVERE_PRIORITY_AREAS, SUPER_AGED_PCT } from './settings';
 import { SUPPORT_RULES, SUPPORTS } from './support';
 
 export const seniorsAssumptions: AssumptionLine[] = [
@@ -59,6 +59,22 @@ export const seniorsAssumptions: AssumptionLine[] = [
     })
   ),
   { key: 'access.food_point_min_seniors' },
+  {
+    text: `Severity: Severe at ${SEVERE_PRIORITY_AREAS}+ priority areas or ${SEVERE_NO_WALK_SENIORS}+ seniors no one can walk for, Moderate with any priority area, Low when seniors only have a longer walk`,
+    tag: 'ASSUMPTION',
+    source: 'Team proposal (ASSUMPTIONS.md, severity, #79)',
+    status: 'open',
+  },
+  { key: 'access.severity.severe_priority_areas' },
+  { key: 'access.severity.severe_no_walk_seniors' },
+  {
+    text: 'Data: HDB property information and building outlines (data.gov.sg), NEA hawker centres and closure dates, URA Master Plan subzones, SingStat HDB residents by age and subzone',
+    tag: 'MEASURED',
+    source: 'data.gov.sg, NEA, URA, SingStat (via the hawkerreach gold tables)',
+    status: 'sourced',
+  },
+  { limitation: 'Coffee shops and food courts are not counted: only NEA hawker centres' },
+  { limitation: 'The nearest AAC for each area is Phase 2, once the MSF data is in (#34)' },
   {
     limitation:
       'Community meal points are not suggested yet: there is no data on where they are. A crowding check on the alternative centre is a follow-up (#86)',

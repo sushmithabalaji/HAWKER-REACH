@@ -6,7 +6,7 @@ import {
   type RawRow,
   type RawValue,
 } from '@/components/shared/queryValues';
-import { LIMIT_MIN, PACES } from './settings';
+import { LIMIT_MIN, PACES, SEVERE_NO_WALK_SENIORS, SEVERE_PRIORITY_AREAS } from './settings';
 
 export const TIERS = ['T1', 'T2', 'T3', 'T4'] as const;
 export type Tier = (typeof TIERS)[number];
@@ -177,6 +177,17 @@ export function priorityAreaIds(
   isSuperAged: (subzoneId: string) => boolean
 ): Set<string> {
   return new Set(areas.filter((a) => isPriority(a, isSuperAged(a.subzone_id))).map((a) => a.subzone_id));
+}
+
+// How serious a closure is for seniors (ASSUMPTIONS.md, severity): Severe with many priority areas or many
+// seniors no one can walk for, Moderate with any priority area, Low when seniors only have a longer walk.
+// Null when no senior is cut off.
+export type Severity = 'Severe' | 'Moderate' | 'Low';
+
+export function severityOf(summary: Summary, priorityAreas: number): Severity | null {
+  if (summary.groups['cut-off'].seniors === 0) return null;
+  if (priorityAreas >= SEVERE_PRIORITY_AREAS || summary.noOneCanWalk.seniors >= SEVERE_NO_WALK_SENIORS) return 'Severe';
+  return priorityAreas > 0 ? 'Moderate' : 'Low';
 }
 
 // Seniors per block are estimates, so counts are shown to the nearest 5.

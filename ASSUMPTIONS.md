@@ -66,6 +66,12 @@ Where this file disagrees with the wireframe, this file wins.
   - The CSV keeps every affected block, with a `priority` column (yes / no).
   - If no area is a priority, the lists say "No area needs urgent help" and how many areas have a longer walk.
   - Until the super-aged flags load (or if `subzone_seniors` fails), the rule can't run, so every area shows as before.
+- **Page 2 layout** (#79): the right-hand column reads closure → impact → severity → what to do.
+  - **Closing:** the centre, its closure type, dates and days, and any works closures nearby at the same time.
+  - **Impact:** seniors who lose a 15-min walk, and how many of them no one can walk for.
+  - **Severity** (ASSUMPTION, status `open`): **Severe** at `access.severity.severe_priority_areas` (3) or more priority areas, or `access.severity.severe_no_walk_seniors` (50) or more seniors no one can walk for; **Moderate** with any priority area; **Low** when seniors only have a longer walk. Shown once the super-aged flags load.
+  - **What to do** (was "Areas to alert"): the top 5 areas with the supports each needs, linking to the support list.
+  - The outcome groups, the 10 and 20 min figures and cleaning nearby are behind "Details". The sources paragraph moved into the Assumptions panel; block rows in the support list are behind a per-area "Show N blocks".
 - **Display rounding:** seniors counts are shown to the nearest 5, and under 5 as "<5", since seniors per block are estimates. Block counts are exact. (Decided in #31.)
 - **Town:** planning area (`pln_area_n`). The town filters the closure list and frames the map. The affected blocks include any block whose nearest centre closed, even across a town border.
 

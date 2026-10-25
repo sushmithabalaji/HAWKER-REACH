@@ -7,25 +7,34 @@ import { usePriorityFilter } from './usePriorityFilter';
 import { LIMIT_MIN, SUPER_AGED_PCT } from './settings';
 import type { SubzoneSeniors } from './subzoneSeniors';
 import type { Names } from './names';
+import type { SupportNeed } from './support';
+import { AreaSupports } from './SupportPills';
 
 interface AreasToAlertProps {
   areas: AreaCutOff[];
   subzoneSeniors: Map<string, SubzoneSeniors>;
   priorityIds: ReadonlySet<string> | null;
+  supportsBySubzone: ReadonlyMap<string, SupportNeed[]>;
   names: Names;
 }
 
-// Subzones whose AAC should check in, most seniors cut off first. Only priority areas show until the user
-// asks for all of them (ASSUMPTIONS.md, priority areas). The super-aged badge is shown beside the count,
-// never multiplied into it (ASSUMPTIONS.md, Areas to alert).
-export function AreasToAlert({ areas, subzoneSeniors, priorityIds, names }: AreasToAlertProps) {
+// The first few areas; the rest are in the support list below.
+const TOP_AREAS = 5;
+
+// "What to do", the last card of the right-hand column: the areas whose AAC should check in, most seniors cut
+// off first, each with the support it needs. Only priority areas show until the user asks for all of them
+// (ASSUMPTIONS.md, priority areas). The super-aged badge is shown beside the count, never multiplied into it
+// (ASSUMPTIONS.md, Areas to alert).
+export function AreasToAlert({ areas, subzoneSeniors, priorityIds, supportsBySubzone, names }: AreasToAlertProps) {
   const filter = usePriorityFilter(areas, priorityIds);
+  const top = filter.shown.slice(0, TOP_AREAS);
+  const more = filter.shown.length - top.length;
   return (
     <Panel>
       <PanelHeader>
-        <PanelTitle>Areas to alert</PanelTitle>
+        <PanelTitle>What to do</PanelTitle>
         <p className="text-xs text-muted-foreground">
-          Where no one can walk to a centre, or {SUPER_AGED_PCT}%+ of HDB residents are 65+.
+          Priority areas first: no one can walk to a centre, or {SUPER_AGED_PCT}%+ of HDB residents are 65+.
         </p>
       </PanelHeader>
       <PanelContent>
@@ -33,9 +42,9 @@ export function AreasToAlert({ areas, subzoneSeniors, priorityIds, names }: Area
           <p className="text-sm text-muted-foreground">No senior loses a {LIMIT_MIN}-min walk, so no area to alert.</p>
         )}
         {filter.noneUrgent && <NoneUrgent areas={areas.length} className="text-sm text-muted-foreground" />}
-        {filter.shown.length > 0 && (
+        {top.length > 0 && (
           <ul className="flex flex-col divide-y">
-            {filter.shown.map((a) => {
+            {top.map((a) => {
               const s = subzoneSeniors.get(a.subzone_id);
               return (
                 <li key={a.subzone_id} className={`flex items-start gap-3 py-2 text-sm ${filter.muted(a)}`}>
@@ -62,6 +71,9 @@ export function AreasToAlert({ areas, subzoneSeniors, priorityIds, names }: Area
                       {' · '}
                       {a.blocks} {a.blocks === 1 ? 'block' : 'blocks'} <TagBadge tag="MODELLED" />
                     </span>
+                    <span className="mt-1 block">
+                      <AreaSupports supports={supportsBySubzone.get(a.subzone_id) ?? []} />
+                    </span>
                   </span>
                   <span className="text-right font-mono text-highlight">
                     {roughCount(a.seniors)}
@@ -72,6 +84,18 @@ export function AreasToAlert({ areas, subzoneSeniors, priorityIds, names }: Area
               );
             })}
           </ul>
+        )}
+        {(more > 0 || top.length > 0) && (
+          <a href="#support-list" className="text-sm font-medium underline underline-offset-2">
+            {more > 0 ? (
+              <>
+                {more} <TagBadge tag="MODELLED" /> more in the support list
+              </>
+            ) : (
+              'Blocks and download in the support list'
+            )}{' '}
+            ↓
+          </a>
         )}
         {filter.canToggle && <ShowAllToggle showAll={filter.showAll} areas={areas.length} onToggle={filter.toggle} />}
       </PanelContent>
