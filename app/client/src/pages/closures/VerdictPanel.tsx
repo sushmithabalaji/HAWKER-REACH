@@ -3,7 +3,7 @@ import { Button } from '@databricks/appkit-ui/react';
 import type { PlanResult, Status } from '@shared/closure-engine';
 import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/shared/Panel';
 import { Pill } from '@/components/shared/Pill';
-import { TagBadge } from '@/components/shared/TagBadge';
+import { InfoPopover } from './InfoPopover';
 import { WALK_LIMITS } from './settings';
 import { cardView, planLineView, STATUS_STYLE, TONE_CLASS, type CardView } from './verdicts';
 
@@ -45,31 +45,18 @@ function VerdictCardItem({
           </span>
         )}
       </div>
-      <p className="text-sm">
-        {card.reason}
-        <TagBadge tag="MODELLED" />
-      </p>
-      {card.neaActions && (
-        <p className="text-sm">
-          {card.neaActions}
-          <TagBadge tag="MODELLED" />
-        </p>
-      )}
+      <p className="text-sm">{card.reason}</p>
+      {card.neaActions && <p className="text-sm">{card.neaActions}</p>}
       {card.overlaps.map((note) => (
         <p key={note} className="text-sm text-muted-foreground">
           {note}
-          <TagBadge tag="MEASURED" />
         </p>
       ))}
       {open && (
         <div className="flex flex-col gap-1 text-sm">
-          <p>
-            {card.readMore.share}
-            <TagBadge tag="MODELLED" />
-          </p>
+          <p>{card.readMore.share}</p>
           <div>
-            Centres it pushes
-            <TagBadge tag="MODELLED" />:
+            Centres it pushes:
             {card.readMore.pushes.length === 0 ? (
               ' none'
             ) : (
@@ -80,14 +67,8 @@ function VerdictCardItem({
               </ul>
             )}
           </div>
-          <p>
-            {card.readMore.accessLoss}
-            <TagBadge tag="MODELLED" />
-          </p>
-          <p className="text-xs text-muted-foreground">
-            The plan compared with the same plan where {card.name} stays open · gold.block_options · gold.centres ·
-            gold.centre_demand · gold.centre_closures
-          </p>
+          <p>{card.readMore.accessLoss}</p>
+          <p className="text-xs text-muted-foreground">Compared with the same plan where {card.name} stays open.</p>
         </div>
       )}
       <div className="flex gap-2">
@@ -122,7 +103,13 @@ export function VerdictPanel({
   return (
     <Panel>
       <PanelHeader>
-        <PanelTitle>Can these close with {anchorName}?</PanelTitle>
+        <PanelTitle>
+          Can these close with {anchorName}?{' '}
+          <InfoPopover label="Load benchmarks">
+            Load benchmarks from NEA&rsquo;s single closures: typical {result.benchmark.typical.toFixed(1)}, 3 in 4{' '}
+            {result.benchmark.threeInFour.toFixed(1)} extra diners per stall at the worst-hit neighbour.
+          </InfoPopover>
+        </PanelTitle>
         <div className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">
           {Object.values(STATUS_STYLE).map((s) => (
             <span key={s.word} className={TONE_CLASS[s.tone].text}>
@@ -135,14 +122,15 @@ export function VerdictPanel({
         {line ? (
           <div className={`flex flex-col gap-1 rounded-md border p-3 ${TONE_CLASS[line.tone].border}`}>
             <div className="flex flex-wrap items-center gap-2 text-sm">
-              <span className="font-medium">Whole plan:</span>
+              <span className="font-medium">
+                Whole plan:
+                <InfoPopover label="How the whole plan is coloured">
+                  Coloured by the added centres. What {anchorName} does on its own is listed, not counted.
+                </InfoPopover>
+              </span>
               <StatusMark {...line} />
               <span className="text-muted-foreground">{line.counts}</span>
-              <TagBadge tag="MODELLED" />
             </div>
-            <p className="text-xs text-muted-foreground">
-              Coloured by the added centres. What {anchorName} does on its own is listed, not counted.
-            </p>
             {line.anchorProblems.map((p) => (
               <p key={p} className="text-sm text-muted-foreground">
                 {p}
@@ -152,11 +140,6 @@ export function VerdictPanel({
         ) : (
           <p className="text-sm text-muted-foreground">Add centres above to check whether they can close together.</p>
         )}
-        <p className="text-xs text-muted-foreground">
-          Load benchmarks from NEA&rsquo;s single closures: typical {result.benchmark.typical.toFixed(1)} · 3 in 4{' '}
-          {result.benchmark.threeInFour.toFixed(1)} extra diners per stall at the worst-hit neighbour
-          <TagBadge tag="MODELLED" />
-        </p>
         <ul className="flex flex-col gap-2">
           {cards.map((card) => (
             <VerdictCardItem
