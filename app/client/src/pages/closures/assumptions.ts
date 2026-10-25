@@ -39,7 +39,7 @@ export const closuresAssumptions: AssumptionLine[] = [
     status: 'decided',
   },
   {
-    text: 'Can these close together: an added centre is judged only on what happens because it closes together with the rest of the plan. Red or yellow comes from three things only: the share of the rest of the plan’s displaced diners that would move to it, blocks that lose a centre only when both close, and a third centre made much busier only when both close and not by either closure alone. What the centre does on its own is listed under its card and never sets its colour',
+    text: 'Concurrent closure check: an added centre is judged only on what happens because it closes together with the rest of the plan. Red or yellow comes from three things only: the share of the rest of the plan’s displaced diners that would move to it, blocks that lose a centre only when both close, and a third centre made much busier only when both close and not by either closure alone. What the centre does on its own is listed under its card and never sets its colour',
     tag: 'MODELLED',
     source: 'gold.block_options · gold.centres · gold.centre_demand, regrouped in the page',
     status: 'decided',

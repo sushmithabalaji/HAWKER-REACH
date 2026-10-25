@@ -14,7 +14,8 @@ const ORDER: Basemap[] = ['onemap', 'carto', 'none'];
 
 // Each basemap has its own source id, so a late error from one isn't counted against the next.
 const SOURCE_PREFIX = 'basemap-';
-export const BACKGROUND = '#f2f2ef';
+// A warm off-white under the tiles, close to the cream page (#113).
+export const BACKGROUND = '#f7eee0';
 
 const ONEMAP = {
   tiles: ['https://www.onemap.gov.sg/maps/tiles/Grey/{z}/{x}/{y}.png'],

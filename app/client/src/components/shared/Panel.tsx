@@ -2,8 +2,8 @@ import type { ComponentProps } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@databricks/appkit-ui/react';
 import { cn } from '@/lib/utils';
 
-// The wireframe's card: white, 1px border, 12px corners, 14–18px padding and no shadow. Every section
-// on a page is one of these, so the pages share one look (#41).
+// The wireframe's card: white, 1px warm border, 12px corners, 14–18px padding and no shadow. Every section
+// on a page is one of these, so the pages share one look (#41). Titles carry a short brand-orange mark (#113).
 export function Panel({ className, ...props }: ComponentProps<typeof Card>) {
   return <Card className={cn('gap-3 py-3.5 shadow-none', className)} {...props} />;
 }
@@ -13,7 +13,15 @@ export function PanelHeader({ className, ...props }: ComponentProps<typeof CardH
 }
 
 export function PanelTitle({ className, ...props }: ComponentProps<typeof CardTitle>) {
-  return <CardTitle className={cn('text-base font-bold leading-snug', className)} {...props} />;
+  return (
+    <CardTitle
+      className={cn(
+        "relative pl-3 text-base font-bold leading-snug text-foreground before:absolute before:top-[0.2em] before:bottom-[0.2em] before:left-0 before:w-1 before:rounded-full before:bg-brand before:content-['']",
+        className
+      )}
+      {...props}
+    />
+  );
 }
 
 export function PanelContent({ className, ...props }: ComponentProps<typeof CardContent>) {

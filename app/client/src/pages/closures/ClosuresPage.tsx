@@ -140,7 +140,7 @@ function ClosuresContent({
       <Panel>
         <PanelContent className="grid gap-4 md:grid-cols-2">
           <div className="flex flex-col gap-2">
-            <span className="text-sm font-semibold">Anchor hawker centre</span>
+            <span className="text-sm font-semibold">Anchor centre</span>
             <div className="flex flex-col gap-2 rounded-md border bg-muted/30 p-2">
               <CentreSearch
                 selectedId={plan.anchorId}
@@ -163,7 +163,7 @@ function ClosuresContent({
           </div>
           <div className="flex flex-col gap-2">
             <span className="text-sm font-semibold">
-              Also close at the same time <span className="font-normal">(up to {MAX_SELECTED})</span>
+              Concurrent closures <span className="font-normal text-muted-foreground">(up to {MAX_SELECTED})</span>
             </span>
             {plan.selectedIds.length > 0 && (
               <ul className="flex flex-wrap gap-1.5" aria-label="Centres closing at the same time">
@@ -229,7 +229,7 @@ function ClosuresContent({
         map={
           <Panel>
             <PanelHeader>
-              <PanelTitle>Where displaced diners go</PanelTitle>
+              <PanelTitle>Diner redistribution</PanelTitle>
             </PanelHeader>
             <PanelContent className="gap-2">
               {data ? (
@@ -328,7 +328,7 @@ function ClosuresContent({
       <div className="grid grid-cols-1 items-start gap-panel xl:grid-cols-2">
         <Panel>
           <PanelHeader>
-            <PanelTitle>Demand dispersion and waste</PanelTitle>
+            <PanelTitle>Demand and food waste impact</PanelTitle>
           </PanelHeader>
           <PanelContent>
             <DemandWaste result={result} placeholder={panelPlaceholder('the extra demand and waste')} />

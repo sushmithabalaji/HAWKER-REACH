@@ -165,7 +165,7 @@ function VerdictCardItem({
   );
 }
 
-// "Can these close with {anchor}?": the whole-plan line, then one card per centre added (#11, Verdict card). Each card
+// "Concurrent closure check: {anchor}": the whole-plan line, then one card per centre added (#11, Verdict card). Each card
 // is its status, name and one-line reason; everything else is behind Read more (#101).
 export function VerdictPanel({
   anchorName,
@@ -187,7 +187,7 @@ export function VerdictPanel({
     <Panel>
       <PanelHeader>
         <PanelTitle>
-          Can these close with {anchorName}?{' '}
+          Concurrent closure check: {anchorName}{' '}
           <InfoPopover label="How each colour is decided">
             Only what happens because two centres close together counts. Red: the added centre takes{' '}
             {pct('verdict.share.red')} or more of the other closures&rsquo; diners, cuts off a block that neither

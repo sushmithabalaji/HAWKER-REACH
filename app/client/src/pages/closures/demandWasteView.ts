@@ -27,7 +27,7 @@ export interface DemandWasteView {
 // Waste is an assumption times modelled diners: whole kilograms, one decimal under 10.
 const kg = (n: number) => (n < 10 ? n.toFixed(1) : count(Math.round(n)));
 
-// The "Demand dispersion and waste" section as Page 1 shows it (#54): every receiving centre, flagged ones first,
+// The "Demand and food waste impact" section as Page 1 shows it (#54): every receiving centre, flagged ones first,
 // and a total row.
 export function demandWasteView({ rows, totalKgPerDay }: DemandWaste): DemandWasteView {
   return {

@@ -6,15 +6,16 @@ import type { CentreRow, PlanResult, Receiver } from '@shared/closure-engine';
 import { BaseMap } from '@/components/shared/BaseMap';
 import type { Bounds } from '@/components/shared/basemapStyles';
 import { canPick, shortName } from '@/components/shared/centres';
-import { HIGHLIGHT_HEX, INK_HEX, INTERIM_HEX, rgb, WHITE_HEX } from '@/components/shared/mapColours';
+import { BRAND_HEX, HIGHLIGHT_HEX, INK_HEX, INTERIM_HEX, rgb, WHITE_HEX } from '@/components/shared/mapColours';
 import type { BlockPoint } from './blocks';
 import { TOP_RECEIVERS, WALK_LIMITS } from './settings';
 import { count, pctOverBaseline, roundTo10 } from './format';
 import { worstCaseNote } from './notes';
 import { rippleFrame, SETTLED, START, type RippleFrame } from './ripple';
 
-const OTHER_HEX = '#9AA5B1';
-const RECEIVER_HEX = '#2F86B0';
+const OTHER_HEX = '#b3a190';
+// Centres taking diners: a deep version of the brand's soft teal, so the dots read on the basemap.
+const RECEIVER_HEX = '#2e7f84';
 // Above this many blocks losing access, their names would overlap, so they show only on hover.
 const MAX_BLOCK_LABELS = 25;
 // The "possibly under-counted" badge on the map: a dashed ring (deck.gl has no dashed strokes, so it is an icon).
@@ -170,7 +171,7 @@ export function RippleMap({
       stroked: true,
       lineWidthUnits: 'pixels',
       getLineWidth: 2,
-      getLineColor: rgb(HIGHLIGHT_HEX, Math.round(220 * (1 - frame.rings))),
+      getLineColor: rgb(BRAND_HEX, Math.round(220 * (1 - frame.rings))),
       updateTriggers: { getRadius: frame.rings, getLineColor: frame.rings },
     });
     const lines = new LineLayer<PlacedReceiver>({
@@ -181,7 +182,7 @@ export function RippleMap({
       widthUnits: 'pixels',
       // One width (#70): share is in the tooltip and the table, not the stroke.
       getWidth: 4,
-      getColor: rgb(HIGHLIGHT_HEX, 170),
+      getColor: rgb(BRAND_HEX, 190),
       updateTriggers: { getTargetPosition: frame.lines },
     });
     const receiverDots = new ScatterplotLayer<PlacedReceiver>({
