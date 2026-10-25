@@ -77,6 +77,18 @@ describe('toGoldData', () => {
           is_interim: 'false',
           pln_area_n: 'TOA PAYOH',
           subzone_id: 'TPSZ01',
+          opening_year: '1975',
+        },
+        {
+          centre_id: 'C2',
+          name: 'No Year',
+          lon: '103.86',
+          lat: '1.34',
+          cooked_food_stalls: '10',
+          is_interim: 'false',
+          pln_area_n: 'TOA PAYOH',
+          subzone_id: 'TPSZ01',
+          opening_year: null,
         },
       ],
       centreDemand: [
@@ -111,6 +123,18 @@ describe('toGoldData', () => {
         is_interim: false,
         pln_area_n: 'TOA PAYOH',
         subzone_id: 'TPSZ01',
+        opening_year: 1975,
+      },
+      {
+        centre_id: 'C2',
+        name: 'No Year',
+        lon: 103.86,
+        lat: 1.34,
+        cooked_food_stalls: 10,
+        is_interim: false,
+        pln_area_n: 'TOA PAYOH',
+        subzone_id: 'TPSZ01',
+        opening_year: null,
       },
     ]);
     expect(data.centreDemand).toEqual([

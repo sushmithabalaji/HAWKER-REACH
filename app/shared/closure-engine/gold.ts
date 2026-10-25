@@ -27,6 +27,8 @@ export interface CentreRow {
   is_interim: boolean;
   pln_area_n: string;
   subzone_id: string;
+  /** Year the centre opened; null where silver has none. */
+  opening_year: number | null;
 }
 
 /** `gold.centre_demand` (Spec 2). */

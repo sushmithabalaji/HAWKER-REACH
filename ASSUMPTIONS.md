@@ -79,7 +79,7 @@ Where this file disagrees with the wireframe, this file wins.
   4. Assert every shape is valid and non-empty, and print the total GeoJSON size
 
   The app caches these shapes.
-- **`centres`**: `centre_id` (same `HC_` IDs as silver), `name`, `lon`, `lat`, `cooked_food_stalls`, `is_interim`, `pln_area_n`, `subzone_id`. Interim centres count as open neighbours but can't be picked to close.
+- **`centres`**: `centre_id` (same `HC_` IDs as silver), `name`, `lon`, `lat`, `cooked_food_stalls`, `is_interim`, `pln_area_n`, `subzone_id`, `opening_year` (nullable; Spec 4's age proxy). Interim centres count as open neighbours but can't be picked to close.
 - **`centre_closures`**: every type and every date, with `closure_id`, `centre_id`, `type` (cleaning / renovation / redevelopment / partial), `start_date`, `end_date`, `duration_days`, `remarks`. Page 2 filters in its SQL.
 - **Excluded centres:** list which operating centres (about 118 expected) are excluded and why.
 - **Logging:** `data_quality_log` records issues, plus per-step summary rows (`rows_in`, `rows_out`, `dropped`).

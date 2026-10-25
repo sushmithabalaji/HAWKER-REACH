@@ -34,6 +34,7 @@ function toCentreRow(r: RawRow): CentreRow {
     is_interim: toBoolean(r.is_interim),
     pln_area_n: toText(r.pln_area_n),
     subzone_id: toText(r.subzone_id),
+    opening_year: toNumberOrNull(r.opening_year),
   };
 }
 
