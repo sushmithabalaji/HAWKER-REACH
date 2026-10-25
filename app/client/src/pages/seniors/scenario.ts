@@ -171,6 +171,14 @@ export function isPriority(area: AreaCutOff, superAged: boolean): boolean {
   return area.noOneCanWalk || superAged;
 }
 
+// The subzone ids of the priority areas, given which subzones are super-aged.
+export function priorityAreaIds(
+  areas: readonly AreaCutOff[],
+  isSuperAged: (subzoneId: string) => boolean
+): Set<string> {
+  return new Set(areas.filter((a) => isPriority(a, isSuperAged(a.subzone_id))).map((a) => a.subzone_id));
+}
+
 // Seniors per block are estimates, so counts are shown to the nearest 5.
 export function roughCount(n: number): string {
   if (n < 5) return n > 0 ? '<5' : '0';

@@ -1,57 +1,44 @@
-import { useState } from 'react';
-import { Button } from '@databricks/appkit-ui/react';
 import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/shared/Panel';
 import { Pill } from '@/components/shared/Pill';
 import { TagBadge } from '@/components/shared/TagBadge';
 import { roughCount, type AreaCutOff } from './scenario';
-import { LIMIT_MIN, SUPER_AGED_SHARE } from './settings';
+import { NoneUrgent, ShowAllToggle } from './priority';
+import { usePriorityFilter } from './usePriorityFilter';
+import { LIMIT_MIN, SUPER_AGED_PCT } from './settings';
 import type { SubzoneSeniors } from './subzoneSeniors';
 import type { Names } from './names';
 
 interface AreasToAlertProps {
   areas: AreaCutOff[];
   subzoneSeniors: Map<string, SubzoneSeniors>;
-  priorityIds: ReadonlySet<string>;
+  priorityIds: ReadonlySet<string> | null;
   names: Names;
 }
-
-const SUPER_AGED_PCT = Math.round(SUPER_AGED_SHARE * 100);
 
 // Subzones whose AAC should check in, most seniors cut off first. Only priority areas show until the user
 // asks for all of them (ASSUMPTIONS.md, priority areas). The super-aged badge is shown beside the count,
 // never multiplied into it (ASSUMPTIONS.md, Areas to alert).
 export function AreasToAlert({ areas, subzoneSeniors, priorityIds, names }: AreasToAlertProps) {
-  const [showAll, setShowAll] = useState(false);
-  const priority = areas.filter((a) => priorityIds.has(a.subzone_id));
-  const others = areas.length - priority.length;
-  const shown = showAll ? areas : priority;
+  const filter = usePriorityFilter(areas, priorityIds);
   return (
     <Panel>
       <PanelHeader>
         <PanelTitle>Areas to alert</PanelTitle>
         <p className="text-xs text-muted-foreground">
-          Where no one can walk to a centre, or {SUPER_AGED_PCT}%+ of residents are 65+.
+          Where no one can walk to a centre, or {SUPER_AGED_PCT}%+ of HDB residents are 65+.
         </p>
       </PanelHeader>
       <PanelContent>
         {areas.length === 0 && (
           <p className="text-sm text-muted-foreground">No senior loses a {LIMIT_MIN}-min walk, so no area to alert.</p>
         )}
-        {areas.length > 0 && priority.length === 0 && !showAll && (
-          <p className="text-sm text-muted-foreground">
-            No area needs urgent help. {areas.length} {areas.length === 1 ? 'area has' : 'areas have'} seniors with a
-            longer walk.
-          </p>
-        )}
-        {shown.length > 0 && (
+        {filter.noneUrgent && <NoneUrgent areas={areas.length} className="text-sm text-muted-foreground" />}
+        {filter.shown.length > 0 && (
           <ul className="flex flex-col divide-y">
-            {shown.map((a) => {
+            {filter.shown.map((a) => {
               const s = subzoneSeniors.get(a.subzone_id);
               return (
-                <li
-                  key={a.subzone_id}
-                  className={`flex items-start gap-3 py-2 text-sm ${priorityIds.has(a.subzone_id) ? '' : 'opacity-60'}`}
-                >
+                <li key={a.subzone_id} className={`flex items-start gap-3 py-2 text-sm ${filter.muted(a)}`}>
                   <span className="flex-1">
                     <strong>{names.subzone(a.subzone_id)}</strong>
                     {a.noOneCanWalk && (
@@ -86,13 +73,7 @@ export function AreasToAlert({ areas, subzoneSeniors, priorityIds, names }: Area
             })}
           </ul>
         )}
-        {others > 0 && (
-          <div>
-            <Button variant="ghost" size="sm" className="-ml-2" onClick={() => setShowAll((v) => !v)}>
-              {showAll ? 'Show priority areas only' : `Show all ${areas.length} affected areas`}
-            </Button>
-          </div>
-        )}
+        {filter.canToggle && <ShowAllToggle showAll={filter.showAll} areas={areas.length} onToggle={filter.toggle} />}
       </PanelContent>
     </Panel>
   );

@@ -2,6 +2,7 @@ import { describe, expect, test } from 'vitest';
 import {
   areasCutOff,
   isPriority,
+  priorityAreaIds,
   roughCount,
   roundedCount,
   runScenario,
@@ -302,6 +303,17 @@ describe('isPriority', () => {
 
   test('a subzone with only a longer walk, and not super-aged, is not', () => {
     expect(isPriority(area(false), false)).toBe(false);
+  });
+});
+
+describe('priorityAreaIds', () => {
+  test('keeps the areas where no one can walk or that are super-aged', () => {
+    const areas = [
+      { subzone_id: 'WALK', seniors: 10, blocks: 1, noOneCanWalk: true },
+      { subzone_id: 'OLD', seniors: 10, blocks: 1, noOneCanWalk: false },
+      { subzone_id: 'NEITHER', seniors: 10, blocks: 1, noOneCanWalk: false },
+    ];
+    expect(priorityAreaIds(areas, (id) => id === 'OLD')).toEqual(new Set(['WALK', 'OLD']));
   });
 });
 

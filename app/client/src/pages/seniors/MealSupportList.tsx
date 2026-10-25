@@ -1,17 +1,19 @@
-import { Fragment, useMemo, useState } from 'react';
+import { Fragment, useMemo } from 'react';
 import { Button } from '@databricks/appkit-ui/react';
 import { Pill, type PillTone } from '@/components/shared/Pill';
 import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/shared/Panel';
 import { TagBadge } from '@/components/shared/TagBadge';
 import { metres, type Names } from './names';
 import { roughCount, type BlockOutcome } from './scenario';
+import { NoneUrgent, ShowAllToggle } from './priority';
+import { usePriorityFilter } from './usePriorityFilter';
 import { LIMIT_MIN } from './settings';
 import { MEAL_SUPPORT_RULE, mealSupportList, supportCsv, type Support } from './support';
 
 interface MealSupportListProps {
   outcomes: BlockOutcome[] | null;
   closedName: string | null;
-  priorityIds: ReadonlySet<string>;
+  priorityIds: ReadonlySet<string> | null;
   names: Names;
 }
 
@@ -44,16 +46,15 @@ const fileSafe = (s: string) =>
 // Who needs what support after the closure: one row per subzone with seniors cut off, its blocks
 // underneath. Priority areas only until the user asks for all; the download always has every block.
 export function MealSupportList({ outcomes, closedName, priorityIds, names }: MealSupportListProps) {
-  const [showAll, setShowAll] = useState(false);
   const areas = useMemo(() => (outcomes ? mealSupportList(outcomes) : []), [outcomes]);
-  const priority = areas.filter((a) => priorityIds.has(a.subzone_id));
-  const shown = showAll ? areas : priority;
+  const filter = usePriorityFilter(areas, priorityIds);
+  const shown = filter.shown;
   const blocks = shown.reduce((n, a) => n + a.blocks.length, 0);
 
   const onDownload = () => {
     if (!closedName) return;
     const date = new Date().toISOString().slice(0, 10);
-    download(supportCsv(areas, names, priorityIds), `meal-support-${fileSafe(closedName)}-${date}.csv`);
+    download(supportCsv(areas, names, priorityIds ?? new Set()), `meal-support-${fileSafe(closedName)}-${date}.csv`);
   };
 
   return (
@@ -62,7 +63,7 @@ export function MealSupportList({ outcomes, closedName, priorityIds, names }: Me
         <PanelTitle className="flex-1 text-xl">Senior meal-support list</PanelTitle>
         {closedName && shown.length > 0 && (
           <Pill tone="outline">
-            {shown.length} {showAll ? '' : 'priority '}
+            {shown.length} {filter.showAll || !priorityIds ? '' : 'priority '}
             {shown.length === 1 ? 'area' : 'areas'} · {blocks} blocks <TagBadge tag="MODELLED" /> · after {closedName}{' '}
             closes
           </Pill>
@@ -79,11 +80,8 @@ export function MealSupportList({ outcomes, closedName, priorityIds, names }: Me
             No senior loses a {LIMIT_MIN}-min walk when {closedName} closes, so no one needs meal support.
           </p>
         )}
-        {areas.length > 0 && priority.length === 0 && !showAll && (
-          <p className="rounded-md bg-muted p-3 text-sm text-muted-foreground">
-            No area needs urgent help. {areas.length} {areas.length === 1 ? 'area has' : 'areas have'} seniors with a
-            longer walk.
-          </p>
+        {filter.noneUrgent && (
+          <NoneUrgent areas={areas.length} className="rounded-md bg-muted p-3 text-sm text-muted-foreground" />
         )}
         {shown.length > 0 && (
           <div className="overflow-x-auto">
@@ -105,7 +103,7 @@ export function MealSupportList({ outcomes, closedName, priorityIds, names }: Me
               <tbody>
                 {shown.map((area) => (
                   <Fragment key={area.subzone_id}>
-                    <tr className={`border-b bg-muted/40 ${priorityIds.has(area.subzone_id) ? '' : 'opacity-60'}`}>
+                    <tr className={`border-b bg-muted/40 ${filter.muted(area)}`}>
                       <td className="px-3 py-2">
                         <strong>{names.subzone(area.subzone_id)}</strong>
                         <span className="block text-xs text-muted-foreground">
@@ -123,7 +121,7 @@ export function MealSupportList({ outcomes, closedName, priorityIds, names }: Me
                       </td>
                     </tr>
                     {area.blocks.map(({ outcome: o, support }) => (
-                      <tr key={o.block.block_id} className="border-b text-muted-foreground">
+                      <tr key={o.block.block_id} className={`border-b text-muted-foreground ${filter.muted(area)}`}>
                         <td className="py-1.5 pl-8 pr-3">{o.block.block_label}</td>
                         <td className="px-3 py-1.5 font-mono">{roughCount(o.block.est_seniors)}</td>
                         <td className="px-3 py-1.5">
@@ -145,13 +143,7 @@ export function MealSupportList({ outcomes, closedName, priorityIds, names }: Me
           Rule (fixed): {MEAL_SUPPORT_RULE}. <TagBadge tag="ASSUMPTION" /> The nearest AAC is Phase 2, once the MSF data
           is in.
         </p>
-        {areas.length > priority.length && (
-          <div>
-            <Button variant="ghost" size="sm" className="-ml-2" onClick={() => setShowAll((v) => !v)}>
-              {showAll ? 'Show priority areas only' : `Show all ${areas.length} affected areas`}
-            </Button>
-          </div>
-        )}
+        {filter.canToggle && <ShowAllToggle showAll={filter.showAll} areas={areas.length} onToggle={filter.toggle} />}
         <div>
           <Button size="lg" onClick={onDownload} disabled={areas.length === 0}>
             Download list (CSV)

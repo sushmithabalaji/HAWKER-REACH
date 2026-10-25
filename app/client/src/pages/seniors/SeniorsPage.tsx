@@ -24,7 +24,7 @@ import { MealSupportList } from './MealSupportList';
 import { OutcomePanel, type Sensitivity } from './OutcomePanel';
 import {
   areasCutOff,
-  isPriority,
+  priorityAreaIds,
   runScenario,
   summarise,
   toAccessBlocks,
@@ -85,15 +85,14 @@ export function SeniorsPage() {
   const outcomes = useMemo(() => (blocks && closure ? runScenario(blocks, closure) : null), [blocks, closure]);
   const summary = useMemo(() => (outcomes ? summarise(outcomes) : null), [outcomes]);
   const areas = useMemo(() => (outcomes ? areasCutOff(outcomes) : []), [outcomes]);
+  // Null until the super-aged flags load (or if they fail), so no super-aged area is hidden as non-priority.
+  const subzonesReady = !!subzonesQuery.data && !subzonesQuery.error;
   const priorityIds = useMemo(
-    () =>
-      new Set(
-        areas
-          .filter((a) => isPriority(a, subzoneSeniors.get(a.subzone_id)?.is_super_aged ?? false))
-          .map((a) => a.subzone_id)
-      ),
-    [areas, subzoneSeniors]
+    () => (subzonesReady ? priorityAreaIds(areas, (id) => subzoneSeniors.get(id)?.is_super_aged ?? false) : null),
+    [areas, subzoneSeniors, subzonesReady]
   );
+  // The lists reset to priority areas only whenever the closure changes, overlapping closures included.
+  const closureKey = closure ? [closure.centreId, ...closure.alsoClosed].join('|') : '';
 
   const sensitivity: Sensitivity | null = useMemo(() => {
     if (!closure) return null;
@@ -211,13 +210,13 @@ export function SeniorsPage() {
               centre={closedCentre}
               picked={picked}
               summary={summary}
-              areas={priorityIds.size}
+              priorityAreas={priorityIds?.size ?? null}
               sensitivity={sensitivity}
               loading={!blocks}
             />
             {closedCentre && outcomes && (
               <AreasToAlert
-                key={closure?.centreId}
+                key={closureKey}
                 areas={areas}
                 subzoneSeniors={subzoneSeniors}
                 priorityIds={priorityIds}
@@ -229,7 +228,7 @@ export function SeniorsPage() {
       />
 
       <MealSupportList
-        key={closure?.centreId}
+        key={closureKey}
         outcomes={outcomes}
         priorityIds={priorityIds}
         closedName={closedCentre ? shortName(closedCentre.name) : null}

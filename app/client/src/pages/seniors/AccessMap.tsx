@@ -26,7 +26,7 @@ import {
   type Tier,
 } from './scenario';
 import { metres, NO_CENTRE, type Names } from './names';
-import { LIMIT_MIN, SUPER_AGED_SHARE } from './settings';
+import { LIMIT_MIN, SUPER_AGED_PCT } from './settings';
 import { multiplierBand, multiplierBandLabel, MULTIPLIER_BREAKS, type SubzoneSeniors } from './subzoneSeniors';
 
 type View = 'tiers' | 'multiplier';
@@ -37,7 +37,7 @@ interface AccessMapProps {
   outcomes: BlockOutcome[] | null;
   closure: Closure | null;
   areas: AreaCutOff[];
-  priorityIds: ReadonlySet<string>;
+  priorityIds: ReadonlySet<string> | null; // null until super-aged flags load
   subzoneSeniors: Map<string, SubzoneSeniors>;
   subzonesError: string | null;
   names: Names;
@@ -97,6 +97,10 @@ export function AccessMap({
     const centreLayer = centresLayer({ centres: centres ?? [], pickedId: closure?.centreId ?? null, closedIds });
 
     if (view === 'multiplier') {
+      // Only priority areas get the dark outline, so the ones needing help first stand out; every area
+      // with seniors cut off until the priority rule can run.
+      const outlined = (f: SubzoneFeature) =>
+        priorityIds ? priorityIds.has(f.properties.subzone_id) : cutOffBySubzone.has(f.properties.subzone_id);
       const shading = new GeoJsonLayer<SubzoneProps>({
         id: 'multiplier',
         data: subzones ?? { type: 'FeatureCollection', features: [] },
@@ -107,15 +111,13 @@ export function AccessMap({
           const band = multiplierBand(subzoneSeniors.get(f.properties.subzone_id)?.multiplier ?? null);
           return band === null ? [0, 0, 0, 0] : rgb(MULTIPLIER_HEX[band], 200);
         },
-        // Only priority areas get the dark outline, so the ones needing help first stand out.
-        getLineColor: (f: SubzoneFeature) =>
-          priorityIds.has(f.properties.subzone_id) ? rgb(INK_HEX) : [120, 120, 120, 120],
-        getLineWidth: (f: SubzoneFeature) => (priorityIds.has(f.properties.subzone_id) ? 2.5 : 0.5),
+        getLineColor: (f: SubzoneFeature) => (outlined(f) ? rgb(INK_HEX) : [120, 120, 120, 120]),
+        getLineWidth: (f: SubzoneFeature) => (outlined(f) ? 2.5 : 0.5),
         lineWidthUnits: 'pixels',
         updateTriggers: {
           getFillColor: [subzoneSeniors],
-          getLineColor: [priorityIds],
-          getLineWidth: [priorityIds],
+          getLineColor: [priorityIds, cutOffBySubzone],
+          getLineWidth: [priorityIds, cutOffBySubzone],
         },
       });
       return [shading, centreLayer];
@@ -142,7 +144,19 @@ export function AccessMap({
       updateTriggers: { getRadius: [outcomeById], getFillColor: [outcomeById, phase, closure] },
     });
     return [blockLayer, centreLayer];
-  }, [view, phase, blocks, centres, subzones, closure, closedIds, outcomeById, priorityIds, subzoneSeniors]);
+  }, [
+    view,
+    phase,
+    blocks,
+    centres,
+    subzones,
+    closure,
+    closedIds,
+    outcomeById,
+    priorityIds,
+    cutOffBySubzone,
+    subzoneSeniors,
+  ]);
 
   const blockTooltip = (b: AccessBlock) => {
     const nearest = b.options[0];
@@ -247,9 +261,7 @@ export function AccessMap({
                     <span className="block text-xs text-muted-foreground">its share aged 65+ ÷ the HDB-wide share</span>
                   </div>
                   {popup.is_super_aged && (
-                    <div className="mt-1 font-medium text-highlight">
-                      ⚠ {Math.round(SUPER_AGED_SHARE * 100)}%+ aged 65+ (super-aged)
-                    </div>
+                    <div className="mt-1 font-medium text-highlight">⚠ {SUPER_AGED_PCT}%+ aged 65+ (super-aged)</div>
                   )}
                 </>
               ) : (
@@ -293,7 +305,7 @@ export function AccessMap({
               ))}
               <span className="flex items-center gap-1.5">
                 <Swatch colour="transparent" ring={INK_HEX} />
-                priority area
+                {priorityIds ? 'priority area' : 'seniors lose their walk'}
               </span>
               <TagBadge tag="MODELLED" />
             </>

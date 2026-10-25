@@ -1,8 +1,6 @@
 import type { AssumptionLine } from '@shared/assumptions';
-import { CUTOFF_M, SUPER_AGED_SHARE } from './settings';
+import { CUTOFF_M, SUPER_AGED_PCT } from './settings';
 import { MEAL_SUPPORT_RULE } from './support';
-
-const SUPER_AGED_PCT = Math.round(SUPER_AGED_SHARE * 100);
 
 export const seniorsAssumptions: AssumptionLine[] = [
   { key: 'walk.pace.senior' },

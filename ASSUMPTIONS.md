@@ -14,7 +14,7 @@ Where this file disagrees with the wireframe, this file wins.
 | Age-group control | Under 65 / 65–74 / 75–84 / 85+, at 1.3 / 1.2 / 1.0 / 0.8 m/s | Removed from the MVP. Seniors (65+) walk at 1.0 m/s everywhere. |
 | "Slower walkers lose more" panel | On Page 2 | Removed. Replaced by the sensitivity line ("If the limit were 10 or 20 min…"). |
 | "AACs to alert" | Ranked by seniors affected × multiplier | Renamed "Areas to alert": one row per subzone, sorted by seniors cut off, with `is_super_aged` as a badge and no multiplied score. |
-| Priority areas | Every area to alert listed alike | Only priority areas show by default (see below); the rest are behind "Show all". Still no multiplied score: priority filters the list and the order stays by seniors cut off. (#77) |
+| Priority areas | Every area to alert listed alike (#32) | Replaces #32's "list every area" rule: only priority areas show by default (see below); the rest are behind "Show all". Still no multiplied score: priority filters the list and the order stays by seniors cut off. (#77) |
 | AAC column | Phase 2 | Still Phase 2, plus a spike ticket on AAC data sources. |
 | Seniors per block | Subzone 65+ residents spread evenly over its blocks | `silver.blocks.est_seniors`, weighted by flat type. |
 | Number tags | Page 1 only | Every number on Page 2 too, each with a line in the shared Assumptions panel. |
@@ -60,6 +60,7 @@ Where this file disagrees with the wireframe, this file wins.
   - On the vulnerability map, only priority areas get the dark outline.
   - The CSV keeps every affected block, with a `priority` column (yes / no).
   - If no area is a priority, the lists say "No area needs urgent help" and how many areas have a longer walk.
+  - Until the super-aged flags load (or if `subzone_seniors` fails), the rule can't run, so every area shows as before.
 - **Display rounding:** seniors counts are shown to the nearest 5, and under 5 as "<5", since seniors per block are estimates. Block counts are exact. (Decided in #31.)
 - **Town:** planning area (`pln_area_n`). The town filters the closure list and frames the map. The affected blocks include any block whose nearest centre closed, even across a town border.
 
