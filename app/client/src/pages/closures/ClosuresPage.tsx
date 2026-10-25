@@ -11,6 +11,7 @@ import { TagBadge } from '@/components/shared/TagBadge';
 import { addToPlan, EMPTY_PLAN, removeFromPlan, withAnchor, type Plan } from './plan';
 import { undercountNotes as notesFor } from './notes';
 import { BLOCK_BANDS, blockPoints } from './blocks';
+import { DispersionTabs } from './DispersionTabs';
 import { RippleMap } from './RippleMap';
 import { TOP_RECEIVERS, WALK_LIMITS } from './settings';
 import { takeawaySentence } from './takeaway';
@@ -268,16 +269,7 @@ function ClosuresContent({
           </div>
         </>
       )}
-      <Panel>
-        <PanelHeader>
-          <PanelTitle>Demand dispersion and waste</PanelTitle>
-        </PanelHeader>
-        <PanelContent>
-          <p className="text-sm text-muted-foreground">
-            Extra diners and waste per centre, and centres to schedule alongside, come with Spec 4.
-          </p>
-        </PanelContent>
-      </Panel>
+      <DispersionTabs result={result} loading={!data && !error} />
     </div>
   );
 }
