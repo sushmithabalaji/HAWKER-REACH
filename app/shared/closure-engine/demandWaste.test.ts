@@ -160,6 +160,36 @@ describe('evaluatePlan: demand and waste', () => {
     expect(totalKgPerDay.base).toBeCloseTo(3);
   });
 
+  it('works for a joint plan, where a closed centre takes no diners', () => {
+    const joint = town(
+      [centre('HC_A'), centre('HC_B'), centre('HC_C')],
+      [
+        block(
+          'B1',
+          [
+            ['HC_A', 100],
+            ['HC_B', 200],
+            ['HC_C', 300],
+          ],
+          { diners: 40 }
+        ),
+        block(
+          'B2',
+          [
+            ['HC_B', 100],
+            ['HC_C', 200],
+          ],
+          { diners: 30 }
+        ),
+      ]
+    );
+
+    const { rows, totalKgPerDay } = evaluatePlan(joint, 'HC_A', ['HC_B'], withValues(kg)).demandWaste;
+
+    expect(rows.map((r) => [r.centreId, r.extraDinersPerDay])).toEqual([['HC_C', 70]]);
+    expect(totalKgPerDay.base).toBeCloseTo(7);
+  });
+
   it('shows "new" and a zero baseline for a centre with no modelled diners', () => {
     const empty = town(
       [centre('HC_A'), centre('HC_Z', { baseline: 0 })],

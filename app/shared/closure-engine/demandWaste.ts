@@ -1,4 +1,4 @@
-import type { Assumptions } from '../assumptions';
+import { assumedNumber, type Assumptions } from '../assumptions';
 import type { Receiver } from './plan';
 
 export interface DemandWasteRow {
@@ -40,9 +40,9 @@ export function demandWasteOf(
   threshold: number,
   assumptions: Assumptions
 ): DemandWaste {
-  const kg = (level: keyof WasteRange) => value(assumptions, `waste.kg_per_diner_per_day.${level}`);
-  const visits = value(assumptions, 'diners.visits_per_week.base');
-  const visitsScale = (end: 'min' | 'max') => value(assumptions, `diners.visits_per_week.${end}`) / visits;
+  const kg = (level: keyof WasteRange) => assumedNumber(`waste.kg_per_diner_per_day.${level}`, assumptions);
+  const visits = assumedNumber('diners.visits_per_week.base', assumptions);
+  const visitsScale = (end: 'min' | 'max') => assumedNumber(`diners.visits_per_week.${end}`, assumptions) / visits;
 
   const rows = receivers
     .map(
@@ -75,10 +75,4 @@ export function demandWasteOf(
       high: diners * visitsScale('max') * kg('high'),
     },
   };
-}
-
-function value(assumptions: Assumptions, key: string): number {
-  const entry = assumptions[key];
-  if (typeof entry?.value !== 'number') throw new Error(`assumptions.json has no number for "${key}"`);
-  return entry.value;
 }
