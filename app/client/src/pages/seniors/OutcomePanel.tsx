@@ -19,7 +19,7 @@ interface OutcomePanelProps {
   centre: Centre | null;
   picked: NeaClosure | null;
   summary: Summary | null;
-  areas: number;
+  areas: number; // priority areas
   sensitivity: Sensitivity | null;
   loading: boolean;
 }
@@ -172,7 +172,7 @@ export function OutcomePanel({ centre, picked, summary, areas, sensitivity, load
               '–'
             )
           }
-          label="areas where the AAC should check in"
+          label="priority areas for the AAC to check on"
         />
       </div>
 

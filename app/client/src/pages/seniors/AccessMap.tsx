@@ -37,6 +37,7 @@ interface AccessMapProps {
   outcomes: BlockOutcome[] | null;
   closure: Closure | null;
   areas: AreaCutOff[];
+  priorityIds: ReadonlySet<string>;
   subzoneSeniors: Map<string, SubzoneSeniors>;
   subzonesError: string | null;
   names: Names;
@@ -76,6 +77,7 @@ export function AccessMap({
   outcomes,
   closure,
   areas,
+  priorityIds,
   subzoneSeniors,
   subzonesError,
   names,
@@ -105,15 +107,15 @@ export function AccessMap({
           const band = multiplierBand(subzoneSeniors.get(f.properties.subzone_id)?.multiplier ?? null);
           return band === null ? [0, 0, 0, 0] : rgb(MULTIPLIER_HEX[band], 200);
         },
-        // Subzones hit by the closure get a dark outline.
+        // Only priority areas get the dark outline, so the ones needing help first stand out.
         getLineColor: (f: SubzoneFeature) =>
-          cutOffBySubzone.has(f.properties.subzone_id) ? rgb(INK_HEX) : [120, 120, 120, 120],
-        getLineWidth: (f: SubzoneFeature) => (cutOffBySubzone.has(f.properties.subzone_id) ? 2.5 : 0.5),
+          priorityIds.has(f.properties.subzone_id) ? rgb(INK_HEX) : [120, 120, 120, 120],
+        getLineWidth: (f: SubzoneFeature) => (priorityIds.has(f.properties.subzone_id) ? 2.5 : 0.5),
         lineWidthUnits: 'pixels',
         updateTriggers: {
           getFillColor: [subzoneSeniors],
-          getLineColor: [cutOffBySubzone],
-          getLineWidth: [cutOffBySubzone],
+          getLineColor: [priorityIds],
+          getLineWidth: [priorityIds],
         },
       });
       return [shading, centreLayer];
@@ -140,7 +142,7 @@ export function AccessMap({
       updateTriggers: { getRadius: [outcomeById], getFillColor: [outcomeById, phase, closure] },
     });
     return [blockLayer, centreLayer];
-  }, [view, phase, blocks, centres, subzones, closure, closedIds, outcomeById, cutOffBySubzone, subzoneSeniors]);
+  }, [view, phase, blocks, centres, subzones, closure, closedIds, outcomeById, priorityIds, subzoneSeniors]);
 
   const blockTooltip = (b: AccessBlock) => {
     const nearest = b.options[0];
@@ -291,7 +293,7 @@ export function AccessMap({
               ))}
               <span className="flex items-center gap-1.5">
                 <Swatch colour="transparent" ring={INK_HEX} />
-                seniors lose their walk
+                priority area
               </span>
               <TagBadge tag="MODELLED" />
             </>

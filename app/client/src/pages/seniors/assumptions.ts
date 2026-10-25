@@ -1,6 +1,8 @@
 import type { AssumptionLine } from '@shared/assumptions';
-import { CUTOFF_M } from './settings';
+import { CUTOFF_M, SUPER_AGED_SHARE } from './settings';
 import { MEAL_SUPPORT_RULE } from './support';
+
+const SUPER_AGED_PCT = Math.round(SUPER_AGED_SHARE * 100);
 
 export const seniorsAssumptions: AssumptionLine[] = [
   { key: 'walk.pace.senior' },
@@ -36,6 +38,12 @@ export const seniorsAssumptions: AssumptionLine[] = [
     text: 'Areas where the AAC should check in: subzones with at least one senior cut off by the closure',
     tag: 'MODELLED',
     source: 'ASSUMPTIONS.md (Areas to alert)',
+    status: 'decided',
+  },
+  {
+    text: `Priority areas, shown first and outlined on the map: areas to alert with a block where no one can walk to a centre (T1 → T4), or where ${SUPER_AGED_PCT}%+ of HDB residents are 65+. The rest are behind "Show all"; the order stays by seniors cut off`,
+    tag: 'ASSUMPTION',
+    source: 'Team decision (ASSUMPTIONS.md, priority areas)',
     status: 'decided',
   },
   {

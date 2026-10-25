@@ -22,7 +22,15 @@ import {
 import { AreasToAlert } from './AreasToAlert';
 import { MealSupportList } from './MealSupportList';
 import { OutcomePanel, type Sensitivity } from './OutcomePanel';
-import { areasCutOff, runScenario, summarise, toAccessBlocks, type AccessBlock, type Closure } from './scenario';
+import {
+  areasCutOff,
+  isPriority,
+  runScenario,
+  summarise,
+  toAccessBlocks,
+  type AccessBlock,
+  type Closure,
+} from './scenario';
 import { makeNames } from './names';
 import { SENSITIVITY_LIMITS_MIN } from './settings';
 import { toSubzoneSeniors } from './subzoneSeniors';
@@ -77,6 +85,15 @@ export function SeniorsPage() {
   const outcomes = useMemo(() => (blocks && closure ? runScenario(blocks, closure) : null), [blocks, closure]);
   const summary = useMemo(() => (outcomes ? summarise(outcomes) : null), [outcomes]);
   const areas = useMemo(() => (outcomes ? areasCutOff(outcomes) : []), [outcomes]);
+  const priorityIds = useMemo(
+    () =>
+      new Set(
+        areas
+          .filter((a) => isPriority(a, subzoneSeniors.get(a.subzone_id)?.is_super_aged ?? false))
+          .map((a) => a.subzone_id)
+      ),
+    [areas, subzoneSeniors]
+  );
 
   const sensitivity: Sensitivity | null = useMemo(() => {
     if (!closure) return null;
@@ -180,6 +197,7 @@ export function SeniorsPage() {
             outcomes={outcomes}
             closure={closure}
             areas={areas}
+            priorityIds={priorityIds}
             subzoneSeniors={subzoneSeniors}
             subzonesError={subzonesQuery.error}
             names={names}
@@ -193,17 +211,27 @@ export function SeniorsPage() {
               centre={closedCentre}
               picked={picked}
               summary={summary}
-              areas={areas.length}
+              areas={priorityIds.size}
               sensitivity={sensitivity}
               loading={!blocks}
             />
-            {closedCentre && outcomes && <AreasToAlert areas={areas} subzoneSeniors={subzoneSeniors} names={names} />}
+            {closedCentre && outcomes && (
+              <AreasToAlert
+                key={closure?.centreId}
+                areas={areas}
+                subzoneSeniors={subzoneSeniors}
+                priorityIds={priorityIds}
+                names={names}
+              />
+            )}
           </>
         }
       />
 
       <MealSupportList
+        key={closure?.centreId}
         outcomes={outcomes}
+        priorityIds={priorityIds}
         closedName={closedCentre ? shortName(closedCentre.name) : null}
         names={names}
       />

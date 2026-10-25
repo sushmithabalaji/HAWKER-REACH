@@ -1,4 +1,4 @@
-import { Fragment, useMemo } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { Button } from '@databricks/appkit-ui/react';
 import { Pill, type PillTone } from '@/components/shared/Pill';
 import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/shared/Panel';
@@ -11,6 +11,7 @@ import { MEAL_SUPPORT_RULE, mealSupportList, supportCsv, type Support } from './
 interface MealSupportListProps {
   outcomes: BlockOutcome[] | null;
   closedName: string | null;
+  priorityIds: ReadonlySet<string>;
   names: Names;
 }
 
@@ -41,25 +42,29 @@ const fileSafe = (s: string) =>
     .replace(/^-|-$/g, '');
 
 // Who needs what support after the closure: one row per subzone with seniors cut off, its blocks
-// underneath, downloadable at block level.
-export function MealSupportList({ outcomes, closedName, names }: MealSupportListProps) {
+// underneath. Priority areas only until the user asks for all; the download always has every block.
+export function MealSupportList({ outcomes, closedName, priorityIds, names }: MealSupportListProps) {
+  const [showAll, setShowAll] = useState(false);
   const areas = useMemo(() => (outcomes ? mealSupportList(outcomes) : []), [outcomes]);
-  const blocks = areas.reduce((n, a) => n + a.blocks.length, 0);
+  const priority = areas.filter((a) => priorityIds.has(a.subzone_id));
+  const shown = showAll ? areas : priority;
+  const blocks = shown.reduce((n, a) => n + a.blocks.length, 0);
 
   const onDownload = () => {
     if (!closedName) return;
     const date = new Date().toISOString().slice(0, 10);
-    download(supportCsv(areas, names), `meal-support-${fileSafe(closedName)}-${date}.csv`);
+    download(supportCsv(areas, names, priorityIds), `meal-support-${fileSafe(closedName)}-${date}.csv`);
   };
 
   return (
     <Panel>
       <PanelHeader className="flex flex-row flex-wrap items-center gap-x-4 gap-y-2">
         <PanelTitle className="flex-1 text-xl">Senior meal-support list</PanelTitle>
-        {closedName && areas.length > 0 && (
+        {closedName && shown.length > 0 && (
           <Pill tone="outline">
-            {areas.length} {areas.length === 1 ? 'area' : 'areas'} · {blocks} blocks <TagBadge tag="MODELLED" /> · after{' '}
-            {closedName} closes
+            {shown.length} {showAll ? '' : 'priority '}
+            {shown.length === 1 ? 'area' : 'areas'} · {blocks} blocks <TagBadge tag="MODELLED" /> · after {closedName}{' '}
+            closes
           </Pill>
         )}
       </PanelHeader>
@@ -74,7 +79,13 @@ export function MealSupportList({ outcomes, closedName, names }: MealSupportList
             No senior loses a {LIMIT_MIN}-min walk when {closedName} closes, so no one needs meal support.
           </p>
         )}
-        {areas.length > 0 && (
+        {areas.length > 0 && priority.length === 0 && !showAll && (
+          <p className="rounded-md bg-muted p-3 text-sm text-muted-foreground">
+            No area needs urgent help. {areas.length} {areas.length === 1 ? 'area has' : 'areas have'} seniors with a
+            longer walk.
+          </p>
+        )}
+        {shown.length > 0 && (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[720px] border-collapse text-sm">
               <thead>
@@ -92,9 +103,9 @@ export function MealSupportList({ outcomes, closedName, names }: MealSupportList
                 </tr>
               </thead>
               <tbody>
-                {areas.map((area) => (
+                {shown.map((area) => (
                   <Fragment key={area.subzone_id}>
-                    <tr className="border-b bg-muted/40">
+                    <tr className={`border-b bg-muted/40 ${priorityIds.has(area.subzone_id) ? '' : 'opacity-60'}`}>
                       <td className="px-3 py-2">
                         <strong>{names.subzone(area.subzone_id)}</strong>
                         <span className="block text-xs text-muted-foreground">
@@ -134,6 +145,13 @@ export function MealSupportList({ outcomes, closedName, names }: MealSupportList
           Rule (fixed): {MEAL_SUPPORT_RULE}. <TagBadge tag="ASSUMPTION" /> The nearest AAC is Phase 2, once the MSF data
           is in.
         </p>
+        {areas.length > priority.length && (
+          <div>
+            <Button variant="ghost" size="sm" className="-ml-2" onClick={() => setShowAll((v) => !v)}>
+              {showAll ? 'Show priority areas only' : `Show all ${areas.length} affected areas`}
+            </Button>
+          </div>
+        )}
         <div>
           <Button size="lg" onClick={onDownload} disabled={areas.length === 0}>
             Download list (CSV)

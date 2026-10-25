@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import {
   areasCutOff,
+  isPriority,
   roughCount,
   roundedCount,
   runScenario,
@@ -265,9 +266,42 @@ describe('areasCutOff', () => {
       ),
     ];
     expect(areasCutOff(runScenario(blocks, { centreId: 'C', alsoClosed: [] }))).toEqual([
-      { subzone_id: 'SZ2', seniors: 9, blocks: 1 },
-      { subzone_id: 'SZ1', seniors: 6, blocks: 2 },
+      { subzone_id: 'SZ2', seniors: 9, blocks: 1, noOneCanWalk: false },
+      { subzone_id: 'SZ1', seniors: 6, blocks: 2, noOneCanWalk: false },
     ]);
+  });
+
+  test('marks a subzone where a block has no centre anyone can walk to', () => {
+    const blocks = [
+      block(
+        'a',
+        'T1',
+        [
+          ['C', 300],
+          ['D', 1000],
+        ],
+        4,
+        'SZ1'
+      ),
+      block('b', 'T1', [['C', 300]], 3, 'SZ1'),
+    ];
+    expect(areasCutOff(runScenario(blocks, { centreId: 'C', alsoClosed: [] }))).toEqual([
+      { subzone_id: 'SZ1', seniors: 7, blocks: 2, noOneCanWalk: true },
+    ]);
+  });
+});
+
+describe('isPriority', () => {
+  const area = (noOneCanWalk: boolean) => ({ subzone_id: 'SZ1', seniors: 10, blocks: 1, noOneCanWalk });
+
+  test('a subzone where no one can walk to a centre, or a super-aged one, is a priority', () => {
+    expect(isPriority(area(true), false)).toBe(true);
+    expect(isPriority(area(false), true)).toBe(true);
+    expect(isPriority(area(true), true)).toBe(true);
+  });
+
+  test('a subzone with only a longer walk, and not super-aged, is not', () => {
+    expect(isPriority(area(false), false)).toBe(false);
   });
 });
 
