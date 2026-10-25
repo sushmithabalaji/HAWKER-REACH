@@ -204,6 +204,7 @@ export function SeniorsPage() {
         key={closureKey}
         areas={supportAreas}
         priorityIds={priorityIds}
+        subzoneSeniors={subzoneSeniors}
         closedName={closedCentre ? shortName(closedCentre.name) : null}
         names={names}
       />

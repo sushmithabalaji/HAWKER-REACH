@@ -61,7 +61,7 @@ Where this file disagrees with the wireframe, this file wins.
   - Each block row keeps its own support (shuttle or meals). The CSV has `block_support` and `area_supports` columns.
   - **Not built yet:** community meal points (no data on where they are), and a "may be crowded" flag on the alternative centre (it needs the closure engine's receivers from Spec 2's `centre_demand`; #86).
 - **Priority areas** (#77): an area to alert is a priority if a block in it went T1 → T4 (no one can walk to a centre) or it is super-aged (21%+ aged 65+).
-  - Areas to alert and the support list show priority areas only, with a "Show all N affected areas" toggle that adds the rest, muted.
+  - The support list shows the top 5 affected areas by default, priority areas first and then the next most affected, each by seniors cut off, with a "Show all N affected areas" toggle (#110). Priority rows carry a "Priority" badge. Each row shows the area's vulnerability band and multiplier, and the CSV has a `vulnerability_multiplier` column.
   - On the vulnerability map, only priority areas get the dark outline.
   - The CSV keeps every affected block, with a `priority` column (yes / no).
   - If no area is a priority, the lists say "No area needs urgent help" and how many areas have a longer walk.
@@ -76,7 +76,7 @@ Where this file disagrees with the wireframe, this file wins.
   - No "Details" toggle (#96): the outcome groups, the 10 and 20 min figures and cleaning nearby aren't shown on Page 2. The 10 and 20 min runs stay in `gold.access_sensitivity` and MLflow for the team. The sources paragraph moved into the Assumptions panel; block rows in the support list are behind a per-area "Show N blocks".
 - **Map legends** (#75): plain words instead of tier codes and bare multipliers.
   - Access tiers show three levels of concern: **Accessible** (T1, a senior can walk there in 15 min; called "OK" until #103), **Concerning** (T2 and T3, too far for a senior to walk) and **Highly vulnerable** (T4, no one can walk there). T2 and T3 share the amber colour; the tier codes stay in the model, the block tooltip and the CSV.
-  - The vulnerability multiplier has four named bands: **Low vulnerability** (under ×0.85), **Moderate** (×0.85–1.1), **High** (×1.1–1.35) and **Extremely vulnerable** (×1.35+), on the app's orange ramp (#99; it was purple in #75), getting stronger as the number goes up. The wireframe's lowest two bands (split at ×0.6) are merged. The subzone popup leads with the band name. With a closure picked, only subzones with seniors cut off are shaded; with none, every subzone is (#105).
+  - The vulnerability multiplier has four named bands: **Low vulnerability** (under ×0.85), **Moderate** (×0.85–1.1), **High** (×1.1–1.35) and **Extremely vulnerable** (×1.35+), on the app's orange ramp (#99; it was purple in #75), getting stronger as the number goes up. The wireframe's lowest two bands (split at ×0.6) are merged. The subzone popup leads with the band name. Every subzone is shaded, closure or not (#110 undid #105's affected-only shading). The legend says each band in plain words, for example "High: 10–35% more seniors than average".
 - **Display rounding:** seniors counts are shown to the nearest 5, and under 5 as "<5", since seniors per block are estimates. Block counts are exact. (Decided in #31.)
 - **Town:** planning area (`pln_area_n`). The town filters the closure list and frames the map. The affected blocks include any block whose nearest centre closed, even across a town border.
 

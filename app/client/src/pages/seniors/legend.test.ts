@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { isShaded, MULTIPLIER_BANDS, tierHex } from './legend';
+import { MULTIPLIER_BANDS, tierHex } from './legend';
 import { levelShifts, runScenario, type AccessBlock, type Tier } from './scenario';
 import { MULTIPLIER_BREAKS } from './subzoneSeniors';
 
@@ -25,15 +25,6 @@ const block = (block_id: string, tier_now: Tier, nextWalkM: number | null, est_s
   est_seniors,
   tier_now,
   options: [{ centre_id: 'C', walk_m: 300 }, ...(nextWalkM === null ? [] : [{ centre_id: 'D', walk_m: nextWalkM }])],
-});
-
-describe('isShaded', () => {
-  test('every subzone with no closure; only cut-off ones with a closure', () => {
-    const cutOff = new Set(['HIT']);
-    expect(isShaded('OTHER', false, cutOff)).toBe(true);
-    expect(isShaded('HIT', true, cutOff)).toBe(true);
-    expect(isShaded('OTHER', true, cutOff)).toBe(false);
-  });
 });
 
 describe('levelShifts', () => {

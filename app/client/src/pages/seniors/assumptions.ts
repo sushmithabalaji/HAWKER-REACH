@@ -95,7 +95,7 @@ export const seniorsAssumptions: AssumptionLine[] = [
   },
   { key: 'access.super_aged_share' },
   {
-    text: 'Vulnerability multiplier: a subzone’s share aged 65+ ÷ the HDB-wide share aged 65+. With a closure picked, only areas with seniors cut off are shaded',
+    text: 'Vulnerability multiplier: a subzone’s share aged 65+ ÷ the HDB-wide share aged 65+',
     tag: 'MODELLED',
     source: 'gold.subzone_seniors (04_gold_access)',
     status: 'decided',

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { multiplierBand, multiplierBandLabel, toSubzoneSeniors } from './subzoneSeniors';
+import { multiplierBand, multiplierBandLabel, multiplierBandMeaning, toSubzoneSeniors } from './subzoneSeniors';
 
 describe('multiplierBand', () => {
   test('four bands, each including its lower break', () => {
@@ -12,6 +12,15 @@ describe('multiplierBand', () => {
 
   test('labels', () => {
     expect([0, 1, 3].map(multiplierBandLabel)).toEqual(['under ×0.85', '×0.85–1.1', '×1.35+']);
+  });
+
+  test('plain-words meanings for the legend', () => {
+    expect([0, 1, 2, 3].map(multiplierBandMeaning)).toEqual([
+      '15%+ fewer seniors than average',
+      'about average',
+      '10–35% more seniors than average',
+      '35%+ more seniors than average',
+    ]);
   });
 });
 
