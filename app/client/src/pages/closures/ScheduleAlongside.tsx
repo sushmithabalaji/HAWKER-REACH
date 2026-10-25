@@ -1,18 +1,16 @@
 import { useMemo, useState } from 'react';
 import { Button } from '@databricks/appkit-ui/react';
-import { assumedNumber, assumptions } from '@shared/assumptions';
+import { assumptions } from '@shared/assumptions';
 import { findCandidates, type GoldData } from '@shared/closure-engine';
 import { resolveWindow, suggestedWindow, type WindowEdit } from './closureWindow';
 import { closurePeriod } from './format';
 import { candidateRowView } from './scheduleView';
-import { TONE_CLASS } from './verdicts';
 
-const CUTOFF_KM = assumedNumber('walk.cutoff_m') / 1000;
 const DATE_INPUT = 'rounded-md border border-input bg-card px-2 py-1 text-sm';
 const HEAD = 'border-b-2 border-foreground px-3 py-2';
 
-// The "Centres to close in the same window" section (#54, #72): centres that could close at the same time
-// as the plan, compared in a table, and the closure window they are checked against.
+// The "Centres to close in the same window" section (#54, #72, #94): the top centres that could close at the
+// same time as the plan, ranked by R&R need, and the closure window they are checked against.
 export function ScheduleAlongside({
   data,
   anchorId,
@@ -35,14 +33,13 @@ export function ScheduleAlongside({
   const suggested = useMemo(() => suggestedWindow(data.centreClosures, anchorId, today), [data, anchorId, today]);
   const { from, to, state } = resolveWindow(edit, anchorId, suggested);
   const closureWindow = state.kind === 'ok' ? state.window : null;
-  const currentYear = Number(today.slice(0, 4));
 
   const result = useMemo(
-    () => findCandidates(data, anchorId, selectedIds, closureWindow, currentYear, assumptions),
+    () => findCandidates(data, anchorId, selectedIds, closureWindow, today, assumptions),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [data, anchorId, selectedIds, closureWindow?.from, closureWindow?.to, currentYear]
+    [data, anchorId, selectedIds, closureWindow?.from, closureWindow?.to, today]
   );
-  const rows = result.candidates.map(candidateRowView);
+  const rows = result.candidates.map((c) => candidateRowView(c, result));
   // The window reads as one line; the date pickers show on "Change", or when there is no usable window.
   const [changingFor, setChangingFor] = useState<string | null>(null);
   const showPickers = changingFor === anchorId || !closureWindow;
@@ -55,7 +52,6 @@ export function ScheduleAlongside({
 
   return (
     <div className="flex flex-col gap-3">
-      <p className="text-sm text-muted-foreground">Within {CUTOFF_KM} km of the anchor.</p>
       {showPickers ? (
         <div className="flex flex-wrap items-end gap-3">
           <label className="flex flex-col gap-1 text-sm font-semibold">
@@ -116,7 +112,7 @@ export function ScheduleAlongside({
         </p>
       ) : rows.length === 0 ? (
         <p className="rounded-md bg-muted p-3 text-sm text-muted-foreground">
-          No centre within {CUTOFF_KM} km can close in this window.
+          No centre can close with the plan in this window.
         </p>
       ) : (
         <>
@@ -124,13 +120,14 @@ export function ScheduleAlongside({
             <p className="text-xs text-muted-foreground">Overlap not checked: enter dates to compare closures.</p>
           )}
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] border-collapse text-sm">
+            <table className="w-full min-w-[720px] border-collapse text-sm">
               <thead>
                 <tr className="text-left font-mono text-xs tracking-wide text-muted-foreground">
                   <th className={HEAD}>CENTRE</th>
-                  <th className={HEAD}>DISTANCE</th>
-                  <th className={HEAD}>OPENED</th>
-                  <th className={HEAD}>WHY</th>
+                  <th className={HEAD}>LAST R&amp;R</th>
+                  <th className={HEAD}>SENIORS CUT OFF</th>
+                  <th className={HEAD}>DINERS DISPLACED A DAY</th>
+                  <th className={HEAD}>CLOSURES IN WINDOW</th>
                   <th className={HEAD}>
                     <span className="sr-only">Action</span>
                   </th>
@@ -138,22 +135,12 @@ export function ScheduleAlongside({
               </thead>
               <tbody>
                 {rows.map((r) => (
-                  <tr key={r.centreId} className="border-b align-top">
+                  <tr key={r.centreId} className="border-b">
                     <td className="px-3 py-2 font-medium">{r.name}</td>
-                    <td className="px-3 py-2 font-mono">{r.distance}</td>
-                    <td className="px-3 py-2 font-mono">{r.opened}</td>
-                    <td className="px-3 py-2">
-                      <span className={`inline-flex items-center gap-1.5 font-semibold ${TONE_CLASS[r.status].text}`}>
-                        <span aria-hidden>{r.icon}</span>
-                        {r.word}
-                      </span>
-                      <span className="block">{r.reason}</span>
-                      {r.cleaningNotes.map((note) => (
-                        <span key={note} className="block text-xs text-muted-foreground">
-                          {note}
-                        </span>
-                      ))}
-                    </td>
+                    <td className="px-3 py-2 font-mono">{r.lastRR}</td>
+                    <td className="px-3 py-2 font-mono">{r.seniorsCutOff}</td>
+                    <td className="px-3 py-2 font-mono">{r.dinersDisplaced}</td>
+                    <td className="px-3 py-2 font-mono">{r.closuresInWindow}</td>
                     <td className="px-3 py-2 text-right">
                       <Button size="sm" variant="outline" onClick={() => onAdd(r.centreId)}>
                         Add to plan

@@ -586,7 +586,7 @@ function joinNames(parts: string[]): string {
 }
 
 // Seniors per block are estimates, so they are shown to the nearest 5, and under 5 as "<5" (ASSUMPTIONS.md, display rounding).
-function roughSeniors(n: number): string {
+export function roughSeniors(n: number): string {
   if (n < 5) return n > 0 ? '<5' : '0';
   return (Math.round(n / 5) * 5).toLocaleString('en-US');
 }
@@ -652,4 +652,10 @@ function value(assumptions: Assumptions, key: string): number {
   const entry = assumptions[key];
   if (typeof entry?.value !== 'number') throw new Error(`assumptions.json has no number for "${key}"`);
   return entry.value;
+}
+
+/** For each centre, the seniors left with no centre within the limit at senior pace when it closes on its own (#94). */
+export function seniorsCutOffAlone(data: GoldData, assumptions: Assumptions): (centreId: string) => number {
+  const prepared = prepare(data, assumptions);
+  return (centreId) => regroup(prepared, new Set([centreId])).accessLoss.senior.seniors;
 }

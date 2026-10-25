@@ -5,48 +5,54 @@ import { candidateRowView } from './scheduleView';
 const candidate = (over: Partial<Candidate> = {}): Candidate => ({
   centreId: 'C1',
   name: 'Toa Payoh West Market and Food Centre',
-  distanceM: 1234.5,
-  openingYear: 1975,
-  ageYears: 51,
-  status: 'green',
-  reason: 'Closing Toa Payoh West too cuts no one off.',
+  lastRR: '2025-08-31',
+  dueForRR: false,
+  seniorsCutOff: 0,
+  dinersDisplacedPerDay: 2384,
   cleaning: [],
   ...over,
 });
+const checked = { recordsFrom: 2024, overlapChecked: true };
 
 describe('candidateRowView', () => {
-  test('a green candidate: short name, distance in km, age and the verdict', () => {
-    expect(candidateRowView(candidate())).toEqual({
+  test('diners to the nearest 10, under 5 as "<10"', () => {
+    expect(candidateRowView(candidate({ dinersDisplacedPerDay: 3 }), checked).dinersDisplaced).toBe('<10');
+  });
+
+  test('short name, last R&R as month and year, diners to the nearest 10', () => {
+    expect(candidateRowView(candidate(), checked)).toEqual({
       centreId: 'C1',
       name: 'Toa Payoh West',
-      status: 'green',
-      icon: '✓',
-      word: 'Safe to close together',
-      reason: 'Closing Toa Payoh West too cuts no one off.',
-      distance: '1.2 km',
-      opened: '1975 (51 years ago)',
-      cleaningNotes: [],
+      lastRR: 'Aug 2025',
+      seniorsCutOff: '0',
+      dinersDisplaced: '2,380',
+      closuresInWindow: 'None',
     });
   });
 
-  test('a yellow candidate keeps its reason and its own mark', () => {
-    expect(candidateRowView(candidate({ status: 'yellow', reason: 'It pushes Dover.' }))).toMatchObject({
-      status: 'yellow',
-      icon: '!',
-      word: 'Close with caution',
-      reason: 'It pushes Dover.',
-    });
+  test('seniors cut off to the nearest 5, under 5 as "<5"', () => {
+    expect(
+      [0, 3, 23, 1234].map((n) => candidateRowView(candidate({ seniorsCutOff: n }), checked).seniorsCutOff)
+    ).toEqual(['0', '<5', '25', '1,235']);
   });
 
-  test('opened reads as the year and a year count, "this year", or unknown', () => {
-    expect(candidateRowView(candidate({ openingYear: 2025, ageYears: 1 })).opened).toBe('2025 (1 year ago)');
-    expect(candidateRowView(candidate({ openingYear: 2026, ageYears: 0 })).opened).toBe('2026 (this year)');
-    expect(candidateRowView(candidate({ openingYear: null, ageYears: null })).opened).toBe('Unknown');
+  test('no R&R on record reads from the year the records start', () => {
+    expect(candidateRowView(candidate({ lastRR: null }), checked).lastRR).toBe('Not since 2024');
+    expect(candidateRowView(candidate({ lastRR: null }), { ...checked, recordsFrom: null }).lastRR).toBe(
+      'Not on record'
+    );
   });
 
-  test('a cleaning closure in the window becomes a note', () => {
-    const row = candidateRowView(candidate({ cleaning: [{ startDate: '2026-10-05', endDate: '2026-10-06' }] }));
+  test('cleaning in the window counts its days; no window reads "—"', () => {
+    const cleaning = [
+      { startDate: '2026-10-05', endDate: '2026-10-06' },
+      { startDate: '2026-11-02', endDate: '2026-11-02' },
+    ];
 
-    expect(row.cleaningNotes).toEqual(['Cleaning 5 Oct – 6 Oct 2026']);
+    expect(candidateRowView(candidate({ cleaning }), checked).closuresInWindow).toBe('3 cleaning days');
+    expect(candidateRowView(candidate({ cleaning: cleaning.slice(1) }), checked).closuresInWindow).toBe(
+      '1 cleaning day'
+    );
+    expect(candidateRowView(candidate(), { ...checked, overlapChecked: false }).closuresInWindow).toBe('—');
   });
 });

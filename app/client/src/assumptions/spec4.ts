@@ -18,9 +18,9 @@ export const spec4Assumptions: AssumptionLine[] = [
     status: 'open',
   },
   {
-    text: 'Centres to schedule alongside: open centres within 2 km of the anchor, as the crow flies, that would get a green verdict if added to the plan, with no renovation, redevelopment or partial closure overlapping the closure window. Cleaning overlaps are a note only. Oldest first, then nearest, up to 5; yellow centres fill any gaps, red centres are never shown',
+    text: 'Centres to close in the same window: any open centre that gets a green verdict if added to the plan, is not possibly under-counted, and has no renovation, redevelopment or partial closure in the window. Due for Repairs and Redecoration (R&R) first (none on record, or the last one a full cycle ago), then fewest seniors cut off and then fewest diners displaced if it closes on its own, up to 5. R&R history starts with the closure records (2024), so older works are unknown (#73)',
     tag: 'MODELLED',
-    source: 'gold.centres · gold.centre_closures · gold.block_options, evaluated in the page',
+    source: 'gold.centres · gold.centre_closures · gold.centre_demand · gold.block_options, evaluated in the page',
     status: 'decided',
   },
   {
@@ -30,13 +30,26 @@ export const spec4Assumptions: AssumptionLine[] = [
     status: 'decided',
   },
   {
-    text: 'Centre age: the year the centre opened, shown as "Opened YYYY (N years ago)"',
+    text: 'Last R&R: the end of the latest finished renovation closure whose remarks say Repairs and Redecoration (or the Hawker Centres Transformation Programme)',
     tag: 'MEASURED',
-    source: 'gold.centres.opening_year (silver.centres, from NEA)',
+    source: 'gold.centre_closures (NEA Dates of Hawker Centres Closure, data.gov.sg)',
     status: 'sourced',
+  },
+  { key: 'candidates.rr_cycle_years' },
+  {
+    text: 'Seniors cut off (centres to close in the same window): seniors in blocks left with no centre within 15 min at senior pace if that centre closes on its own',
+    tag: 'MODELLED',
+    source: 'gold.block_options (walk_m at 1.0 m/s), evaluated in the page',
+    status: 'decided',
+  },
+  {
+    text: "Diners displaced a day (centres to close in the same window): the centre's modelled diners today, who would all eat elsewhere while it is closed",
+    tag: 'MODELLED',
+    source: 'gold.centre_demand',
+    status: 'decided',
   },
   {
     limitation:
-      'Age is a proxy for maintenance need, not time since the last major works: the NEA closures file has no works history, so a recently renovated old centre looks older than its works record',
+      "R&R history only goes back as far as NEA's closures file (2024), so a centre with no R&R on record may have had one before then (#73)",
   },
 ];

@@ -1,6 +1,6 @@
 import type { DemandWaste, WasteRange } from '@shared/closure-engine';
 import { shortName } from '@/components/shared/centres';
-import { count, roundTo10 } from './format';
+import { count, roughDiners as diners } from './format';
 
 export interface DemandWasteRowView {
   centreId: string;
@@ -24,8 +24,6 @@ export interface DemandWasteView {
   totalRange: string;
 }
 
-// Diners are modelled, so they are shown to the nearest 10; under 5 would read as 0, so it is "<10".
-const diners = (n: number) => (n <= 0 ? '0' : roundTo10(n) === 0 ? '<10' : count(roundTo10(n)));
 // Waste is an assumption times modelled diners: whole kilograms, one decimal under 10.
 const kg = (n: number) => (n < 10 ? n.toFixed(1) : count(Math.round(n)));
 

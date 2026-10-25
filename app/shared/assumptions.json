@@ -341,5 +341,17 @@
     "used_by": [
       "spec4"
     ]
+  },
+  "candidates.rr_cycle_years": {
+    "name": "Years between NEA Repairs and Redecoration (R&R) at a hawker centre",
+    "value": 6,
+    "unit": "years",
+    "tag": "ASSUMPTION",
+    "source": "Team input: NEA does R&R every 6–8 years (the low end is used, so a centre counts as due sooner); source still needed (#94)",
+    "status": "open",
+    "owner": "Aanya",
+    "used_by": [
+      "spec4"
+    ]
   }
 }
