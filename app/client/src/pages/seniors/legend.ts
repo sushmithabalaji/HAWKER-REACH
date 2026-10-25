@@ -1,4 +1,4 @@
-import type { Tier } from './scenario';
+import type { BlockOutcome, Tier } from './scenario';
 import { LIMIT_MIN } from './settings';
 
 // Page 2's map legends: the colour and plain words for each access level and vulnerability band, chosen
@@ -15,12 +15,37 @@ export const ACCESS_LEVELS: Record<AccessLevel, { label: string; meaning: string
 export const TIER_LEVEL: Record<Tier, AccessLevel> = { T1: 'ok', T2: 'concerning', T3: 'concerning', T4: 'vulnerable' };
 export const tierHex = (tier: Tier) => ACCESS_LEVELS[TIER_LEVEL[tier]].hex;
 
-// One entry per multiplierBand, low to high, on a purple ramp that gets stronger as the multiplier goes
-// up and can't be mistaken for the access colours.
+// One entry per multiplierBand, low to high, on the app's orange ramp (the wireframe's), getting stronger
+// as the multiplier goes up.
 export const MULTIPLIER_BANDS = [
-  { name: 'Low vulnerability', hex: '#EEE6F4' },
-  { name: 'Moderate', hex: '#C3A3DA' },
-  { name: 'High', hex: '#8550B3' },
-  { name: 'Extremely vulnerable', hex: '#4A1A75' },
+  { name: 'Low vulnerability', hex: '#FDF0E2' },
+  { name: 'Moderate', hex: '#F2A766' },
+  { name: 'High', hex: '#E06A2B' },
+  { name: 'Extremely vulnerable', hex: '#A93A0B' },
 ];
 export const NOT_AFFECTED_HEX = '#C5CDD5';
+
+export interface LevelShift {
+  from: AccessLevel;
+  to: AccessLevel;
+  seniors: number;
+}
+
+const LEVEL_ORDER: AccessLevel[] = ['ok', 'concerning', 'vulnerable'];
+
+// Seniors in blocks whose nearest centre closed, by access level before → after, for the shifts that change
+// level only, mildest start first (ok → concerning, ok → vulnerable, concerning → vulnerable).
+export function levelShifts(outcomes: readonly BlockOutcome[]): LevelShift[] {
+  const byPair = new Map<string, LevelShift>();
+  for (const o of outcomes) {
+    const from = TIER_LEVEL[o.block.tier_now];
+    const to = TIER_LEVEL[o.after];
+    if (from === to) continue;
+    const key = `${from}>${to}`;
+    const shift = byPair.get(key) ?? { from, to, seniors: 0 };
+    shift.seniors += o.block.est_seniors;
+    byPair.set(key, shift);
+  }
+  const rank = (s: LevelShift) => LEVEL_ORDER.indexOf(s.from) * 3 + LEVEL_ORDER.indexOf(s.to);
+  return [...byPair.values()].sort((a, b) => rank(a) - rank(b));
+}

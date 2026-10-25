@@ -10,9 +10,9 @@ import { NO_PARAMS, type RawRow } from '@/components/shared/queryValues';
 import { QueryError } from '@/components/shared/QueryError';
 import { AccessMap } from './AccessMap';
 import { closureFor, dateRange, nearbyWorks, pickableIn, toNeaClosure, type NeaClosure } from './closures';
-import { WhatToDo } from './WhatToDo';
 import { SupportList } from './SupportList';
 import { supportList } from './support';
+import { levelShifts } from './legend';
 import { OutcomePanel } from './OutcomePanel';
 import {
   areasCutOff,
@@ -87,7 +87,7 @@ export function SeniorsPage() {
     () => (outcomes ? supportList(outcomes, subzonesReady ? isSuperAged : null) : []),
     [outcomes, isSuperAged, subzonesReady]
   );
-  const supportsBySubzone = useMemo(() => new Map(supportAreas.map((a) => [a.subzone_id, a.supports])), [supportAreas]);
+  const shifts = useMemo(() => (outcomes ? levelShifts(outcomes) : []), [outcomes]);
   const severity = summary && priorityIds ? severityOf(summary, priorityIds.size) : null;
   // The lists reset to priority areas only whenever the closure changes, overlapping closures included.
   const closureKey = closure ? [closure.centreId, ...closure.alsoClosed].join('|') : '';
@@ -181,21 +181,12 @@ export function SeniorsPage() {
               picked={picked}
               alongside={alongside}
               summary={summary}
+              shifts={shifts}
               priorityAreas={priorityIds?.size ?? null}
               severity={severity}
               severityPending={!subzonesReady}
               loading={!blocks}
             />
-            {closedCentre && outcomes && (
-              <WhatToDo
-                key={closureKey}
-                areas={areas}
-                subzoneSeniors={subzoneSeniors}
-                priorityIds={priorityIds}
-                supportsBySubzone={supportsBySubzone}
-                names={names}
-              />
-            )}
           </>
         }
       />

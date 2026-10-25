@@ -4,6 +4,7 @@ import { shortName, type Centre } from '@/components/shared/centres';
 import { closureLabel, dateRange, type NeaClosure } from './closures';
 import { roughCount, type Severity, type Summary } from './scenario';
 import { LIMIT_MIN } from './settings';
+import { ACCESS_LEVELS, type AccessLevel, type LevelShift } from './legend';
 
 interface OutcomePanelProps {
   centre: Centre | null;
@@ -11,6 +12,7 @@ interface OutcomePanelProps {
   // Works closures near the picked one during its dates, which count as closed.
   alongside: NeaClosure[];
   summary: Summary | null;
+  shifts: LevelShift[]; // seniors moving between access levels, for blocks whose nearest centre closed
   priorityAreas: number | null; // null until the super-aged flags load
   severity: Severity | null; // null with no senior cut off, or until priority areas are known
   severityPending: boolean; // the share aged 65+ is still loading or failed, so severity can't be worked out
@@ -85,6 +87,46 @@ function ImpactCard({ summary }: { summary: Summary }) {
   );
 }
 
+function LevelChip({ level }: { level: AccessLevel }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-sm">
+      <span
+        className="inline-block h-3 w-3 shrink-0 rounded-sm"
+        style={{ background: ACCESS_LEVELS[level].hex, border: '1px solid rgb(0 0 0 / 0.35)' }}
+      />
+      {ACCESS_LEVELS[level].label}
+    </span>
+  );
+}
+
+// 2b · Where their walk moves: seniors by access level before → after, with a bar for each share.
+function ShiftsCard({ shifts }: { shifts: LevelShift[] }) {
+  const most = Math.max(...shifts.map((s) => s.seniors));
+  return (
+    <Panel>
+      <PanelContent className="gap-2">
+        <div className="text-sm font-medium">Access before → after</div>
+        <ul className="flex flex-col gap-2">
+          {shifts.map((s) => (
+            <li key={`${s.from}>${s.to}`} className="grid grid-cols-[auto_auto_auto_1fr_auto] items-center gap-2">
+              <LevelChip level={s.from} />
+              <span aria-label="to">→</span>
+              <LevelChip level={s.to} />
+              <span className="h-2 rounded-full bg-muted">
+                <span
+                  className="block h-2 rounded-full"
+                  style={{ width: `${(s.seniors / most) * 100}%`, background: ACCESS_LEVELS[s.to].hex }}
+                />
+              </span>
+              <span className="text-right font-mono text-sm font-semibold">{roughCount(s.seniors)}</span>
+            </li>
+          ))}
+        </ul>
+      </PanelContent>
+    </Panel>
+  );
+}
+
 // 3 · How serious.
 function SeverityCard({ severity, priorityAreas }: { severity: Severity; priorityAreas: number }) {
   return (
@@ -101,12 +143,13 @@ function SeverityCard({ severity, priorityAreas }: { severity: Severity; priorit
 }
 
 // The right-hand column of Page 2, in the order a reader needs it: what's closing, the impact on seniors,
-// how serious it is, then (in WhatToDo) what to do. How the numbers are worked out is in the Assumptions panel.
+// where their walk moves, and how serious it is. What to do is in the support list below the map.
 export function OutcomePanel({
   centre,
   picked,
   alongside,
   summary,
+  shifts,
   priorityAreas,
   severity,
   severityPending,
@@ -131,6 +174,7 @@ export function OutcomePanel({
     <>
       <ClosingCard centre={centre} picked={picked} alongside={alongside} />
       <ImpactCard summary={summary} />
+      {shifts.length > 0 && <ShiftsCard shifts={shifts} />}
       {severity && priorityAreas !== null && <SeverityCard severity={severity} priorityAreas={priorityAreas} />}
       {severityPending && summary.groups['cut-off'].seniors > 0 && (
         <p className="text-sm text-muted-foreground">How serious this is shows once the share aged 65+ has loaded.</p>

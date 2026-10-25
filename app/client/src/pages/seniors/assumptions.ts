@@ -53,6 +53,12 @@ export const seniorsAssumptions: AssumptionLine[] = [
     status: 'decided',
   },
   {
+    text: 'Access before → after: seniors in blocks whose nearest centre closed, by map level (OK, Concerning, Highly vulnerable) before and after the closure; blocks that keep their level are left out',
+    tag: 'MODELLED',
+    source: 'gold.block_access (tier_now, and the next open centre after the closure)',
+    status: 'decided',
+  },
+  {
     text: `Priority areas: a block where no one can walk to a centre, or ${SUPER_AGED_PCT}%+ of HDB residents aged 65+`,
     tag: 'ASSUMPTION',
     source: 'Team decision (ASSUMPTIONS.md, priority areas)',

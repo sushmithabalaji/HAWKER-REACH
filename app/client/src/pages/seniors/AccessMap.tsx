@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Button, Skeleton, ToggleGroup } from '@databricks/appkit-ui/react';
 import { Panel, PanelContent } from '@/components/shared/Panel';
 import type { PickingInfo } from '@deck.gl/core';
-import { GeoJsonLayer, ScatterplotLayer } from '@deck.gl/layers';
+import { GeoJsonLayer, ScatterplotLayer, TextLayer } from '@deck.gl/layers';
 import type { Feature, Geometry } from 'geojson';
 import { BaseMap } from '@/components/shared/BaseMap';
 import type { Bounds } from '@/components/shared/basemapStyles';
@@ -74,6 +74,18 @@ export function AccessMap({
 
   const layers = useMemo(() => {
     const centreLayer = centresLayer({ centres: centres ?? [], pickedId: closure?.centreId ?? null, closedIds });
+    // A highlight cross on each closed centre, as Page 1 draws it. Not pickable, so a click still reaches
+    // the centre underneath to reopen it.
+    const crosses = new TextLayer<Centre>({
+      id: 'closed',
+      data: (centres ?? []).filter((c) => closedIds.has(c.centre_id)),
+      getPosition: (c) => [c.lon, c.lat],
+      getText: () => '×',
+      characterSet: ['×'],
+      getSize: 34,
+      fontWeight: 'bold',
+      getColor: rgb(HIGHLIGHT_HEX),
+    });
 
     if (view === 'multiplier') {
       // Only priority areas get the dark outline, so the ones needing help first stand out; every area
@@ -99,7 +111,7 @@ export function AccessMap({
           getLineWidth: [priorityIds, cutOffBySubzone],
         },
       });
-      return [shading, centreLayer];
+      return [shading, centreLayer, crosses];
     }
 
     // Before a closure, every block shows today's tier. After one, only affected blocks are coloured.
@@ -122,7 +134,7 @@ export function AccessMap({
       },
       updateTriggers: { getRadius: [outcomeById], getFillColor: [outcomeById, phase, closure] },
     });
-    return [blockLayer, centreLayer];
+    return [blockLayer, centreLayer, crosses];
   }, [
     view,
     phase,
