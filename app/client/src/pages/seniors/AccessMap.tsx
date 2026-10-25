@@ -122,12 +122,21 @@ export function AccessMap({
       pickable: true,
       getPosition: (b) => [b.lon, b.lat],
       radiusUnits: 'pixels',
-      getRadius: (b) => (outcomeById.has(b.block_id) ? 3.5 : 2),
+      // Affected blocks larger and outlined in white, so each tier's colour reads against the map (#118).
+      getRadius: (b) => (outcomeById.has(b.block_id) ? 5 : 2.5),
       getFillColor: (b) => {
         const tier = tierFor(b);
-        return tier ? rgb(tierHex(tier), 230) : rgb(NOT_AFFECTED_HEX, 140);
+        return tier ? rgb(tierHex(tier)) : rgb(NOT_AFFECTED_HEX, 160);
       },
-      updateTriggers: { getRadius: [outcomeById], getFillColor: [outcomeById, phase, closure] },
+      stroked: true,
+      lineWidthUnits: 'pixels',
+      getLineWidth: (b) => (outcomeById.has(b.block_id) ? 1 : 0),
+      getLineColor: rgb(WHITE_HEX, 230),
+      updateTriggers: {
+        getRadius: [outcomeById],
+        getLineWidth: [outcomeById],
+        getFillColor: [outcomeById, phase, closure],
+      },
     });
     return [blockLayer, centreLayer, crosses];
   }, [
@@ -280,14 +289,14 @@ export function AccessMap({
             <>
               {(Object.keys(ACCESS_LEVELS) as AccessLevel[]).map((level) => (
                 <span key={level} className="flex items-center gap-1.5">
-                  <Swatch colour={ACCESS_LEVELS[level].hex} />
+                  <Swatch colour={ACCESS_LEVELS[level].hex} dot />
                   <strong className="text-foreground">{ACCESS_LEVELS[level].label}</strong>
                   {ACCESS_LEVELS[level].meaning}
                 </span>
               ))}
               {closure && (
                 <span className="flex items-center gap-1.5">
-                  <Swatch colour={NOT_AFFECTED_HEX} />
+                  <Swatch colour={NOT_AFFECTED_HEX} dot />
                   not affected
                 </span>
               )}

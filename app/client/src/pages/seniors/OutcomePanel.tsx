@@ -90,7 +90,7 @@ function ImpactCard({ summary }: { summary: Summary }) {
 function LevelChip({ level }: { level: AccessLevel }) {
   return (
     <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-sm">
-      <Swatch colour={ACCESS_LEVELS[level].hex} square />
+      <Swatch colour={ACCESS_LEVELS[level].hex} dot />
       {ACCESS_LEVELS[level].label}
     </span>
   );
@@ -102,7 +102,10 @@ function ShiftsCard({ shifts }: { shifts: LevelShift[] }) {
   return (
     <Panel>
       <PanelHeader>
-        <PanelTitle>Access before → after</PanelTitle>
+        <PanelTitle>How seniors&rsquo; walking access changes</PanelTitle>
+        <p className="text-sm text-muted-foreground">
+          Seniors whose nearest centre closes, by how easily they can walk to a hawker centre before → after.
+        </p>
       </PanelHeader>
       <PanelContent className="gap-2">
         <ul className="flex flex-col gap-2">
@@ -117,7 +120,9 @@ function ShiftsCard({ shifts }: { shifts: LevelShift[] }) {
                   style={{ width: `${(s.seniors / most) * 100}%`, background: ACCESS_LEVELS[s.to].hex }}
                 />
               </span>
-              <span className="text-right font-mono text-sm font-semibold">{roughCount(s.seniors)}</span>
+              <span className="whitespace-nowrap text-right text-sm">
+                <span className="font-mono font-semibold">{roughCount(s.seniors)}</span> seniors
+              </span>
             </li>
           ))}
         </ul>

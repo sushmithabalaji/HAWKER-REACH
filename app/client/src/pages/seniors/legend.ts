@@ -1,5 +1,5 @@
 import type { Tier } from './scenario';
-import { STATUS_HEX } from '@/components/shared/mapColours';
+import { STATUS_FILL_HEX } from '@/components/shared/mapColours';
 import { LIMIT_MIN } from './settings';
 
 // Page 2's map legends: the colour and plain words for each access level and vulnerability band, chosen
@@ -10,9 +10,9 @@ import { LIMIT_MIN } from './settings';
 // share one level; the tier codes stay in the model, tooltip and CSV.
 export type AccessLevel = 'ok' | 'concerning' | 'vulnerable';
 export const ACCESS_LEVELS: Record<AccessLevel, { label: string; meaning: string; hex: string }> = {
-  ok: { label: 'Accessible', meaning: `a senior can walk there in ${LIMIT_MIN} min`, hex: STATUS_HEX.green },
-  concerning: { label: 'Concerning', meaning: 'too far for a senior to walk', hex: STATUS_HEX.yellow },
-  vulnerable: { label: 'Highly vulnerable', meaning: 'no one can walk there', hex: STATUS_HEX.red },
+  ok: { label: 'Accessible', meaning: `a senior can walk there in ${LIMIT_MIN} min`, hex: STATUS_FILL_HEX.green },
+  concerning: { label: 'Concerning', meaning: 'too far for a senior to walk', hex: STATUS_FILL_HEX.yellow },
+  vulnerable: { label: 'Highly vulnerable', meaning: 'no one can walk there', hex: STATUS_FILL_HEX.red },
 };
 export const TIER_LEVEL: Record<Tier, AccessLevel> = { T1: 'ok', T2: 'concerning', T3: 'concerning', T4: 'vulnerable' };
 export const tierHex = (tier: Tier) => ACCESS_LEVELS[TIER_LEVEL[tier]].hex;
