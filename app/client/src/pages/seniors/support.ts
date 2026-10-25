@@ -36,6 +36,14 @@ export const SUPPORT_RULES: Record<Support, string> = {
   'Temporary food point': `at least ${FOOD_POINT_MIN_SENIORS} seniors cut off in the area have no open centre within ${KM}`,
 };
 
+// The same rules in a few words, for the support options key under the list (#118).
+export const SUPPORT_WHEN: Record<Support, string> = {
+  Shuttle: `a centre is still within ${KM}`,
+  'Meal delivery or vouchers': `no open centre within ${KM}`,
+  'Volunteer check-ins': 'super-aged area where no one can walk to a centre',
+  'Temporary food point': `${FOOD_POINT_MIN_SENIORS}+ seniors with no centre within ${KM}`,
+};
+
 export interface SupportNeed {
   support: Support;
   reason: string; // short, for the hover text

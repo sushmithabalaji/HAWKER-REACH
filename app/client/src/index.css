@@ -44,6 +44,15 @@
   /* Numbers that matter, links, the closed centre: the brand orange, deep enough for text (5.7:1 on cream) */
   --highlight: #b5321f;
   --highlight-tint: #fce4dc;
+  /* Pastel labels, one per brand supporting colour (#118), each with a dark text shade at 6.4:1 or more */
+  --pastel-teal: #d9eff0;
+  --pastel-teal-foreground: #0e5a5e;
+  --pastel-gold: #ffefc2;
+  --pastel-gold-foreground: #5c3d00;
+  --pastel-sage: #e2f0e6;
+  --pastel-sage-foreground: #2a5a3f;
+  --pastel-orange: #fde6dc;
+  --pastel-orange-foreground: #9a2a17;
   /* Number tags, on the supporting colours */
   --tag-measured: #0e5a5e;
   --tag-measured-bg: #bfe3e5;
@@ -65,6 +74,14 @@
   --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
   --color-border-strong: var(--border-strong);
+  --color-pastel-teal: var(--pastel-teal);
+  --color-pastel-teal-foreground: var(--pastel-teal-foreground);
+  --color-pastel-gold: var(--pastel-gold);
+  --color-pastel-gold-foreground: var(--pastel-gold-foreground);
+  --color-pastel-sage: var(--pastel-sage);
+  --color-pastel-sage-foreground: var(--pastel-sage-foreground);
+  --color-pastel-orange: var(--pastel-orange);
+  --color-pastel-orange-foreground: var(--pastel-orange-foreground);
   --color-brand: var(--brand);
   --color-brand-gold: var(--brand-gold);
   --color-brand-teal: var(--brand-teal);

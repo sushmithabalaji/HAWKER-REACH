@@ -17,6 +17,9 @@ export const NOT_AFFECTED_HEX = '#d9cbb9';
 // Red / yellow / green on maps and legends (#114), the theme's --status-* colours. Yellow is a brighter amber
 // than --status-yellow, which is dark enough for text; on a map it is a fill, never text.
 export const STATUS_HEX = { red: '#9e1b32', yellow: '#d69e00', green: '#2d6a4f' } as const;
+// The same three, more saturated, for dots and fills on a map (#118): the text shades are too dark to tell
+// apart at dot size. Legends use these too, so the key matches the map.
+export const STATUS_FILL_HEX = { red: '#d1263f', yellow: '#f2b01e', green: '#2fa56b' } as const;
 
 export function rgb(hex: string, alpha = 255): Color {
   const n = parseInt(hex.slice(1), 16);

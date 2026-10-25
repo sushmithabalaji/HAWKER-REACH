@@ -15,6 +15,8 @@ import {
   OTHER_LABEL,
   OTHER_NOTE,
   rankAreas,
+  SUPPORT_WHEN,
+  SUPPORTS,
   supportCsv,
   TOP_AREAS,
   type OtherArea,
@@ -58,6 +60,44 @@ function ShowAllToggle({ showAll, areas, onToggle }: { showAll: boolean; areas: 
   );
 }
 
+// The support options (#118), collapsed under the list: each with when it applies and how many of the areas
+// listed above need it, so the counts follow "Top 5" and "Show all". Closed by default, so it never competes
+// with the ranked areas.
+function SupportOptions({ areas }: { areas: SupportArea[] }) {
+  const used = (support: (typeof SUPPORTS)[number]) =>
+    areas.filter((a) => a.supports.some((s) => s.support === support)).length;
+  const needed = SUPPORTS.filter((s) => used(s) > 0).length;
+  return (
+    <details className="group rounded-md border bg-card">
+      <summary className="flex cursor-pointer list-none items-center gap-1.5 px-3 py-2 text-sm font-medium [&::-webkit-details-marker]:hidden">
+        <span aria-hidden className="inline-block text-xs transition-transform group-open:rotate-90">
+          ▸
+        </span>
+        Support options
+        <span className="font-normal text-foreground">
+          · {needed} of {SUPPORTS.length} needed for the areas listed
+        </span>
+      </summary>
+      <ul className="divide-y border-t px-3 text-sm">
+        {SUPPORTS.map((support) => {
+          const n = used(support);
+          return (
+            <li key={support} className="flex flex-wrap items-center gap-x-2 gap-y-1 py-1.5">
+              <SupportPill support={support} />
+              <span className="flex-1 text-foreground">when {SUPPORT_WHEN[support]}</span>
+              <span
+                className={`whitespace-nowrap ${n === 0 ? 'text-muted-foreground' : 'font-semibold text-foreground'}`}
+              >
+                {n === 0 ? 'Not needed' : `${n} ${n === 1 ? 'area' : 'areas'}`}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </details>
+  );
+}
+
 // The link is added to the page and the URL kept a moment, or Firefox and Safari can drop the download.
 function download(csv: string, filename: string) {
   const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
@@ -95,6 +135,8 @@ export function SupportList({ areas, others, closedName, priorityIds, subzoneSen
   ];
   const filter = useTopAreas(rows);
   const shown = filter.shown;
+  // The areas needing support among the rows listed, for the support options' counts (#118).
+  const shownSupport = shown.flatMap((r) => (r.kind === 'support' ? [r.area] : []));
   const blocks = shown.reduce((n, r) => n + (r.kind === 'support' ? r.area.blocks.length : 0), 0);
 
   const onDownload = () => {
@@ -226,6 +268,7 @@ export function SupportList({ areas, others, closedName, priorityIds, subzoneSen
           </div>
         )}
         {filter.canToggle && <ShowAllToggle showAll={filter.showAll} areas={rows.length} onToggle={filter.toggle} />}
+        {closedName && shownSupport.length > 0 && <SupportOptions areas={shownSupport} />}
         <div>
           <Button size="lg" onClick={onDownload} disabled={areas.length === 0}>
             Download list (CSV)

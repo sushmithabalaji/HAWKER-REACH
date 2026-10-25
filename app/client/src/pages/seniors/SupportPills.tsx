@@ -1,12 +1,13 @@
 import { Pill, type PillTone } from '@/components/shared/Pill';
 import type { Support, SupportNeed } from './support';
 
-// The support labels in the support list, one per area and one per block.
+// The support labels in the support list, one per area and one per block: one pastel each (#118), so the
+// options read as a set and stay the same in the rows and the options list.
 const SUPPORT_TONE: Record<Support, PillTone> = {
-  Shuttle: 'outline',
-  'Meal delivery or vouchers': 'ink',
-  'Volunteer check-ins': 'highlight',
-  'Temporary food point': 'ink',
+  Shuttle: 'teal',
+  'Meal delivery or vouchers': 'gold',
+  'Volunteer check-ins': 'sage',
+  'Temporary food point': 'orange',
 };
 
 // A support with its reason on hover, e.g. "3 blocks have no centre within 2 km".
