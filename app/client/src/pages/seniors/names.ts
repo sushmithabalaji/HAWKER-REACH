@@ -1,6 +1,5 @@
-import { PACES } from './settings';
 import { shortName, type Centre } from '@/components/shared/centres';
-import { CUTOFF_M } from './settings';
+import { CUTOFF_M, PACES } from './settings';
 
 // How Page 2 names centres, subzones and walks, so the map, the lists and the CSV say the same thing.
 export const NO_CENTRE = `no centre within ${CUTOFF_M / 1000} km`;

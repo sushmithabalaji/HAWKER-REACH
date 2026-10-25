@@ -175,7 +175,7 @@ export function SupportList({ areas, others, closedName, priorityIds, subzoneSen
               {filter.showAll || !filter.canToggle
                 ? `${shown.length} ${shown.length === 1 ? 'area' : 'areas'}`
                 : `Top ${TOP_AREAS} of ${rows.length} areas`}
-              {blocks > 0 && ` · ${blocks} ${blocks === 1 ? 'block' : 'blocks'}`}
+              {blocks > 0 && ` · ${blocks} ${blocks === 1 ? 'block' : 'blocks'}`} · after {closedName} closes
               {filter.canToggle && (
                 <Button variant="link" size="sm" className="h-auto p-0" onClick={filter.toggle}>
                   {filter.showAll ? `Show top ${TOP_AREAS}` : 'Show all'}

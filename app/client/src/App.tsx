@@ -15,7 +15,7 @@ const tabClass = ({ isActive }: { isActive: boolean }) =>
 function HawkerReachMark() {
   return (
     <span
-      className="ml-auto inline-flex h-8 w-8 items-center justify-center rounded-lg bg-brand"
+      className="ml-auto inline-flex h-8 w-8 items-center justify-center rounded-lg bg-brand text-primary-foreground"
       role="img"
       aria-label="HawkerReach"
     >
@@ -23,12 +23,12 @@ function HawkerReachMark() {
         viewBox="0 0 24 24"
         className="h-5 w-5"
         fill="none"
-        stroke="#ffffff"
+        stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
         aria-hidden
       >
-        <path d="M3.5 12.5h17a8.5 8.5 0 0 1-17 0Z" fill="#ffffff" stroke="none" />
+        <path d="M3.5 12.5h17a8.5 8.5 0 0 1-17 0Z" fill="currentColor" stroke="none" />
         <path d="M8 4.5c-1 1.2 1 2 0 3.2M12 3.5c-1 1.2 1 2 0 3.2M16 4.5c-1 1.2 1 2 0 3.2" />
       </svg>
     </span>

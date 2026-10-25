@@ -15,7 +15,7 @@ export function Swatch({
     return (
       <span
         className="inline-block h-3.5 w-3.5 shrink-0 rounded-full"
-        style={{ background: colour, boxShadow: '0 0 0 1.5px #ffffff, 0 0 0 2.5px rgb(56 33 22 / 0.35)' }}
+        style={{ background: colour, boxShadow: '0 0 0 1.5px var(--card), 0 0 0 2.5px var(--border-strong)' }}
       />
     );
   }
