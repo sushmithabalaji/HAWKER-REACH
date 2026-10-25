@@ -1,10 +1,20 @@
+import type { ReactNode } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@databricks/appkit-ui/react';
 import type { PlanResult } from '@shared/closure-engine';
 import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/shared/Panel';
 import { DemandWasteTab } from './DemandWasteTab';
 
 // Below the headline numbers: demand and waste per centre, and centres to schedule alongside (Spec 4).
-export function DispersionTabs({ result, placeholder }: { result: PlanResult | null; placeholder: string }) {
+export function DispersionTabs({
+  result,
+  placeholder,
+  schedule,
+}: {
+  result: PlanResult | null;
+  placeholder: string;
+  /** The Schedule alongside tab; null until there is an anchor and data. */
+  schedule: ReactNode;
+}) {
   return (
     <Panel>
       <PanelHeader>
@@ -20,7 +30,7 @@ export function DispersionTabs({ result, placeholder }: { result: PlanResult | n
             <DemandWasteTab result={result} placeholder={placeholder} />
           </TabsContent>
           <TabsContent value="schedule" className="pt-3">
-            <p className="text-sm text-muted-foreground">Centres to schedule alongside come with Spec 4.5.</p>
+            {schedule ?? <p className="text-sm text-muted-foreground">{placeholder}</p>}
           </TabsContent>
         </Tabs>
       </PanelContent>
