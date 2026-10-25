@@ -65,7 +65,7 @@ export const seniorsAssumptions: AssumptionLine[] = [
     status: 'decided',
   },
   {
-    text: `Support list: the top ${TOP_AREAS} affected areas, priority areas first and then the rest, each by seniors cut off; "Show all" lists every area`,
+    text: `Support list: up to ${TOP_AREAS} affected areas, fewer if fewer are affected. First areas with seniors cut off (priority first, by seniors cut off), then areas with a longer walk (their nearest centre closes but seniors can still walk to the next), then areas that lose a backup centre (the closed centre is a block's second or third nearest), each by seniors. "Show all" lists every one`,
     tag: 'ASSUMPTION',
     source: 'Team decision (ASSUMPTIONS.md, priority areas, #110)',
     status: 'decided',

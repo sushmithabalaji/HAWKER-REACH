@@ -1,4 +1,4 @@
-import { roundedCount, type BlockOutcome } from './scenario';
+import { roundedCount, type AccessBlock, type BlockOutcome, type Closure } from './scenario';
 import { CUTOFF_M, FOOD_POINT_MIN_SENIORS } from './settings';
 import type { Names } from './names';
 
@@ -133,6 +133,55 @@ export function supportList(
       };
     })
     .sort((a, b) => b.seniors - a.seniors);
+}
+
+// Areas the closure touches without cutting seniors off, listed after the ones that need support.
+export type OtherKind = 'longer-walk' | 'backup';
+export const OTHER_LABEL: Record<OtherKind, string> = {
+  'longer-walk': 'Longer walk',
+  backup: 'Loses a backup centre',
+};
+
+export interface OtherArea {
+  subzone_id: string;
+  seniors: number;
+  kind: OtherKind;
+}
+
+// Subzones with no senior cut off where the closure still changes things: a longer walk (the nearest centre
+// closes, but seniors can still walk to the next), then a lost backup (the closed centre is a block's second
+// or third nearest). Each group most seniors first; a subzone appears once, in its first group.
+export function otherAffected(
+  blocks: readonly AccessBlock[],
+  closure: Closure,
+  outcomes: readonly BlockOutcome[]
+): OtherArea[] {
+  const closed = new Set([closure.centreId, ...closure.alsoClosed]);
+  const seen = new Set(outcomes.filter((o) => o.group === 'cut-off').map((o) => o.block.subzone_id));
+  const group = (kind: OtherKind, from: readonly AccessBlock[]): OtherArea[] => {
+    const bySubzone = new Map<string, OtherArea>();
+    for (const b of from) {
+      if (seen.has(b.subzone_id)) continue;
+      const area = bySubzone.get(b.subzone_id) ?? { subzone_id: b.subzone_id, seniors: 0, kind };
+      area.seniors += b.est_seniors;
+      bySubzone.set(b.subzone_id, area);
+    }
+    const areas = [...bySubzone.values()].sort((a, b) => b.seniors - a.seniors);
+    for (const a of areas) seen.add(a.subzone_id);
+    return areas;
+  };
+  const longer = group(
+    'longer-walk',
+    outcomes.filter((o) => o.group !== 'cut-off').map((o) => o.block)
+  );
+  const backup = group(
+    'backup',
+    blocks.filter(
+      (b) =>
+        b.options[0] && !closed.has(b.options[0].centre_id) && b.options.slice(1).some((o) => closed.has(o.centre_id))
+    )
+  );
+  return [...longer, ...backup];
 }
 
 // The support list shows this many areas until the user asks for all of them.

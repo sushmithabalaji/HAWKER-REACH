@@ -10,10 +10,20 @@ import { Swatch } from './Swatch';
 import { multiplierBand, type SubzoneSeniors } from './subzoneSeniors';
 import { LIMIT_MIN } from './settings';
 import { AreaSupports, SupportPill } from './SupportPills';
-import { blockReason, supportCsv, TOP_AREAS, type SupportArea } from './support';
+import {
+  blockReason,
+  OTHER_LABEL,
+  rankAreas,
+  supportCsv,
+  TOP_AREAS,
+  type OtherArea,
+  type SupportArea,
+} from './support';
 
 interface SupportListProps {
   areas: SupportArea[];
+  // Areas the closure touches without cutting seniors off, listed after the ones that need support.
+  others: OtherArea[];
   closedName: string | null;
   priorityIds: ReadonlySet<string> | null;
   subzoneSeniors: Map<string, SubzoneSeniors>;
@@ -65,10 +75,12 @@ const fileSafe = (s: string) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '');
 
-// Who needs what support after the closure: one row per subzone with seniors cut off, its blocks behind
-// an expand control. The top areas (priority first) until the user asks for all; the download always has
-// every block.
-export function SupportList({ areas, closedName, priorityIds, subzoneSeniors, names }: SupportListProps) {
+type Row = { kind: 'support'; area: SupportArea } | { kind: 'other'; area: OtherArea };
+
+// Who needs what support after the closure: one row per affected subzone, up to the top few until the user
+// asks for all. Areas with seniors cut off come first (priority first), each with its blocks behind an
+// expand control; then areas with a longer walk or a lost backup centre. The download has every cut-off block.
+export function SupportList({ areas, others, closedName, priorityIds, subzoneSeniors, names }: SupportListProps) {
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
   const toggleBlocks = (id: string) =>
     setExpanded((s) => {
@@ -76,9 +88,13 @@ export function SupportList({ areas, closedName, priorityIds, subzoneSeniors, na
       if (!next.delete(id)) next.add(id);
       return next;
     });
-  const filter = useTopAreas(areas, priorityIds);
+  const rows: Row[] = [
+    ...rankAreas(areas, priorityIds).map((area): Row => ({ kind: 'support', area })),
+    ...others.map((area): Row => ({ kind: 'other', area })),
+  ];
+  const filter = useTopAreas(rows);
   const shown = filter.shown;
-  const blocks = shown.reduce((n, a) => n + a.blocks.length, 0);
+  const blocks = shown.reduce((n, r) => n + (r.kind === 'support' ? r.area.blocks.length : 0), 0);
 
   const onDownload = () => {
     if (!closedName) return;
@@ -98,7 +114,7 @@ export function SupportList({ areas, closedName, priorityIds, subzoneSeniors, na
           <Pill tone="outline">
             {filter.showAll || !filter.canToggle
               ? `${shown.length} ${shown.length === 1 ? 'area' : 'areas'}`
-              : `Top ${TOP_AREAS} of ${areas.length} areas`}{' '}
+              : `Top ${TOP_AREAS} of ${rows.length} areas`}{' '}
             · {blocks} blocks · after {closedName} closes
           </Pill>
         )}
@@ -111,7 +127,8 @@ export function SupportList({ areas, closedName, priorityIds, subzoneSeniors, na
         )}
         {closedName && areas.length === 0 && (
           <p className="rounded-md bg-muted p-3 text-sm text-muted-foreground">
-            No senior loses a {LIMIT_MIN}-min walk when {closedName} closes, so no one needs support.
+            No senior loses a {LIMIT_MIN}-min walk when {closedName} closes, so no one needs extra support.
+            {others.length > 0 && ' The areas below have a longer walk or lose a backup centre.'}
           </p>
         )}
         {shown.length > 0 && (
@@ -127,70 +144,87 @@ export function SupportList({ areas, closedName, priorityIds, subzoneSeniors, na
                 </tr>
               </thead>
               <tbody>
-                {shown.map((area) => (
-                  <Fragment key={area.subzone_id}>
-                    <tr className="border-b bg-muted/40">
+                {shown.map((row) =>
+                  row.kind === 'other' ? (
+                    <tr key={row.area.subzone_id} className="border-b">
                       <td className="px-3 py-2">
-                        <strong>{names.subzone(area.subzone_id)}</strong>
-                        {priorityIds?.has(area.subzone_id) && (
-                          <span className="ml-2">
-                            <Pill tone="highlight">Priority</Pill>
-                          </span>
-                        )}
-                        <Button
-                          variant="link"
-                          size="sm"
-                          className="block h-auto p-0 text-xs text-muted-foreground"
-                          aria-expanded={expanded.has(area.subzone_id)}
-                          onClick={() => toggleBlocks(area.subzone_id)}
-                        >
-                          {expanded.has(area.subzone_id) ? 'Hide' : 'Show'} {area.blocks.length}{' '}
-                          {area.blocks.length === 1 ? 'block' : 'blocks'}
-                        </Button>
+                        <strong>{names.subzone(row.area.subzone_id)}</strong>
+                        <span className="ml-2">
+                          <Pill tone="outline">{OTHER_LABEL[row.area.kind]}</Pill>
+                        </span>
                       </td>
-                      <td className="px-3 py-2 font-mono">{roughCount(area.seniors)}</td>
+                      <td className="px-3 py-2 font-mono">{roughCount(row.area.seniors)}</td>
                       <td className="px-3 py-2">
-                        <Vulnerability seniors={subzoneSeniors.get(area.subzone_id)} />
+                        <Vulnerability seniors={subzoneSeniors.get(row.area.subzone_id)} />
                       </td>
-                      <td className="px-3 py-2">
-                        {area.alternative
-                          ? `${names.centre(area.alternative.centreId)}${walk(area.alternative.walkM)}`
-                          : names.centre(null)}
-                      </td>
-                      <td className="px-3 py-2">
-                        <AreaSupports supports={area.supports} />
-                      </td>
+                      <td className="px-3 py-2">–</td>
+                      <td className="px-3 py-2">No extra support needed</td>
                     </tr>
-                    {expanded.has(area.subzone_id) &&
-                      area.blocks.map(({ outcome: o, support }, i) => (
-                        <tr key={o.block.block_id} className="border-b text-muted-foreground">
-                          <td className="py-1.5 pl-6 pr-3">
-                            <span
-                              className="mr-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-muted px-1 font-mono text-xs font-semibold text-foreground"
-                              aria-label={`Rank ${i + 1}`}
-                            >
-                              {i + 1}
+                  ) : (
+                    <Fragment key={row.area.subzone_id}>
+                      <tr className="border-b bg-muted/40">
+                        <td className="px-3 py-2">
+                          <strong>{names.subzone(row.area.subzone_id)}</strong>
+                          {priorityIds?.has(row.area.subzone_id) && (
+                            <span className="ml-2">
+                              <Pill tone="highlight">Priority</Pill>
                             </span>
-                            {o.block.block_label}
-                          </td>
-                          <td className="px-3 py-1.5 font-mono">{roughCount(o.block.est_seniors)}</td>
-                          <td className="px-3 py-1.5" />
-                          <td className="px-3 py-1.5">
-                            {names.centre(o.afterCentreId)}
-                            {walk(o.afterWalkM)}
-                          </td>
-                          <td className="px-3 py-1.5">
-                            <SupportPill support={support} reason={blockReason(o)} />
-                          </td>
-                        </tr>
-                      ))}
-                  </Fragment>
-                ))}
+                          )}
+                          <Button
+                            variant="link"
+                            size="sm"
+                            className="block h-auto p-0 text-xs text-muted-foreground"
+                            aria-expanded={expanded.has(row.area.subzone_id)}
+                            onClick={() => toggleBlocks(row.area.subzone_id)}
+                          >
+                            {expanded.has(row.area.subzone_id) ? 'Hide' : 'Show'} {row.area.blocks.length}{' '}
+                            {row.area.blocks.length === 1 ? 'block' : 'blocks'}
+                          </Button>
+                        </td>
+                        <td className="px-3 py-2 font-mono">{roughCount(row.area.seniors)}</td>
+                        <td className="px-3 py-2">
+                          <Vulnerability seniors={subzoneSeniors.get(row.area.subzone_id)} />
+                        </td>
+                        <td className="px-3 py-2">
+                          {row.area.alternative
+                            ? `${names.centre(row.area.alternative.centreId)}${walk(row.area.alternative.walkM)}`
+                            : names.centre(null)}
+                        </td>
+                        <td className="px-3 py-2">
+                          <AreaSupports supports={row.area.supports} />
+                        </td>
+                      </tr>
+                      {expanded.has(row.area.subzone_id) &&
+                        row.area.blocks.map(({ outcome: o, support }, i) => (
+                          <tr key={o.block.block_id} className="border-b text-muted-foreground">
+                            <td className="py-1.5 pl-6 pr-3">
+                              <span
+                                className="mr-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-muted px-1 font-mono text-xs font-semibold text-foreground"
+                                aria-label={`Rank ${i + 1}`}
+                              >
+                                {i + 1}
+                              </span>
+                              {o.block.block_label}
+                            </td>
+                            <td className="px-3 py-1.5 font-mono">{roughCount(o.block.est_seniors)}</td>
+                            <td className="px-3 py-1.5" />
+                            <td className="px-3 py-1.5">
+                              {names.centre(o.afterCentreId)}
+                              {walk(o.afterWalkM)}
+                            </td>
+                            <td className="px-3 py-1.5">
+                              <SupportPill support={support} reason={blockReason(o)} />
+                            </td>
+                          </tr>
+                        ))}
+                    </Fragment>
+                  )
+                )}
               </tbody>
             </table>
           </div>
         )}
-        {filter.canToggle && <ShowAllToggle showAll={filter.showAll} areas={areas.length} onToggle={filter.toggle} />}
+        {filter.canToggle && <ShowAllToggle showAll={filter.showAll} areas={rows.length} onToggle={filter.toggle} />}
         <div>
           <Button size="lg" onClick={onDownload} disabled={areas.length === 0}>
             Download list (CSV)
