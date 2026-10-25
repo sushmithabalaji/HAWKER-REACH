@@ -1,5 +1,6 @@
 import type { AssumptionLine } from '@shared/assumptions';
 import { spec2Assumptions } from '../../assumptions/spec2';
+import { spec4Assumptions } from '../../assumptions/spec4';
 
 // Page 1's Assumptions panel (#11, Assumptions panel lines). The benchmark's values today join
 // the panel with the verdict cards.
@@ -45,6 +46,7 @@ export const closuresAssumptions: AssumptionLine[] = [
   { key: 'undercount_factor' },
   { key: 'plan.max_extra_centres' },
   ...spec2Assumptions,
+  ...spec4Assumptions,
   {
     limitation: 'Diners go to their nearest centre only; spreading them over several centres (a Huff model) is Phase 2',
   },
