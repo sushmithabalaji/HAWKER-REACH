@@ -8,7 +8,7 @@ export interface Receiver {
   extraDinersPerDay: number;
   /** Extra diners per day ÷ `cooked_food_stalls`; null for a centre with no stalls, as in gold. */
   extraDinersPerStall: number | null;
-  /** Extra diners as % of the centre's baseline; information only. "new" when the baseline is 0. */
+  /** Extra diners as % of the centre's baseline. "new" when the centre has under 1 diner a day today. */
   pctOverBaseline: number | 'new';
   /** Share (0–1) of the plan's displaced diners this centre takes. */
   shareOfDisplaced: number;
@@ -36,15 +36,13 @@ export interface PlanResult {
   accessLoss: Record<Pace, AccessLoss>;
   tiles: Tiles;
   takeaway: TakeawayParts;
-  /** The load benchmark the verdicts use; shown in the Assumptions panel. */
-  benchmark: Benchmark;
-  /** One per selected centre, in the order given: the plan compared with the plan where it stays open. */
+  /** One per selected centre, in the order given: what changes because it closes together with the rest of the plan. */
   cards: VerdictCard[];
   /** The whole-plan line above the cards. */
   plan: PlanLine;
   /** Centres needing extra bins, collection and cleaning checks; never changes a colour. */
   neaActions: {
-    /** `actions.waste.extra_per_stall_share` × a typical (median) centre's baseline diners per stall. */
+    /** A centre is flagged when its extra diners are more than this % of its diners today (`actions.waste.flag_pct`). */
     threshold: number;
     centres: NeaAction[];
   };
@@ -63,12 +61,14 @@ export interface PlanLine {
   anchorProblems: string[];
 }
 
-export interface PastBenchmark {
+/** A centre that gets busier because two closures happen together. */
+export interface Pushed {
   centreId: string;
   name: string;
-  /** Extra diners per stall with the plan, and with this centre left open. */
-  extraDinersPerStall: number;
-  withoutThisCentre: number;
+  /** Extra diners as % of its diners today with the whole plan closed. */
+  pct: number;
+  /** The same % if the card's centre or the rest of the plan closed separately: the higher of the two. */
+  ifApart: number;
 }
 
 export interface VerdictCard {
@@ -76,20 +76,26 @@ export interface VerdictCard {
   name: string;
   status: Status;
   /** The first rule that fired, or null when green. */
-  rule: 'access' | 'load' | null;
-  /** Plain words with the numbers. */
+  rule: 'share' | 'access' | 'load' | null;
+  /** A few words, with the one number that decided it. */
   reason: string;
-  /** Blocks (and their seniors) that lose a centre within the limit at senior pace only because this centre closes too. */
+  /** Up to three lines for Read more, each with one number; only the ones that are not zero. */
+  details: string[];
+  /** Blocks (and their seniors) that lose a centre within the limit at senior pace only because this centre and the rest of the plan close together. */
   cutOff: { blocks: number; seniors: number };
-  /** Centres pushed past the benchmark that set the colour. */
-  pastBenchmark: PastBenchmark[];
+  /** Share (0–1) of the rest of the plan's displaced diners that move to this centre when it stays open. */
+  shareOfRest: number;
+  /** Centres pushed past the load limit that set the colour. */
+  overloaded: Pushed[];
   /** Share (0–1) of the plan's displaced diners whose nearest centre this is; information only. */
   shareOfDisplaced: number;
-  /** Every centre whose extra diners per stall rises because this centre closes too, most first. */
-  pushes: PastBenchmark[];
-  /** Blocks losing a centre within the limit at each pace only because this centre closes too. */
+  /** Every centre that is busier closing together than in either closing separately, busiest first. */
+  pushes: Pushed[];
+  /** Blocks losing a centre within the limit at each pace only because this centre and the rest of the plan close together. */
   accessLoss: Record<Pace, number>;
-  /** Centres it pushes that are above the NEA actions threshold with the plan. */
+  /** What this centre does when it closes on its own, as reasons; listed under the card, never setting its colour. */
+  ownProblems: string[];
+  /** Centres this closure sends above the NEA actions flag with the plan. */
   neaActions: NeaAction[];
   possiblyUndercounted: boolean;
   /** Its renovation or redevelopment closures that overlap one at another centre in the plan (MEASURED). */
@@ -112,16 +118,8 @@ export interface ClosurePeriod {
 export interface NeaAction {
   centreId: string;
   name: string;
-  extraDinersPerStall: number;
-}
-
-export interface Benchmark {
-  /** Median worst-neighbour extra diners per stall over every single closure. */
-  typical: number;
-  /** The "3 in 4" quantile of the same. */
-  threeInFour: number;
-  typicalQuantile: number;
-  threeInFourQuantile: number;
+  /** Null for a centre with no stalls recorded. */
+  extraDinersPerStall: number | null;
 }
 
 /** The facts the one-sentence takeaway is written from. */
@@ -153,6 +151,10 @@ export interface Tiles {
   };
   biggestLoad: Tile & {
     /** The receiver with the most extra diners per stall; null when nobody moves. */
+    centre: Pick<Receiver, 'centreId' | 'name' | 'extraDinersPerStall' | 'pctOverBaseline'> | null;
+  };
+  busiest: Tile & {
+    /** The receiver with the highest % over its diners today ("new" ones left out); null when none has a %. */
     centre: Pick<Receiver, 'centreId' | 'name' | 'extraDinersPerStall' | 'pctOverBaseline'> | null;
   };
   accessLoss: Tile & Record<Pace, number> & { limitMin: number };
@@ -220,61 +222,53 @@ export function evaluatePlan(
         name: centres.get(centreId)!.name,
         extraDinersPerDay,
         extraDinersPerStall: perStall(prepared, centreId, extraDinersPerDay),
-        pctOverBaseline: baseline > 0 ? (extraDinersPerDay / baseline) * 100 : 'new',
+        pctOverBaseline: baseline >= 1 ? (extraDinersPerDay / baseline) * 100 : 'new',
         shareOfDisplaced: extraDinersPerDay / displaced,
         possiblyUndercounted: demand.get(centreId)?.possibly_undercounted ?? false,
       };
     })
     .sort((a, b) => b.extraDinersPerDay - a.extraDinersPerDay || byCentreId(a, b));
 
-  const benchmark = benchmarkOf(prepared, assumptions);
-  const actionThreshold = value(assumptions, 'actions.waste.extra_per_stall_share') * prepared.typicalDinersPerStall;
-  const needsAction = (loads: { centreId: string; name: string; extraDinersPerStall: number | null }[]) =>
+  const flagPct = value(assumptions, 'actions.waste.flag_pct') * 100;
+  const needsAction = (loads: Pick<Receiver, 'centreId' | 'name' | 'extraDinersPerStall' | 'pctOverBaseline'>[]) =>
     loads
-      .filter((l): l is NeaAction => l.extraDinersPerStall !== null && l.extraDinersPerStall > actionThreshold)
-      .map(({ centreId, name, extraDinersPerStall }) => ({ centreId, name, extraDinersPerStall }))
+      .filter((l) => l.pctOverBaseline === 'new' || l.pctOverBaseline > flagPct)
+      .map(({ centreId, name, extraDinersPerStall }): NeaAction => ({ centreId, name, extraDinersPerStall }))
       .sort(byWorstLoad);
 
   const nea = needsAction(receivers);
 
   const cards = selectedIds.map((id): VerdictCard => {
+    const rest = planIds.filter((p) => p !== id);
     const name = centres.get(id)!.name;
-    const without = regroup(prepared, new Set(planIds.filter((p) => p !== id)));
-    const pushes = rises(prepared, extra, without.extra);
+    const judged = judge(prepared, assumptions, rest, id);
+    const without = regroup(prepared, new Set(rest));
     return {
       centreId: id,
       name,
+      ...judged,
       shareOfDisplaced: displaced > 0 ? (planOutcome.displacedFrom.get(id) ?? 0) / displaced : 0,
-      pushes,
-      neaActions: needsAction(pushes),
+      // Information, not part of the verdict: every centre this closure sends past the flag, alone or not.
+      neaActions: needsAction(loadsOf(prepared, extra, without.extra)),
       possiblyUndercounted: demand.get(id)?.possibly_undercounted ?? false,
       overlaps: overlapsFor(data, centres, id, planIds),
-      accessLoss: Object.fromEntries(
-        PACES.map((pace) => [pace, accessLoss[pace].blocks - without.accessLoss[pace].blocks])
-      ) as Record<Pace, number>,
-      ...verdict(prepared, assumptions, benchmark, `Closing ${name} too`, planOutcome, without),
+      ownProblems: ownProblems(prepared, assumptions, id),
     };
   });
 
-  const anchorName = centres.get(anchorId)!.name;
-  const anchorBroken = brokenRules(
-    prepared,
-    assumptions,
-    benchmark,
-    `Closing ${anchorName} on its own`,
-    regroup(prepared, new Set([anchorId])),
-    regroup(prepared, new Set())
-  );
   const counts = { red: 0, yellow: 0, green: 0 };
   for (const card of cards) counts[card.status] += 1;
   const plan: PlanLine = {
     status: cards.length > 0 ? worstStatus(cards.map((c) => c.status)) : null,
     counts,
-    anchorProblems: anchorBroken.map((v) => v.reason),
+    anchorProblems: ownProblems(prepared, assumptions, anchorId),
   };
 
   // Same order as closure_scenarios' worst neighbour: most extra diners per stall, nulls last, then centre_id.
   const biggest = [...receivers].sort(byWorstLoad)[0];
+  const busiest = [...receivers]
+    .filter((r) => r.pctOverBaseline !== 'new')
+    .sort((a, b) => (b.pctOverBaseline as number) - (a.pctOverBaseline as number) || byCentreId(a, b))[0];
   const tiles: Tiles = {
     displaced: {
       dinersPerDay: roundTo10(displaced),
@@ -293,6 +287,18 @@ export function evaluatePlan(
         : null,
       tag: 'MODELLED',
       source: 'gold.block_options, gold.centres, gold.centre_demand',
+    },
+    busiest: {
+      centre: busiest
+        ? {
+            centreId: busiest.centreId,
+            name: busiest.name,
+            extraDinersPerStall: busiest.extraDinersPerStall,
+            pctOverBaseline: busiest.pctOverBaseline,
+          }
+        : null,
+      tag: 'MODELLED',
+      source: 'gold.block_options, gold.centre_demand',
     },
     accessLoss: {
       limitMin: prepared.limitMin,
@@ -329,15 +335,14 @@ export function evaluatePlan(
     accessLoss,
     tiles,
     takeaway,
-    benchmark,
     cards,
     plan,
-    neaActions: { threshold: actionThreshold, centres: nea },
+    neaActions: { threshold: flagPct, centres: nea },
     demandWaste: demandWasteOf(
       receivers,
       new Map([...demand].map(([id, d]) => [id, d.baseline_diners_per_day])),
       new Set(nea.map((c) => c.centreId)),
-      actionThreshold,
+      flagPct,
       assumptions
     ),
   };
@@ -350,9 +355,6 @@ interface Prepared {
   demand: Map<string, CentreDemandRow>;
   limitMin: number;
   limitM: Record<Pace, number>;
-  /** A typical centre's baseline diners per stall (`actions.waste.typical_centre_quantile` over centres with stalls). */
-  typicalDinersPerStall: number;
-  benchmark?: Benchmark;
 }
 
 // The same gold rows and assumptions are evaluated for every plan the planner tries, so group once.
@@ -365,11 +367,6 @@ function prepare(data: GoldData, assumptions: Assumptions): Prepared {
   if (!prepared) {
     const limitMin = value(assumptions, 'walk.limit_min');
     const blocks = groupBlocks(data.blockOptions, value(assumptions, 'walk.cutoff_m'));
-    const stalls = new Map(data.centres.map((c) => [c.centre_id, c.cooked_food_stalls]));
-    const baselinePerStall = data.centreDemand
-      .filter((d) => (stalls.get(d.centre_id) ?? 0) > 0)
-      .map((d) => d.baseline_diners_per_day / stalls.get(d.centre_id)!)
-      .sort((a, b) => a - b);
     prepared = {
       blocks,
       blocksById: new Map(blocks.map((b) => [b.id, b])),
@@ -379,7 +376,6 @@ function prepare(data: GoldData, assumptions: Assumptions): Prepared {
       limitM: Object.fromEntries(
         PACES.map((pace) => [pace, value(assumptions, `walk.pace.${pace}`) * limitMin * 60])
       ) as Record<Pace, number>,
-      typicalDinersPerStall: quantile(baselinePerStall, value(assumptions, 'actions.waste.typical_centre_quantile')),
     };
     byAssumptions.set(assumptions, prepared);
   }
@@ -394,8 +390,6 @@ interface Regrouped {
   displaced: number;
   unserved: PlanResult['unserved'];
   accessLoss: Record<Pace, AccessLoss>;
-  /** Blocks losing a centre within the limit at senior pace, plus blocks newly unserved at any distance. */
-  cutOffBlockIds: Set<string>;
   displacedBlockIds: string[];
 }
 
@@ -409,7 +403,6 @@ function regroup({ blocks, limitM }: Prepared, closed: Set<string>): Regrouped {
     PACES.map((pace): [Pace, AccessLoss] => [pace, { blocks: 0, seniors: 0, blockIds: [] }])
   ) as Record<Pace, AccessLoss>;
 
-  const cutOffBlockIds = new Set<string>();
   const displacedBlockIds: string[] = [];
   for (const block of blocks) {
     const before = block.options[0];
@@ -423,7 +416,6 @@ function regroup({ blocks, limitM }: Prepared, closed: Set<string>): Regrouped {
         accessLoss[pace].blockIds.push(block.id);
       }
     }
-    if (!after || (before.walkM <= limitM.senior && after.walkM > limitM.senior)) cutOffBlockIds.add(block.id);
     if (!after) {
       unserved.blocks += 1;
       unserved.residents += block.residents;
@@ -434,7 +426,7 @@ function regroup({ blocks, limitM }: Prepared, closed: Set<string>): Regrouped {
     displacedFrom.set(before.centreId, (displacedFrom.get(before.centreId) ?? 0) + block.dinersPerDay);
     extra.set(after.centreId, (extra.get(after.centreId) ?? 0) + block.dinersPerDay);
   }
-  return { extra, displacedFrom, displaced, unserved, accessLoss, cutOffBlockIds, displacedBlockIds };
+  return { extra, displacedFrom, displaced, unserved, accessLoss, displacedBlockIds };
 }
 
 function perStall({ centres }: Prepared, centreId: string, extraDinersPerDay: number): number | null {
@@ -449,71 +441,141 @@ function byWorstLoad(
   return (b.extraDinersPerStall ?? -Infinity) - (a.extraDinersPerStall ?? -Infinity) || byCentreId(a, b);
 }
 
-type Verdict = Pick<VerdictCard, 'status' | 'rule' | 'reason' | 'cutOff' | 'pastBenchmark'>;
+type Judgement = Pick<
+  VerdictCard,
+  'status' | 'rule' | 'reason' | 'details' | 'cutOff' | 'shareOfRest' | 'overloaded' | 'pushes' | 'accessLoss'
+>;
 
-/** The plan against the plan without one centre: the first rule that fires decides. */
-function verdict(...args: Parameters<typeof brokenRules>): Verdict {
-  const broken = brokenRules(...args);
-  if (broken.length > 0) return broken[0];
-  const [prepared, , benchmark, subject, withPlan, without] = args;
-  return {
-    status: 'green',
-    rule: null,
-    reason: `${subject} cuts no one off and pushes no centre past the typical benchmark of ${fmt(benchmark.typical)}.`,
-    cutOff: newlyCutOff(prepared, withPlan, without),
-    pastBenchmark: [],
-  };
+// The same diners summed in a different order differ by rounding error, which is not a rise.
+const NO_RISE = 1e-9;
+
+/** % over a centre's diners today; null for a centre with under 1 a day, which has no % to compare. */
+function pctOf(prepared: Prepared, centreId: string, extraDiners: number): number | null {
+  const baseline = prepared.demand.get(centreId)?.baseline_diners_per_day ?? 0;
+  return baseline >= 1 ? (extraDiners / baseline) * 100 : null;
 }
 
-/** Every rule the plan breaks against the plan without one centre, in rule order: Access, then Load. */
-function brokenRules(
+/** Every receiver of an `extra` map with its load and % over today, for the NEA actions flag. */
+function loadsOf(
   prepared: Prepared,
-  assumptions: Assumptions,
-  benchmark: Benchmark,
-  subject: string,
-  withPlan: Regrouped,
-  without: Regrouped
-): Verdict[] {
-  const broken: Verdict[] = [];
-  const cutOff = newlyCutOff(prepared, withPlan, without);
-  if (cutOff.blocks >= value(assumptions, 'verdict.access.min_new_blocks')) {
-    const blocks = cutOff.blocks === 1 ? '1 more block' : `${cutOff.blocks} more blocks`;
-    broken.push({
-      status: 'red',
-      rule: 'access',
-      reason: `${subject} leaves ${blocks} (${roughSeniors(cutOff.seniors)} seniors) with no centre within ${prepared.limitMin} min at senior pace.`,
-      cutOff,
-      pastBenchmark: [],
-    });
-  }
-
-  const pastRed = crossings(prepared, withPlan.extra, without.extra, benchmark.threeInFour);
-  const pastTypical = crossings(prepared, withPlan.extra, without.extra, benchmark.typical);
-  if (pastRed.length > 0 || pastTypical.length > 0) {
-    const [status, past, label, level]: [Status, PastBenchmark[], string, number] =
-      pastRed.length > 0
-        ? ['red', pastRed, '3-in-4', benchmark.threeInFour]
-        : ['yellow', pastTypical, 'typical', benchmark.typical];
-    const pushes = joinNames(
-      past.map(
-        (p) =>
-          `${p.name} to ${fmt(p.extraDinersPerStall)} extra diners per stall (${fmt(p.withoutThisCentre)} without it)`
-      )
-    );
-    broken.push({
-      status,
-      rule: 'load',
-      reason: `${subject} pushes ${pushes}, above the ${label} benchmark of ${fmt(level)}.`,
-      cutOff,
-      pastBenchmark: past,
-    });
-  }
-  return broken;
+  withPlan: Map<string, number>,
+  without: Map<string, number>
+): Pick<Receiver, 'centreId' | 'name' | 'extraDinersPerStall' | 'pctOverBaseline'>[] {
+  return [...withPlan]
+    .filter(([centreId, diners]) => diners > (without.get(centreId) ?? 0) + NO_RISE)
+    .map(([centreId, diners]) => ({
+      centreId,
+      name: prepared.centres.get(centreId)!.name,
+      extraDinersPerStall: perStall(prepared, centreId, diners),
+      pctOverBaseline: pctOf(prepared, centreId, diners) ?? ('new' as const),
+    }));
 }
 
-function newlyCutOff(prepared: Prepared, withPlan: Regrouped, without: Regrouped): Verdict['cutOff'] {
-  const ids = [...withPlan.cutOffBlockIds].filter((id) => !without.cutOffBlockIds.has(id));
-  return { blocks: ids.length, seniors: ids.reduce((sum, id) => sum + prepared.blocksById.get(id)!.seniors, 0) };
+/**
+ * "Can X close together with the rest of the plan?" Only what the two do together counts, never what either does
+ * alone: X's share of the rest's displaced diners, blocks cut off only when both close, and third centres pushed past
+ * a load limit only when both close.
+ */
+function judge(prepared: Prepared, assumptions: Assumptions, restIds: string[], xId: string): Judgement {
+  const redShare = value(assumptions, 'verdict.share.red');
+  const yellowShare = value(assumptions, 'verdict.share.yellow');
+  const redLoad = value(assumptions, 'verdict.load.red_pct') * 100;
+  const yellowLoad = value(assumptions, 'verdict.load.yellow_pct') * 100;
+  const minBlocks = value(assumptions, 'verdict.access.min_new_blocks');
+  const xName = prepared.centres.get(xId)!.name;
+  const restName = restIds.length === 1 ? `${prepared.centres.get(restIds[0])!.name}’s` : 'the rest of the plan’s';
+
+  const rest = regroup(prepared, new Set(restIds));
+  const alone = regroup(prepared, new Set([xId]));
+  const both = regroup(prepared, new Set([...restIds, xId]));
+
+  const shareOfRest = rest.displaced > 0 ? (rest.extra.get(xId) ?? 0) / rest.displaced : 0;
+
+  const strandedIn = (r: Regrouped) => r.accessLoss.senior.blockIds;
+  const accessLoss = Object.fromEntries(
+    PACES.map((pace) => [
+      pace,
+      both.accessLoss[pace].blockIds.filter(
+        (b) => !rest.accessLoss[pace].blockIds.includes(b) && !alone.accessLoss[pace].blockIds.includes(b)
+      ).length,
+    ])
+  ) as Record<Pace, number>;
+  const newStranded = strandedIn(both).filter((b) => !strandedIn(rest).includes(b) && !strandedIn(alone).includes(b));
+  const cutOff = {
+    blocks: newStranded.length,
+    seniors: newStranded.reduce((sum, id) => sum + prepared.blocksById.get(id)!.seniors, 0),
+  };
+
+  // Third centres: busier closing both than in either closing separately.
+  const pushes: Pushed[] = [];
+  for (const [centreId, diners] of both.extra) {
+    if (centreId === xId || restIds.includes(centreId)) continue;
+    const pct = pctOf(prepared, centreId, diners);
+    if (pct === null) continue;
+    const ifApart = Math.max(
+      pctOf(prepared, centreId, rest.extra.get(centreId) ?? 0) ?? 0,
+      pctOf(prepared, centreId, alone.extra.get(centreId) ?? 0) ?? 0
+    );
+    if (pct > ifApart + NO_RISE) pushes.push({ centreId, name: prepared.centres.get(centreId)!.name, pct, ifApart });
+  }
+  pushes.sort((a, b) => b.pct - a.pct || byCentreId(a, b));
+  const overRed = pushes.filter((p) => p.pct > redLoad && p.ifApart <= redLoad);
+  const overYellow = pushes.filter((p) => p.pct > yellowLoad && p.pct <= redLoad && p.ifApart <= yellowLoad);
+
+  const whole = (n: number) => Math.round(n);
+  const lose = `${cutOff.blocks} ${cutOff.blocks === 1 ? 'block loses' : 'blocks lose'} a centre within ${prepared.limitMin} min`;
+  const worstThird = overRed[0] ?? overYellow[0];
+  const details = [
+    shareOfRest > 0 && `${xName} takes ${whole(shareOfRest * 100)}% of ${restName} diners`,
+    cutOff.blocks > 0 &&
+      `${cutOff.blocks} more ${cutOff.blocks === 1 ? 'block loses' : 'blocks lose'} a centre within ${prepared.limitMin} min if both close`,
+    worstThird && `${worstThird.name} would get ${whole(worstThird.pct)}% busier`,
+  ].filter((d): d is string => Boolean(d));
+
+  const verdict = (status: Status, rule: Judgement['rule'], reason: string): Judgement => ({
+    status,
+    rule,
+    reason,
+    details,
+    cutOff,
+    shareOfRest,
+    overloaded: rule === 'load' ? (status === 'red' ? overRed : overYellow) : [],
+    pushes,
+    accessLoss,
+  });
+  const share = `Takes ${whole(shareOfRest * 100)}% of ${restName} diners`;
+  if (shareOfRest >= redShare) return verdict('red', 'share', share);
+  if (cutOff.blocks >= minBlocks) return verdict('red', 'access', lose);
+  if (overRed.length > 0) return verdict('red', 'load', `${overRed[0].name} gets ${whole(overRed[0].pct)}% busier`);
+  if (shareOfRest >= yellowShare) return verdict('yellow', 'share', share);
+  if (overYellow.length > 0) {
+    return verdict('yellow', 'load', `${overYellow[0].name} gets ${whole(overYellow[0].pct)}% busier`);
+  }
+  return verdict('green', null, 'Too far apart to overlap');
+}
+
+/** What closing a centre on its own does, as reasons: for the line under its card, never for its colour. */
+function ownProblems(prepared: Prepared, assumptions: Assumptions, id: string): string[] {
+  const name = prepared.centres.get(id)!.name;
+  const alone = regroup(prepared, new Set([id]));
+  const blocks = alone.accessLoss.senior.blockIds;
+  const redLoad = value(assumptions, 'verdict.load.red_pct') * 100;
+  const problems: string[] = [];
+  if (blocks.length >= value(assumptions, 'verdict.access.min_new_blocks')) {
+    const seniors = blocks.reduce((sum, b) => sum + prepared.blocksById.get(b)!.seniors, 0);
+    problems.push(
+      `Closing ${name} on its own leaves ${blocks.length === 1 ? '1 more block' : `${blocks.length} more blocks`} (${roughSeniors(seniors)} seniors) with no centre within ${prepared.limitMin} min at senior pace.`
+    );
+  }
+  const busy = [...alone.extra]
+    .map(([centreId, diners]) => ({ centreId, pct: pctOf(prepared, centreId, diners) }))
+    .filter((c): c is { centreId: string; pct: number } => c.pct !== null && c.pct > redLoad)
+    .sort((a, b) => b.pct - a.pct || byCentreId(a, b));
+  if (busy.length > 0) {
+    const names = joinNames(busy.map((c) => `${prepared.centres.get(c.centreId)!.name} (${Math.round(c.pct)}%)`));
+    problems.push(`Closing ${name} on its own makes ${names} more than ${Math.round(redLoad)}% busier.`);
+  }
+  return problems;
 }
 
 function worstStatus(statuses: Status[]): Status {
@@ -528,10 +590,6 @@ function joinNames(parts: string[]): string {
 function roughSeniors(n: number): string {
   if (n < 5) return n > 0 ? '<5' : '0';
   return (Math.round(n / 5) * 5).toLocaleString('en-US');
-}
-
-function fmt(n: number): string {
-  return n.toFixed(1);
 }
 
 function overlapsFor(data: GoldData, centres: Map<string, CentreRow>, id: string, planIds: string[]): ClosureOverlap[] {
@@ -556,70 +614,6 @@ function overlapsFor(data: GoldData, centres: Map<string, CentreRow>, id: string
           other: period(o),
         }))
     );
-}
-
-/** Open centres whose extra diners per stall is higher with the plan than without one centre, most first. */
-function rises(prepared: Prepared, withPlan: Map<string, number>, without: Map<string, number>): PastBenchmark[] {
-  const risen: PastBenchmark[] = [];
-  for (const [centreId, diners] of withPlan) {
-    const after = perStall(prepared, centreId, diners);
-    const before = perStall(prepared, centreId, without.get(centreId) ?? 0) ?? 0;
-    if (after !== null && after > before) {
-      risen.push({
-        centreId,
-        name: prepared.centres.get(centreId)!.name,
-        extraDinersPerStall: after,
-        withoutThisCentre: before,
-      });
-    }
-  }
-  return risen.sort(byWorstLoad);
-}
-
-/** Open centres above `threshold` extra diners per stall with the plan that weren't without the centre. */
-function crossings(
-  prepared: Prepared,
-  withPlan: Map<string, number>,
-  without: Map<string, number>,
-  threshold: number
-): PastBenchmark[] {
-  return rises(prepared, withPlan, without).filter(
-    (p) => p.extraDinersPerStall > threshold && p.withoutThisCentre <= threshold
-  );
-}
-
-/** Typical and "3 in 4" extra diners per stall at the worst neighbour, over every single closure. */
-function benchmarkOf(prepared: Prepared, assumptions: Assumptions): Benchmark {
-  const typicalQuantile = value(assumptions, 'verdict.load.yellow_quantile');
-  const threeInFourQuantile = value(assumptions, 'verdict.load.red_quantile');
-  if (!prepared.benchmark) {
-    const worst: number[] = [];
-    for (const centre of prepared.centres.values()) {
-      if (centre.is_interim) continue;
-      const { extra } = regroup(prepared, new Set([centre.centre_id]));
-      const loads = [...extra].map(([centreId, diners]) => perStall(prepared, centreId, diners));
-      const top = Math.max(...loads.filter((l): l is number => l !== null));
-      if (Number.isFinite(top)) worst.push(top);
-    }
-    worst.sort((a, b) => a - b);
-    prepared.benchmark = {
-      typical: quantile(worst, typicalQuantile),
-      threeInFour: quantile(worst, threeInFourQuantile),
-      typicalQuantile,
-      threeInFourQuantile,
-    };
-  }
-  return prepared.benchmark;
-}
-
-/** Linear interpolation between closest ranks, as Spark's `percentile`. */
-function quantile(sorted: number[], q: number): number {
-  // Empty only when no closure moves anybody, and then no plan has a receiver to compare.
-  if (sorted.length === 0) return 0;
-  const pos = q * (sorted.length - 1);
-  const lo = Math.floor(pos);
-  const hi = Math.ceil(pos);
-  return sorted[lo] + (sorted[hi] - sorted[lo]) * (pos - lo);
 }
 
 function groupBlocks(rows: BlockOptionRow[], cutoffM: number): Block[] {

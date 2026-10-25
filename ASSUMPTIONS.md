@@ -146,3 +146,26 @@ These are proposals, not decisions yet.
 5. Spec 1 builds the tag and assumptions registry and registers Page 2's lines only. Specs 2 and 4 register their own.
 6. Split Spec 1 into eight tickets: pipeline / data quality log, gold access, gold subzones, app shell, shared map and search, Page 2 map and headline, Page 2 lists, AAC spike. Gold access comes first, because Specs 2 and 3 depend on `gold.centres` and `gold.centre_closures`.
 7. Write Spec 1 as a GitHub parent issue with the tickets as sub-issues, and update the wireframe README as part of the Page 2 map ticket.
+
+## Page 1 closure verdicts (Spec 3 and Spec 4)
+
+Added 2026-10-26 with the "can these close together" logic fix. Every value below lives in `assumptions.json` and is read by the app; change it there.
+
+- **Only the pair counts.** An added centre is judged on what happens because it closes together with the rest of the plan (the anchor and the other added centres), never on what it or the anchor does alone. What it does alone is listed under its card and never sets its colour.
+- **Rules, first one that fires wins:**
+
+  | Colour | Rule | Constant |
+  |---|---|---|
+  | Red | The added centre takes at least this share of the rest of the plan's displaced diners | `verdict.share.red` = 10% |
+  | Red | At least this many blocks lose a centre within 15 min at senior pace only when both close | `verdict.access.min_new_blocks` = 1 |
+  | Red | A third centre gets more than this much busier than today only when both close | `verdict.load.red_pct` = 20% |
+  | Yellow | Share at least | `verdict.share.yellow` = 5% |
+  | Yellow | A third centre gets more than this much busier only when both close | `verdict.load.yellow_pct` = 10% |
+  | Green | None of the above ("Too far apart to overlap") | |
+
+- **"Only when both close"** means the block is not cut off, or the centre is not past the limit, when the rest of the plan closes without the added centre, or when the added centre closes on its own.
+- **Busier** is extra diners as a % of the centre's modelled diners today. A centre with under 1 diner a day today has no % and is shown as "new".
+- **Cut off** means a block had a centre within the limit before and none after. A block already too far to walk is not counted.
+- **NEA actions flag:** a centre is flagged when it gets more than `actions.waste.flag_pct` (20%) busier; a "new" centre counts as flagged. It never changes a colour.
+- **Retired:** the NEA-closure benchmark (`verdict.load.yellow_quantile`, `verdict.load.red_quantile`) and the per-stall flag (`actions.waste.extra_per_stall_share`, `actions.waste.typical_centre_quantile`). Extra diners per stall remains in `gold.closure_scenarios` for the Spec 2 check.
+- **Walking distance** stays the street-network `walk_m` from `silver.dist_matrix`, at the senior pace (1.0 m/s, 900 m in 15 min), so Page 1 agrees with Page 2.

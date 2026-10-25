@@ -190,57 +190,68 @@
     "value": 1,
     "unit": "blocks",
     "tag": "ASSUMPTION",
-    "source": "Spec 3: a joint closure must not cut anyone off who wasn't already",
+    "source": "Spec 3: closing together must not cut anyone off who is not already cut off by either closure alone",
     "status": "decided",
     "owner": "Aanya",
     "used_by": [
       "spec3"
     ]
   },
-  "verdict.load.yellow_quantile": {
-    "name": "Yellow above this quantile of extra diners per stall caused by single NEA closures",
-    "value": 0.5,
-    "unit": "quantile",
+  "verdict.share.red": {
+    "name": "Red if the added centre takes at least this share of the rest of the plan's displaced diners",
+    "value": 0.1,
+    "unit": "share",
     "tag": "ASSUMPTION",
-    "source": "Spec 3: benchmark against the single closures NEA already runs",
+    "source": "Page 1 logic spec (2026-10-26): the added centre is where the anchor's diners would go",
     "status": "decided",
     "owner": "Aanya",
     "used_by": [
       "spec3"
     ]
   },
-  "verdict.load.red_quantile": {
-    "name": "Red above this quantile of extra diners per stall caused by single NEA closures",
-    "value": 0.75,
-    "unit": "quantile",
+  "verdict.share.yellow": {
+    "name": "Yellow if the added centre takes at least this share of the rest of the plan's displaced diners",
+    "value": 0.05,
+    "unit": "share",
     "tag": "ASSUMPTION",
-    "source": "Spec 3: benchmark against the single closures NEA already runs",
+    "source": "Page 1 logic spec (2026-10-26)",
     "status": "decided",
     "owner": "Aanya",
     "used_by": [
       "spec3"
     ]
   },
-  "actions.waste.extra_per_stall_share": {
-    "name": "NEA actions line when extra diners per stall exceed this share of a typical centre's diners per stall",
+  "verdict.load.red_pct": {
+    "name": "Red if closing together makes a third centre more than this much busier than today, and neither closure alone does",
     "value": 0.2,
     "unit": "share",
     "tag": "ASSUMPTION",
-    "source": "Wireframe v1 (+20% waste flag)",
-    "status": "open",
+    "source": "Page 1 logic spec (2026-10-26); matches the wireframe +20% flag",
+    "status": "decided",
     "owner": "Aanya",
     "used_by": [
-      "spec3",
-      "spec4"
+      "spec3"
     ]
   },
-  "actions.waste.typical_centre_quantile": {
-    "name": "A typical centre's baseline diners per stall, for the NEA actions line: this quantile over all centres with stalls",
-    "value": 0.5,
-    "unit": "quantile",
+  "verdict.load.yellow_pct": {
+    "name": "Yellow if closing together makes a third centre more than this much busier than today, and neither closure alone does",
+    "value": 0.1,
+    "unit": "share",
     "tag": "ASSUMPTION",
-    "source": "Spec 3 (#11): \"a typical centre's diners per stall (median)\"",
+    "source": "Page 1 logic spec (2026-10-26)",
     "status": "decided",
+    "owner": "Aanya",
+    "used_by": [
+      "spec3"
+    ]
+  },
+  "actions.waste.flag_pct": {
+    "name": "NEA actions flag when a centre gets more than this much busier than today",
+    "value": 0.2,
+    "unit": "share",
+    "tag": "ASSUMPTION",
+    "source": "Wireframe v1 (+20% waste flag); Page 1 logic spec (2026-10-26)",
+    "status": "open",
     "owner": "Aanya",
     "used_by": [
       "spec3",

@@ -29,6 +29,8 @@ export interface CardView {
   /** Null when no centre it pushes passes the NEA actions threshold. */
   neaActions: string | null;
   overlaps: string[];
+  /** What it does when it closes on its own: listed under the card, never setting its colour. */
+  ownProblems: string[];
   readMore: { share: string; pushes: string[]; accessLoss: string };
 }
 
@@ -36,8 +38,10 @@ const perStall = (n: number) => `+${n.toFixed(1)}`;
 
 // A verdict card as Page 1 shows it (#11, Verdict card).
 export function cardView(card: VerdictCard, limitMin: number): CardView {
-  const actions = card.neaActions.map(
-    (a, i) => `${shortName(a.name)} (${perStall(a.extraDinersPerStall)}${i === 0 ? ' extra diners per stall' : ''})`
+  const actions = card.neaActions.map((a, i) =>
+    a.extraDinersPerStall === null
+      ? shortName(a.name)
+      : `${shortName(a.name)} (${perStall(a.extraDinersPerStall)}${i === 0 ? ' extra diners per stall' : ''})`
   );
   const { senior, typical, brisk } = card.accessLoss;
   return {
@@ -47,6 +51,7 @@ export function cardView(card: VerdictCard, limitMin: number): CardView {
     ...STATUS_STYLE[card.status],
     reason: card.reason,
     possiblyUndercounted: card.possiblyUndercounted,
+    ownProblems: card.ownProblems,
     neaActions:
       actions.length > 0
         ? `NEA actions: extra bins, more frequent collection and extra cleaning checks at ${joinNames(actions)}.`
@@ -60,8 +65,7 @@ export function cardView(card: VerdictCard, limitMin: number): CardView {
       share: `${Math.round(card.shareOfDisplaced * 100)}% of the plan’s displaced diners have it as their nearest centre`,
       pushes: card.pushes.map(
         (p) =>
-          `${shortName(p.name)}: ${perStall(p.extraDinersPerStall)} extra diners per stall ` +
-          `(${perStall(p.withoutThisCentre)} if it stays open)`
+          `${shortName(p.name)}: ${Math.round(p.pct)}% busier ` + `(${Math.round(p.ifApart)}% if closed separately)`
       ),
       accessLoss:
         senior + typical + brisk > 0

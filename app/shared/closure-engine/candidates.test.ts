@@ -25,7 +25,7 @@ function placed(
   };
 }
 
-// Here B and C are yellow if added to the anchor, D is red (it is block bA's only fallback), and P0, Q0 and Q1 are green (P1 would be yellow).
+// Here B and C are yellow if added to the anchor (with it they push D to 15%), D is red (it is block bA's only fallback), and P0, Q0 and Q1 are green.
 const NEAR = { HC_B: 0.5, HC_C: 1, HC_P0: 1.5, HC_Q0: 1.6, HC_Q1: 1.7, HC_D: 1.8 };
 const ids = (r: { candidates: { centreId: string }[] }) => r.candidates.map((c) => c.centreId);
 
@@ -73,7 +73,7 @@ describe('findCandidates', () => {
       ['HC_C', 'yellow'],
     ]);
     expect(ids(result)).not.toContain('HC_D');
-    expect(result.candidates[3].reason).toContain('Bedok Corner');
+    expect(result.candidates[3].reason).toBe('Dover Food Centre gets 15% busier');
   });
 
   it('shows no yellow centre while there are as many greens as the limit', () => {
@@ -104,7 +104,7 @@ describe('findCandidates', () => {
   });
 
   it('judges a candidate by its own card in the plan with it added', () => {
-    // With Q0 already in the plan, B is still yellow: it pushes D past the typical benchmark either way.
+    // With Q0 already in the plan, B is still yellow: with the anchor it still pushes D to 15%.
     const result = findCandidates(placed(NEAR), 'HC_A', ['HC_Q0'], null, NOW, assumptions);
 
     expect(result.candidates.find((c) => c.centreId === 'HC_B')).toMatchObject({ status: 'yellow' });

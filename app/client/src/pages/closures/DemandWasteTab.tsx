@@ -4,8 +4,8 @@ import { Pill } from '@/components/shared/Pill';
 import { TagBadge } from '@/components/shared/TagBadge';
 import { demandWasteView } from './demandWasteView';
 
-const FLAG_PCT = Math.round(assumedNumber('actions.waste.extra_per_stall_share') * 100);
-const FLAG_RULE = `extra diners per stall above ${FLAG_PCT}% of a typical centre's diners per stall`;
+const FLAG_PCT = Math.round(assumedNumber('actions.waste.flag_pct') * 100);
+const FLAG_RULE = `extra diners above ${FLAG_PCT}% of the diners it has today`;
 const HEAD = 'border-b-2 border-foreground px-3 py-2';
 
 // The "Demand & waste" tab (#54): every centre taking displaced diners, with its load and extra waste.

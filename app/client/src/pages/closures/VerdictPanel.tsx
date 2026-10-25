@@ -61,6 +61,12 @@ function VerdictCardItem({
           <TagBadge tag="MEASURED" />
         </p>
       ))}
+      {card.ownProblems.map((problem) => (
+        <p key={problem} className="text-sm text-muted-foreground">
+          On its own: {problem}
+          <TagBadge tag="MODELLED" />
+        </p>
+      ))}
       {open && (
         <div className="flex flex-col gap-1 text-sm">
           <p>
@@ -85,8 +91,8 @@ function VerdictCardItem({
             <TagBadge tag="MODELLED" />
           </p>
           <p className="text-xs text-muted-foreground">
-            The plan compared with the same plan where {card.name} stays open · gold.block_options · gold.centres ·
-            gold.centre_demand · gold.centre_closures
+            What happens only because {card.name} closes together with the rest of the plan, compared with each closing
+            apart · gold.block_options · gold.centres · gold.centre_demand · gold.centre_closures
           </p>
         </div>
       )}
@@ -152,11 +158,6 @@ export function VerdictPanel({
         ) : (
           <p className="text-sm text-muted-foreground">Add centres above to check whether they can close together.</p>
         )}
-        <p className="text-xs text-muted-foreground">
-          Load benchmarks from NEA&rsquo;s single closures: typical {result.benchmark.typical.toFixed(1)} · 3 in 4{' '}
-          {result.benchmark.threeInFour.toFixed(1)} extra diners per stall at the worst-hit neighbour
-          <TagBadge tag="MODELLED" />
-        </p>
         <ul className="flex flex-col gap-2">
           {cards.map((card) => (
             <VerdictCardItem
