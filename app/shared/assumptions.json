@@ -347,8 +347,8 @@
     "value": 6,
     "unit": "years",
     "tag": "ASSUMPTION",
-    "source": "Team input: NEA does R&R every 6–8 years (the low end is used, so a centre counts as due sooner); source still needed (#94)",
-    "status": "open",
+    "source": "MSE written reply to PQ, 3 Aug 2023 (Minister Grace Fu): \"Hawker centres and markets typically undergo cyclical Repairs and Redecoration (R&R) every 6 to 8 years\"; the low end is used, so a centre counts as due sooner",
+    "status": "sourced",
     "owner": "Aanya",
     "used_by": [
       "spec4"
