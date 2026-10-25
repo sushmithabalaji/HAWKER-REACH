@@ -1,50 +1,25 @@
-import { Fragment, useMemo } from 'react';
+import { Fragment, useState } from 'react';
 import { Button } from '@databricks/appkit-ui/react';
-import { Pill, type PillTone } from '@/components/shared/Pill';
+import { Pill } from '@/components/shared/Pill';
 import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/shared/Panel';
 import { TagBadge } from '@/components/shared/TagBadge';
 import { metres, type Names } from './names';
-import { roughCount, type BlockOutcome } from './scenario';
+import { roughCount } from './scenario';
 import { NoneUrgent, ShowAllToggle } from './priority';
 import { usePriorityFilter } from './usePriorityFilter';
 import { LIMIT_MIN } from './settings';
-import { blockReason, supportList, supportCsv, type Support, type SupportNeed } from './support';
+import { AreaSupports, SupportPill } from './SupportPills';
+import { blockReason, supportCsv, type SupportArea } from './support';
 
 interface SupportListProps {
-  outcomes: BlockOutcome[] | null;
+  areas: SupportArea[];
   closedName: string | null;
   priorityIds: ReadonlySet<string> | null;
-  isSuperAged: ((subzoneId: string) => boolean) | null; // null until the share aged 65+ loads
+  checkInsPending: boolean; // true until the share aged 65+ loads
   names: Names;
 }
 
 const walk = (m: number | null) => (m === null ? '' : ` · ${metres(m)}`);
-
-const SUPPORT_TONE: Record<Support, PillTone> = {
-  Shuttle: 'outline',
-  'Meal delivery or vouchers': 'ink',
-  'Volunteer check-ins': 'highlight',
-  'Temporary food point': 'ink',
-};
-
-// A support with its reason on hover, e.g. "3 blocks have no centre within 2 km".
-function SupportPill({ support, reason }: { support: Support; reason?: string }) {
-  return (
-    <span title={reason}>
-      <Pill tone={SUPPORT_TONE[support]}>{support}</Pill>
-    </span>
-  );
-}
-
-function AreaSupports({ supports }: { supports: SupportNeed[] }) {
-  return (
-    <span className="flex flex-wrap gap-1">
-      {supports.map(({ support, reason }) => (
-        <SupportPill key={support} support={support} reason={reason} />
-      ))}
-    </span>
-  );
-}
 
 // The link is added to the page and the URL kept a moment, or Firefox and Safari can drop the download.
 function download(csv: string, filename: string) {
@@ -64,10 +39,16 @@ const fileSafe = (s: string) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '');
 
-// Who needs what support after the closure: one row per subzone with seniors cut off, its blocks
-// underneath. Priority areas only until the user asks for all; the download always has every block.
-export function SupportList({ outcomes, closedName, priorityIds, isSuperAged, names }: SupportListProps) {
-  const areas = useMemo(() => (outcomes ? supportList(outcomes, isSuperAged) : []), [outcomes, isSuperAged]);
+// Who needs what support after the closure: one row per subzone with seniors cut off, its blocks behind
+// an expand control. Priority areas only until the user asks for all; the download always has every block.
+export function SupportList({ areas, closedName, priorityIds, checkInsPending, names }: SupportListProps) {
+  const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
+  const toggleBlocks = (id: string) =>
+    setExpanded((s) => {
+      const next = new Set(s);
+      if (!next.delete(id)) next.add(id);
+      return next;
+    });
   const filter = usePriorityFilter(areas, priorityIds);
   const shown = filter.shown;
   const blocks = shown.reduce((n, a) => n + a.blocks.length, 0);
@@ -79,7 +60,7 @@ export function SupportList({ outcomes, closedName, priorityIds, isSuperAged, na
   };
 
   return (
-    <Panel>
+    <Panel id="support-list">
       <PanelHeader className="flex flex-row flex-wrap items-center gap-x-4 gap-y-2">
         <PanelTitle className="flex-1 text-xl">Senior support list</PanelTitle>
         {closedName && shown.length > 0 && (
@@ -127,9 +108,16 @@ export function SupportList({ outcomes, closedName, priorityIds, isSuperAged, na
                     <tr className={`border-b bg-muted/40 ${filter.muted(area)}`}>
                       <td className="px-3 py-2">
                         <strong>{names.subzone(area.subzone_id)}</strong>
-                        <span className="block text-xs text-muted-foreground">
-                          {area.blocks.map((b) => b.outcome.block.block_label).join(', ')}
-                        </span>
+                        <Button
+                          variant="link"
+                          size="sm"
+                          className="block h-auto p-0 text-xs text-muted-foreground"
+                          aria-expanded={expanded.has(area.subzone_id)}
+                          onClick={() => toggleBlocks(area.subzone_id)}
+                        >
+                          {expanded.has(area.subzone_id) ? 'Hide' : 'Show'} {area.blocks.length}{' '}
+                          {area.blocks.length === 1 ? 'block' : 'blocks'}
+                        </Button>
                       </td>
                       <td className="px-3 py-2 font-mono">{roughCount(area.seniors)}</td>
                       <td className="px-3 py-2">
@@ -141,30 +129,34 @@ export function SupportList({ outcomes, closedName, priorityIds, isSuperAged, na
                         <AreaSupports supports={area.supports} />
                       </td>
                     </tr>
-                    {area.blocks.map(({ outcome: o, support }) => (
-                      <tr key={o.block.block_id} className={`border-b text-muted-foreground ${filter.muted(area)}`}>
-                        <td className="py-1.5 pl-8 pr-3">{o.block.block_label}</td>
-                        <td className="px-3 py-1.5 font-mono">{roughCount(o.block.est_seniors)}</td>
-                        <td className="px-3 py-1.5">
-                          {names.centre(o.afterCentreId)}
-                          {walk(o.afterWalkM)}
-                        </td>
-                        <td className="px-3 py-1.5">
-                          <SupportPill support={support} reason={blockReason(o)} />
-                        </td>
-                      </tr>
-                    ))}
+                    {expanded.has(area.subzone_id) &&
+                      area.blocks.map(({ outcome: o, support }) => (
+                        <tr key={o.block.block_id} className={`border-b text-muted-foreground ${filter.muted(area)}`}>
+                          <td className="py-1.5 pl-8 pr-3">{o.block.block_label}</td>
+                          <td className="px-3 py-1.5 font-mono">{roughCount(o.block.est_seniors)}</td>
+                          <td className="px-3 py-1.5">
+                            {names.centre(o.afterCentreId)}
+                            {walk(o.afterWalkM)}
+                          </td>
+                          <td className="px-3 py-1.5">
+                            <SupportPill support={support} reason={blockReason(o)} />
+                          </td>
+                        </tr>
+                      ))}
                   </Fragment>
                 ))}
               </tbody>
             </table>
           </div>
         )}
-        <p className="text-sm text-muted-foreground">
-          {!isSuperAged && 'Volunteer check-ins appear once the share aged 65+ has loaded. '}
-          Each area shows only the support its conditions call for; hover a support for why. The rules are in the
-          Assumptions panel. <TagBadge tag="ASSUMPTION" /> Community meal points and the nearest AAC are Phase 2.
-        </p>
+        {shown.length > 0 && (
+          <p className="text-xs text-muted-foreground">Hover a support to see why the area needs it.</p>
+        )}
+        {checkInsPending && (
+          <p className="text-sm text-muted-foreground">
+            Volunteer check-ins appear once the share aged 65+ has loaded.
+          </p>
+        )}
         {filter.canToggle && <ShowAllToggle showAll={filter.showAll} areas={areas.length} onToggle={filter.toggle} />}
         <div>
           <Button size="lg" onClick={onDownload} disabled={areas.length === 0}>

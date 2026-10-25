@@ -4,6 +4,7 @@ import {
   isPriority,
   priorityAreaIds,
   roughCount,
+  severityOf,
   roundedCount,
   runScenario,
   summarise,
@@ -314,6 +315,29 @@ describe('priorityAreaIds', () => {
       { subzone_id: 'NEITHER', seniors: 10, blocks: 1, noOneCanWalk: false },
     ];
     expect(priorityAreaIds(areas, (id) => id === 'OLD')).toEqual(new Set(['WALK', 'OLD']));
+  });
+});
+
+describe('severityOf', () => {
+  const summaryWith = (cutOff: number, noOneCanWalk: number) => {
+    const s = summarise([]);
+    s.groups['cut-off'].seniors = cutOff;
+    s.noOneCanWalk.seniors = noOneCanWalk;
+    return s;
+  };
+
+  test('none when no senior is cut off', () => {
+    expect(severityOf(summaryWith(0, 0), 0)).toBeNull();
+  });
+
+  test('severe at 3 priority areas or 50 seniors no one can walk for', () => {
+    expect(severityOf(summaryWith(200, 0), 3)).toBe('Severe');
+    expect(severityOf(summaryWith(200, 50), 1)).toBe('Severe');
+  });
+
+  test('moderate with any priority area, low with none', () => {
+    expect(severityOf(summaryWith(200, 49), 2)).toBe('Moderate');
+    expect(severityOf(summaryWith(200, 0), 0)).toBe('Low');
   });
 });
 
