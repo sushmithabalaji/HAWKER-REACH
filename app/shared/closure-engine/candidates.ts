@@ -62,10 +62,11 @@ export function findCandidates(
   const anchor = data.centres.find((c) => c.centre_id === anchorId)!;
   const cutoffM = assumedNumber('walk.cutoff_m', assumptions);
   const inPlan = new Set([anchorId, ...selectedIds]);
-  const overlapping = (centreId: string, type: (t: string) => boolean) =>
+  // A centre's closures that overlap the window; none when there is no window to compare against.
+  const closuresInWindow = (centreId: string) =>
     window
       ? data.centreClosures.filter(
-          (k) => k.centre_id === centreId && type(k.type) && k.start_date <= window.to && window.from <= k.end_date
+          (k) => k.centre_id === centreId && k.start_date <= window.to && window.from <= k.end_date
         )
       : [];
 
@@ -73,10 +74,12 @@ export function findCandidates(
   for (const centre of data.centres) {
     if (centre.is_interim || inPlan.has(centre.centre_id)) continue;
     const distanceM = metresBetween(anchor, centre);
-    if (distanceM > cutoffM || overlapping(centre.centre_id, (t) => WORKS.has(t)).length > 0) continue;
+    if (distanceM > cutoffM) continue;
+    const overlaps = closuresInWindow(centre.centre_id);
+    if (overlaps.some((k) => WORKS.has(k.type))) continue;
 
     const { cards } = evaluatePlan(data, anchorId, [...selectedIds, centre.centre_id], assumptions);
-    const card = cards[cards.length - 1];
+    const card = cards[cards.length - 1]; // cards follow `selectedIds`, so the last one is the added centre
     if (card.status === 'red') continue;
     found.push({
       centreId: centre.centre_id,
@@ -86,10 +89,9 @@ export function findCandidates(
       ageYears: centre.opening_year === null ? null : Math.max(0, currentYear - centre.opening_year),
       status: card.status,
       reason: card.reason,
-      cleaning: overlapping(centre.centre_id, (t) => t === 'cleaning').map((k) => ({
-        startDate: k.start_date,
-        endDate: k.end_date,
-      })),
+      cleaning: overlaps
+        .filter((k) => k.type === 'cleaning')
+        .map((k) => ({ startDate: k.start_date, endDate: k.end_date })),
     });
   }
 
