@@ -294,5 +294,17 @@
     "used_by": [
       "spec3"
     ]
+  },
+  "candidates.max_shown": {
+    "name": "Most centres listed as candidates to schedule alongside",
+    "value": 5,
+    "unit": "centres",
+    "tag": "ASSUMPTION",
+    "source": "Spec 4 (#54): top 5",
+    "status": "decided",
+    "owner": "Aanya",
+    "used_by": [
+      "spec4"
+    ]
   }
 }

@@ -1,64 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { evaluatePlan } from '.';
 import type { CentreClosureRow } from './gold';
-import { assumptions, block, centre, town, withValues } from './sample';
-
-// Every centre has 10 stalls, so extra diners per stall = extra diners ÷ 10.
-// Single closures and their worst neighbour's extra diners per stall:
-//   A → D 2, B → D 4, C → D 4, and five padding pairs P → Q: 5, 6, 7, 8, 8.
-//   D, and every Q, is nobody's fallback, so their closures move nobody and don't count.
-// Sorted [2, 4, 4, 5, 6, 7, 8, 8]: median 5.5, 0.75 quantile 7.25 (linear, as Spark's percentile).
-const PADDING = [5, 6, 7, 8, 8];
-
-function verdictTown(extraBlocks: ReturnType<typeof block>[] = []) {
-  return town(
-    [
-      centre('HC_A', { name: 'Anchor Market' }),
-      centre('HC_B', { name: 'Bedok Corner' }),
-      centre('HC_C', { name: 'Clementi Court' }),
-      centre('HC_D', { name: 'Dover Food Centre' }),
-      ...PADDING.flatMap((_, i) => [centre(`HC_P${i}`), centre(`HC_Q${i}`)]),
-    ],
-    [
-      block(
-        'bA',
-        [
-          ['HC_A', 300],
-          ['HC_D', 800],
-        ],
-        { diners: 20 }
-      ),
-      block(
-        'bB',
-        [
-          ['HC_B', 300],
-          ['HC_D', 700],
-        ],
-        { diners: 40 }
-      ),
-      block(
-        'bC',
-        [
-          ['HC_C', 300],
-          ['HC_D', 700],
-        ],
-        { diners: 40 }
-      ),
-      block('bD', [['HC_D', 200]], { diners: 10 }),
-      ...PADDING.map((perStall, i) =>
-        block(
-          `bP${i}`,
-          [
-            [`HC_P${i}`, 300],
-            [`HC_Q${i}`, 600],
-          ],
-          { diners: perStall * 10 }
-        )
-      ),
-      ...extraBlocks,
-    ]
-  );
-}
+import { assumptions, block, centre, town, verdictTown, withValues } from './sample';
 
 describe('evaluatePlan: load benchmark', () => {
   it('takes the median and 0.75 quantile of the worst neighbour over every single closure', () => {
