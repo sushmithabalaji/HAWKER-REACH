@@ -6,16 +6,22 @@ import type { CentreRow, PlanResult, Receiver } from '@shared/closure-engine';
 import { BaseMap } from '@/components/shared/BaseMap';
 import type { Bounds } from '@/components/shared/basemapStyles';
 import { canPick, shortName } from '@/components/shared/centres';
-import { BRAND_HEX, HIGHLIGHT_HEX, INK_HEX, INTERIM_HEX, rgb, WHITE_HEX } from '@/components/shared/mapColours';
+import {
+  BRAND_HEX,
+  HIGHLIGHT_HEX,
+  INK_HEX,
+  INTERIM_HEX,
+  OTHER_CENTRE_HEX as OTHER_HEX,
+  RECEIVER_HEX,
+  rgb,
+  WHITE_HEX,
+} from '@/components/shared/mapColours';
 import type { BlockPoint } from './blocks';
 import { TOP_RECEIVERS, WALK_LIMITS } from './settings';
 import { count, pctOverBaseline, roundTo10 } from './format';
 import { worstCaseNote } from './notes';
 import { rippleFrame, SETTLED, START, type RippleFrame } from './ripple';
 
-const OTHER_HEX = '#b3a190';
-// Centres taking diners: a deep version of the brand's soft teal, so the dots read on the basemap.
-const RECEIVER_HEX = '#2e7f84';
 // Above this many blocks losing access, their names would overlap, so they show only on hover.
 const MAX_BLOCK_LABELS = 25;
 // The "possibly under-counted" badge on the map: a dashed ring (deck.gl has no dashed strokes, so it is an icon).

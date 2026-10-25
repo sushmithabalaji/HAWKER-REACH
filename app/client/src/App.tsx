@@ -11,7 +11,7 @@ const tabClass = ({ isActive }: { isActive: boolean }) =>
       : 'text-topbar-foreground hover:bg-topbar-foreground/15 hover:text-topbar-strong'
   }`;
 
-// The shell: a full-width chocolate-brown bar, edged in the brand orange, with the app name and one tab per
+// The shell: a full-width warm brown bar, edged in the brand orange, with the app name and one tab per
 // registered page (wrapping on a phone), then the page centred up to 1440px on the cream background (#113).
 function Layout() {
   return (
@@ -44,7 +44,8 @@ function Layout() {
 // re-running its queries. The route only picks which page shows; a hidden page is inert and takes no space,
 // but keeps its size so its map needs no re-layout when it comes back.
 function Pages() {
-  const { pathname } = useLocation();
+  // "/closures/" matches the /closures route too, so compare without a trailing slash.
+  const pathname = useLocation().pathname.replace(/(.)\/+$/, '$1');
   return pages.map((page) => {
     const active = pathname === page.path;
     return (

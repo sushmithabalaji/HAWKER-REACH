@@ -25,4 +25,4 @@ export const MULTIPLIER_BANDS = [
   { name: 'High', hex: '#E06A2B' },
   { name: 'Extremely vulnerable', hex: '#A93A0B' },
 ];
-export const NOT_AFFECTED_HEX = '#C5CDD5';
+export { NOT_AFFECTED_HEX } from '@/components/shared/mapColours';

@@ -58,7 +58,7 @@ export interface SupportArea {
 // Walk after the closure, with no centre in range as the furthest of all.
 const walkAfter = (o: BlockOutcome) => o.afterWalkM ?? Infinity;
 
-// The order blocks are ranked in within an area (#114): seniors no one can walk a centre for first (T1 → T4),
+// The order blocks are ranked in within an area (#114): blocks where no one can walk to a centre first,
 // then the most seniors, then the longest walk left, then block id so the rank never flickers.
 export function byVulnerability(a: SupportBlock, b: SupportBlock): number {
   return (
