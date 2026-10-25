@@ -1,7 +1,7 @@
 import { Pill, type PillTone } from '@/components/shared/Pill';
 import type { Support, SupportNeed } from './support';
 
-// The support labels both the support list and "What to do" show.
+// The support labels in the support list, one per area and one per block.
 const SUPPORT_TONE: Record<Support, PillTone> = {
   Shuttle: 'outline',
   'Meal delivery or vouchers': 'ink',

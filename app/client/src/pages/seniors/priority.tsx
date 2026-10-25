@@ -1,6 +1,6 @@
 import { Button } from '@databricks/appkit-ui/react';
 
-// The two pieces What to do and the support list share around usePriorityFilter.
+// The support list's pieces around usePriorityFilter: the no-urgent note and the show-all toggle.
 export function NoneUrgent({ areas, className }: { areas: number; className: string }) {
   return (
     <p className={className}>

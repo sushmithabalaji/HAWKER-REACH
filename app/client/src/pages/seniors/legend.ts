@@ -15,12 +15,12 @@ export const ACCESS_LEVELS: Record<AccessLevel, { label: string; meaning: string
 export const TIER_LEVEL: Record<Tier, AccessLevel> = { T1: 'ok', T2: 'concerning', T3: 'concerning', T4: 'vulnerable' };
 export const tierHex = (tier: Tier) => ACCESS_LEVELS[TIER_LEVEL[tier]].hex;
 
-// One entry per multiplierBand, low to high, on a purple ramp that gets stronger as the multiplier goes
-// up and can't be mistaken for the access colours.
+// One entry per multiplierBand, low to high, on the app's orange ramp (the wireframe's), getting stronger
+// as the multiplier goes up.
 export const MULTIPLIER_BANDS = [
-  { name: 'Low vulnerability', hex: '#EEE6F4' },
-  { name: 'Moderate', hex: '#C3A3DA' },
-  { name: 'High', hex: '#8550B3' },
-  { name: 'Extremely vulnerable', hex: '#4A1A75' },
+  { name: 'Low vulnerability', hex: '#FAE0C3' },
+  { name: 'Moderate', hex: '#F2A766' },
+  { name: 'High', hex: '#E06A2B' },
+  { name: 'Extremely vulnerable', hex: '#A93A0B' },
 ];
 export const NOT_AFFECTED_HEX = '#C5CDD5';

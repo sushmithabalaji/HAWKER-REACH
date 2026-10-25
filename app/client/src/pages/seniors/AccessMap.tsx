@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Button, Skeleton, ToggleGroup } from '@databricks/appkit-ui/react';
 import { Panel, PanelContent } from '@/components/shared/Panel';
 import type { PickingInfo } from '@deck.gl/core';
-import { GeoJsonLayer, ScatterplotLayer } from '@deck.gl/layers';
+import { GeoJsonLayer, ScatterplotLayer, TextLayer } from '@deck.gl/layers';
 import type { Feature, Geometry } from 'geojson';
 import { BaseMap } from '@/components/shared/BaseMap';
 import type { Bounds } from '@/components/shared/basemapStyles';
@@ -14,6 +14,7 @@ import { InkToggleItem } from '@/components/shared/InkToggleItem';
 import { centresLayer } from '@/components/shared/centresLayer';
 import { HIGHLIGHT_HEX, INK_HEX, rgb, WHITE_HEX } from '@/components/shared/mapColours';
 import { ACCESS_LEVELS, MULTIPLIER_BANDS, NOT_AFFECTED_HEX, TIER_LEVEL, tierHex, type AccessLevel } from './legend';
+import { Swatch } from './Swatch';
 import { roughCount, type AccessBlock, type AreaCutOff, type BlockOutcome, type Closure, type Tier } from './scenario';
 import { metres, NO_CENTRE, type Names } from './names';
 import { LIMIT_MIN, SUPER_AGED_PCT } from './settings';
@@ -40,16 +41,6 @@ type SubzoneFeature = Feature<Geometry, SubzoneProps>;
 // "Concerning (T2)": the level a reader understands, with the tier code the CSV uses.
 const tierText = (tier: Tier) => `${ACCESS_LEVELS[TIER_LEVEL[tier]].label} (${tier})`;
 
-function Swatch({ colour, ring }: { colour: string; ring?: string }) {
-  return (
-    <span
-      className="inline-block h-3 w-4 shrink-0 rounded-sm"
-      // A thin border keeps the palest colours visible on the white card.
-      style={{ background: colour, border: ring ? `2px solid ${ring}` : '1px solid rgb(0 0 0 / 0.35)' }}
-    />
-  );
-}
-
 // Page 2's map card: blocks by walking tier before or after the closure, or subzones by vulnerability multiplier.
 export function AccessMap({
   blocks,
@@ -74,6 +65,22 @@ export function AccessMap({
 
   const layers = useMemo(() => {
     const centreLayer = centresLayer({ centres: centres ?? [], pickedId: closure?.centreId ?? null, closedIds });
+    // A highlight cross on each closed centre, as Page 1 draws it, outlined in white so it shows over the
+    // darkest vulnerability band. Pickable like the centre under it: hover names it, a click reopens it.
+    const crosses = new TextLayer<Centre>({
+      id: 'closed',
+      data: (centres ?? []).filter((c) => closedIds.has(c.centre_id)),
+      pickable: true,
+      fontSettings: { sdf: true },
+      outlineWidth: 3,
+      outlineColor: rgb(WHITE_HEX),
+      getPosition: (c) => [c.lon, c.lat],
+      getText: () => '×',
+      characterSet: ['×'],
+      getSize: 34,
+      fontWeight: 'bold',
+      getColor: rgb(HIGHLIGHT_HEX),
+    });
 
     if (view === 'multiplier') {
       // Only priority areas get the dark outline, so the ones needing help first stand out; every area
@@ -99,7 +106,7 @@ export function AccessMap({
           getLineWidth: [priorityIds, cutOffBySubzone],
         },
       });
-      return [shading, centreLayer];
+      return [shading, centreLayer, crosses];
     }
 
     // Before a closure, every block shows today's tier. After one, only affected blocks are coloured.
@@ -122,7 +129,7 @@ export function AccessMap({
       },
       updateTriggers: { getRadius: [outcomeById], getFillColor: [outcomeById, phase, closure] },
     });
-    return [blockLayer, centreLayer];
+    return [blockLayer, centreLayer, crosses];
   }, [
     view,
     phase,
@@ -152,6 +159,10 @@ export function AccessMap({
     centres: {
       tooltip: (c: Centre) =>
         `${c.name}\n${c.is_interim ? 'Interim: stays open' : 'Click to close it, or click again to reopen'}`,
+      click: (c: Centre) => canPick(c) && onCentreClick(c),
+    },
+    closed: {
+      tooltip: (c: Centre) => `${c.name}\nClosed. Click to reopen`,
       click: (c: Centre) => canPick(c) && onCentreClick(c),
     },
     blocks: { tooltip: blockTooltip },
@@ -296,7 +307,9 @@ export function AccessMap({
             </>
           )}
           <span className="flex items-center gap-1.5">
-            <Swatch colour={WHITE_HEX} ring={HIGHLIGHT_HEX} />
+            <span aria-hidden="true" className="text-base font-bold leading-none text-highlight">
+              ×
+            </span>
             closed centre
           </span>
         </div>
