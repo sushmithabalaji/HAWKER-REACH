@@ -27,7 +27,7 @@ export const spec2Assumptions: AssumptionLine[] = [
     status: 'decided',
   },
   {
-    text: 'Newly unserved: residents with no open centre within 2 km because of the closure. Residents already without one before any closure are not counted',
+    text: 'Newly unserved: residents with no open centre within 2 km because of the plan. Residents already without one before any closure are not counted',
     tag: 'MODELLED',
     source: 'gold.block_options · gold.closure_scenarios.unserved_residents (05_gold_closures)',
     status: 'decided',
