@@ -4,7 +4,6 @@ import type { PickingInfo } from '@deck.gl/core';
 import { IconLayer, LineLayer, ScatterplotLayer, TextLayer } from '@deck.gl/layers';
 import type { CentreRow, PlanResult, Receiver } from '@shared/closure-engine';
 import { BaseMap } from '@/components/shared/BaseMap';
-import { TagBadge } from '@/components/shared/TagBadge';
 import type { Bounds } from '@/components/shared/basemapStyles';
 import { canPick, shortName } from '@/components/shared/centres';
 import { HIGHLIGHT_HEX, INK_HEX, INTERIM_HEX, rgb, WHITE_HEX } from '@/components/shared/mapColours';
@@ -294,7 +293,6 @@ export function RippleMap({
             <span>
               {count(losingAccess.length)} block{losingAccess.length === 1 ? '' : 's'} left with no centre within{' '}
               {WALK_LIMITS.limitMin} min at senior pace
-              <TagBadge tag="MODELLED" />
             </span>
             <Button
               variant={showAccess ? 'default' : 'outline'}
