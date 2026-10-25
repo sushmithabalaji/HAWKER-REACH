@@ -173,21 +173,20 @@ describe('runScenario', () => {
       o.block.block_id,
       o.group,
       o.noOneCanWalk,
-      o.nowWorse,
     ]);
     expect(groups).toEqual([
-      ['cut', 'cut-off', false, false],
-      ['cut-no-one', 'cut-off', true, false],
-      ['kept', 'unaffected', false, false],
-      ['already', 'already-without', false, false],
-      ['already-worse', 'already-without', false, true],
-      ['already-t4', 'already-without', false, false],
+      ['cut', 'cut-off', false],
+      ['cut-no-one', 'cut-off', true],
+      ['kept', 'unaffected', false],
+      ['already', 'already-without', false],
+      ['already-worse', 'already-without', false],
+      ['already-t4', 'already-without', false],
     ]);
   });
 });
 
 describe('summarise', () => {
-  test('totals blocks and seniors per group, with the sub-lines', () => {
+  test('totals blocks and seniors per group, with the no-one-can-walk sub-line', () => {
     const blocks = [
       block(
         'cut',
@@ -218,7 +217,6 @@ describe('summarise', () => {
         unaffected: { blocks: 1, seniors: 7 },
       },
       noOneCanWalk: { blocks: 1, seniors: 5 },
-      nowWorse: { blocks: 1, seniors: 3 },
     });
   });
 });

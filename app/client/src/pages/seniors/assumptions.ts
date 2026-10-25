@@ -41,9 +41,15 @@ export const seniorsAssumptions: AssumptionLine[] = [
     status: 'sourced',
   },
   {
+    text: 'A picked closure also counts renovation or redevelopment at nearby centres in the same dates as closed ("Also closed then"); cleaning counts as open',
+    tag: 'ASSUMPTION',
+    source: 'Team decision (ASSUMPTIONS.md, closures handled)',
+    status: 'decided',
+  },
+  {
     text: `Seniors cut off: their walk to a centre was within ${LIMIT_MIN} min at a senior pace before the closure and isn’t after it.`,
     tag: 'MODELLED',
-    source: 'ASSUMPTIONS.md (outcome groups)',
+    source: 'ASSUMPTIONS.md (outcome groups: cut off)',
     status: 'decided',
   },
   {

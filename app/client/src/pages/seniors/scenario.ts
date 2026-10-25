@@ -71,7 +71,6 @@ export interface Closure {
 }
 
 export type Group = 'cut-off' | 'already-without' | 'unaffected';
-export const GROUPS: Group[] = ['cut-off', 'already-without', 'unaffected'];
 
 export interface BlockOutcome {
   block: AccessBlock;
@@ -81,7 +80,6 @@ export interface BlockOutcome {
   afterWalkM: number | null;
   group: Group;
   noOneCanWalk: boolean; // cut off, T1 → T4
-  nowWorse: boolean; // already without, T2/T3 → T4
 }
 
 // Blocks whose nearest centre is the one picked, and where their seniors walk instead (ASSUMPTIONS.md,
@@ -102,7 +100,6 @@ export function runScenario(blocks: readonly AccessBlock[], closure: Closure): B
         afterWalkM: next?.walk_m ?? null,
         group,
         noOneCanWalk: group === 'cut-off' && after === 'T4',
-        nowWorse: (before === 'T2' || before === 'T3') && after === 'T4',
       };
     });
 }
@@ -116,7 +113,6 @@ export interface Count {
 export interface Summary {
   groups: Record<Group, Count>;
   noOneCanWalk: Count; // sub-line of cut off
-  nowWorse: Count; // sub-count of already without
 }
 
 export function summarise(outcomes: readonly BlockOutcome[]): Summary {
@@ -124,7 +120,6 @@ export function summarise(outcomes: readonly BlockOutcome[]): Summary {
   const s: Summary = {
     groups: { 'cut-off': zero(), 'already-without': zero(), unaffected: zero() },
     noOneCanWalk: zero(),
-    nowWorse: zero(),
   };
   const add = (count: Count, seniors: number) => {
     count.blocks += 1;
@@ -133,7 +128,6 @@ export function summarise(outcomes: readonly BlockOutcome[]): Summary {
   for (const o of outcomes) {
     add(s.groups[o.group], o.block.est_seniors);
     if (o.noOneCanWalk) add(s.noOneCanWalk, o.block.est_seniors);
-    if (o.nowWorse) add(s.nowWorse, o.block.est_seniors);
   }
   return s;
 }

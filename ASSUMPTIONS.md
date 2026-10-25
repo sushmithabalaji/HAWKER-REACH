@@ -12,7 +12,7 @@ Where this file disagrees with the wireframe, this file wins.
 | `gold.block_access` | One row per block for each of 10/15/20 min, tiers T1–T4 | Replaced in place (no `_v2`) with one row per block (columns below). |
 | Time limit | 10 / 15 / 20 min on the map | Fixed at 15 min on the map. 10 and 20 min stay in the pipeline only, for sensitivity runs. |
 | Age-group control | Under 65 / 65–74 / 75–84 / 85+, at 1.3 / 1.2 / 1.0 / 0.8 m/s | Removed from the MVP. Seniors (65+) walk at 1.0 m/s everywhere. |
-| "Slower walkers lose more" panel | On Page 2 | Removed. Replaced by the sensitivity line ("If the limit were 10 or 20 min…"). |
+| "Slower walkers lose more" panel | On Page 2 | Removed. Replaced by the sensitivity line ("If the limit were 10 or 20 min…"), itself removed in #96; the 10 and 20 min runs stay in `gold.access_sensitivity` and MLflow. |
 | "AACs to alert" | Ranked by seniors affected × multiplier | Renamed "Areas to alert": one row per subzone, sorted by seniors cut off, with `is_super_aged` as a badge and no multiplied score. |
 | Priority areas | Every area to alert listed alike (#32) | Replaces #32's "list every area" rule: only priority areas show by default (see below); the rest are behind "Show all". Still no multiplied score: priority filters the list and the order stays by seniors cut off. (#77) |
 | AAC column | Phase 2 | Still Phase 2, plus a spike ticket on AAC data sources. |
