@@ -4,7 +4,6 @@ import { Pill } from '@/components/shared/Pill';
 import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/shared/Panel';
 import { metres, type Names } from './names';
 import { roughCount } from './scenario';
-import { ShowAllToggle } from './priority';
 import { useTopAreas } from './useTopAreas';
 import { MULTIPLIER_BANDS } from './legend';
 import { Swatch } from './Swatch';
@@ -23,18 +22,30 @@ interface SupportListProps {
 
 // The area's vulnerability band and multiplier, as on the vulnerability map.
 function Vulnerability({ seniors }: { seniors: SubzoneSeniors | undefined }) {
-  const band = multiplierBand(seniors?.multiplier ?? null);
-  if (band === null || seniors?.multiplier == null) return <span>Too few residents</span>;
+  const multiplier = seniors?.multiplier ?? null;
+  const band = multiplierBand(multiplier);
+  if (multiplier === null || band === null) return <span>Too few residents</span>;
   return (
     <span className="flex items-center gap-1.5 whitespace-nowrap">
       <Swatch colour={MULTIPLIER_BANDS[band].hex} square />
       {MULTIPLIER_BANDS[band].name}
-      <span className="font-mono">×{seniors.multiplier.toFixed(2)}</span>
+      <span className="font-mono">×{multiplier.toFixed(2)}</span>
     </span>
   );
 }
 
 const walk = (m: number | null) => (m === null ? '' : ` · ${metres(m)}`);
+
+// Switches the list between its top areas and every affected area.
+function ShowAllToggle({ showAll, areas, onToggle }: { showAll: boolean; areas: number; onToggle: () => void }) {
+  return (
+    <div>
+      <Button variant="ghost" size="sm" className="-ml-2" onClick={onToggle}>
+        {showAll ? `Show the top ${TOP_AREAS} only` : `Show all ${areas} affected areas`}
+      </Button>
+    </div>
+  );
+}
 
 // The link is added to the page and the URL kept a moment, or Firefox and Safari can drop the download.
 function download(csv: string, filename: string) {

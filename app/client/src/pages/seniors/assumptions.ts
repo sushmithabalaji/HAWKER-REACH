@@ -1,6 +1,6 @@
 import type { AssumptionLine } from '@shared/assumptions';
 import { CUTOFF_M, LIMIT_MIN, SEVERE_NO_WALK_SENIORS, SEVERE_PRIORITY_AREAS, SUPER_AGED_PCT } from './settings';
-import { SUPPORT_RULES, SUPPORTS } from './support';
+import { SUPPORT_RULES, SUPPORTS, TOP_AREAS } from './support';
 
 // Page 2's Assumptions panel: only what a reader needs to trust and act on the page (#91). Method notes
 // for the team live in ASSUMPTIONS.md, not here.
@@ -62,6 +62,12 @@ export const seniorsAssumptions: AssumptionLine[] = [
     text: `Priority areas: a block where no one can walk to a centre, or ${SUPER_AGED_PCT}%+ of HDB residents aged 65+`,
     tag: 'ASSUMPTION',
     source: 'Team decision (ASSUMPTIONS.md, priority areas)',
+    status: 'decided',
+  },
+  {
+    text: `Support list: the top ${TOP_AREAS} affected areas, priority areas first and then the rest, each by seniors cut off; "Show all" lists every area`,
+    tag: 'ASSUMPTION',
+    source: 'Team decision (ASSUMPTIONS.md, priority areas, #110)',
     status: 'decided',
   },
   {

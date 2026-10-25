@@ -32,14 +32,6 @@ export function multiplierBand(multiplier: number | null): number | null {
   return i === -1 ? MULTIPLIER_BREAKS.length : i;
 }
 
-export function multiplierBandLabel(band: number): string {
-  const lo = MULTIPLIER_BREAKS[band - 1];
-  const hi = MULTIPLIER_BREAKS[band];
-  if (lo === undefined) return `under ×${hi}`;
-  if (hi === undefined) return `×${lo}+`;
-  return `×${lo}–${hi}`;
-}
-
 // A band in plain words for the map legend: how many more or fewer seniors than the average HDB area.
 const pct = (m: number) => Math.round(Math.abs(m - 1) * 100);
 export function multiplierBandMeaning(band: number): string {
