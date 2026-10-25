@@ -52,6 +52,7 @@ export function town(
     is_interim: c.interim ?? false,
     pln_area_n: 'TOA PAYOH',
     subzone_id: 'TPSZ01',
+    opening_year: 1980,
   }));
   const centreDemand: CentreDemandRow[] = centres.map((c) => ({
     centre_id: c.id,

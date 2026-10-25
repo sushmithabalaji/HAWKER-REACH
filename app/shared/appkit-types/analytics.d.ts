@@ -87,6 +87,8 @@ declare module "@databricks/appkit-ui/react" {
           pln_area_n: string;
           /** @sqlType STRING */
           subzone_id: string;
+          /** @sqlType INT */
+          opening_year: number;
         }>;
       };
     seniors_blocks: {
