@@ -54,15 +54,14 @@ export function closureFor(picked: NeaClosure, closures: readonly NeaClosure[]):
   return { centreId: picked.centre_id, alsoClosed: [...alsoClosed] };
 }
 
-// Closures during the picked dates at centres the affected blocks would move to (their second and
-// third nearest): works they skip, and cleaning that is a note only. Works elsewhere change nothing.
-export function nearbyAlongside(
+// Works closures during the picked dates at centres the affected blocks would move to (their second and
+// third nearest), which they skip. Works elsewhere change nothing, and cleaning counts as open.
+export function nearbyWorks(
   picked: NeaClosure,
   closures: readonly NeaClosure[],
   neighbourIds: ReadonlySet<string>
-): { works: NeaClosure[]; cleaning: NeaClosure[] } {
-  const nearby = alongside(picked, closures).filter((c) => neighbourIds.has(c.centre_id));
-  return { works: nearby.filter(isPickable), cleaning: nearby.filter((c) => c.type === 'cleaning') };
+): NeaClosure[] {
+  return alongside(picked, closures).filter((c) => neighbourIds.has(c.centre_id) && isPickable(c));
 }
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

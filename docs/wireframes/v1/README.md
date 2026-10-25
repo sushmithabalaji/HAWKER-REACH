@@ -30,7 +30,7 @@ Question it answers: *if this centre closes, which seniors lose a walkable hawke
 - **Controls:** town and map view (access tiers or vulnerability multiplier). Pick a real NEA closure in that town, or click any centre. *Built (#31): the age-group / walking-pace control is removed; seniors walk at 1.0 m/s.*
 - **Map:** HDB blocks coloured by walking tier, with a popup per subzone showing % aged 65+, seniors who lost a 15-min walk, and the multiplier. *Built (#31): tiers are at 15 min only (T1 a senior can walk it, T2 a typical walker only, T3 a brisk walker only, T4 no one can), shown before or after the closure.*
 - **AACs to alert:** areas where 21% or more of residents are 65+ and seniors lost their walk, ranked by seniors affected × multiplier. *Changed (ASSUMPTIONS.md): "Areas to alert", one row per subzone sorted by seniors cut off, with 21%+ as a badge and no multiplied score (#32).*
-- ~~**Slower walkers lose more:** the loss at each walking speed.~~ *Removed (#31). Replaced by the line "If the limit were 10 or 20 min…", from `gold.access_sensitivity`.*
+- ~~**Slower walkers lose more:** the loss at each walking speed.~~ *Removed (#31). Replaced by the line "If the limit were 10 or 20 min…", from `gold.access_sensitivity`, which #96 also removed from the page.*
 - **Senior meal-support list:** subzone, blocks, estimated seniors, nearest open centre, suggested support (walking buddy or meal delivery), and nearest AAC. *Changed (#78): now the "Senior support list", with the alternative centre and only the supports each area triggers (shuttle, meal delivery or vouchers, volunteer check-ins, temporary food point); walking buddy is dropped.* The AAC column is Phase 2 and waits on the MSF data. Download as CSV, or print a 1-page brief.
 
 Planned Gold tables: `block_access (block, subzone, nearest_id, walk_m, second_walk_m)` and `subzone_seniors (subzone, pct_65p, multiplier)`
@@ -62,6 +62,8 @@ The 21% super-aged threshold is MOH's definition (NPTD Population in Brief 2026)
 - Anchor case: Kim Keat Palm's nearest neighbour is only about 460 m away, so in Toa Payoh the story may be overload rather than lost access. The notes say to pick the final anchor after the model runs.
 
 ## Changes
+
+- 2026-10-26: Page 2's "Details" toggle removed (#96): the outcome groups, the 10/20 min line and cleaning nearby are no longer on the page.
 
 - 2026-10-26: Page 2 map legends in plain words (#75). Tiers show three levels (OK, Concerning, Highly vulnerable; T2 and T3 share a colour), and the multiplier has four named bands (Low, Moderate, High, Extremely vulnerable), with the lowest two of the wireframe's five merged.
 

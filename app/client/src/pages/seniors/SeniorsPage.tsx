@@ -6,14 +6,14 @@ import { CentreSearch } from '@/components/shared/CentreSearch';
 import { MapRow } from '@/components/shared/MapRow';
 import { shortName, townLabel, type Centre } from '@/components/shared/centres';
 import { useGeoData } from '@/components/shared/GeoData';
-import { NO_PARAMS, toNumber, toText, type RawRow } from '@/components/shared/queryValues';
+import { NO_PARAMS, type RawRow } from '@/components/shared/queryValues';
 import { QueryError } from '@/components/shared/QueryError';
 import { AccessMap } from './AccessMap';
-import { closureFor, dateRange, nearbyAlongside, pickableIn, toNeaClosure, type NeaClosure } from './closures';
+import { closureFor, dateRange, nearbyWorks, pickableIn, toNeaClosure, type NeaClosure } from './closures';
 import { WhatToDo } from './WhatToDo';
 import { SupportList } from './SupportList';
 import { supportList } from './support';
-import { OutcomePanel, type Sensitivity } from './OutcomePanel';
+import { OutcomePanel } from './OutcomePanel';
 import {
   areasCutOff,
   priorityAreaIds,
@@ -25,7 +25,6 @@ import {
   type Closure,
 } from './scenario';
 import { makeNames } from './names';
-import { SENSITIVITY_LIMITS_MIN } from './settings';
 import { toSubzoneSeniors } from './subzoneSeniors';
 
 // What the user closed: a centre clicked or searched, or a real NEA closure picked from the list.
@@ -43,7 +42,6 @@ export function SeniorsPage() {
   const { centres, subzones } = useGeoData();
   const blocksQuery = useAnalyticsQuery('seniors_blocks', NO_PARAMS);
   const closuresQuery = useAnalyticsQuery('seniors_closures', NO_PARAMS);
-  const sensitivityQuery = useAnalyticsQuery('seniors_sensitivity', NO_PARAMS);
   const subzonesQuery = useAnalyticsQuery('seniors_subzones', NO_PARAMS);
 
   const [town, setTown] = useState<string | null>(null);
@@ -94,18 +92,6 @@ export function SeniorsPage() {
   // The lists reset to priority areas only whenever the closure changes, overlapping closures included.
   const closureKey = closure ? [closure.centreId, ...closure.alsoClosed].join('|') : '';
 
-  const sensitivity: Sensitivity | null = useMemo(() => {
-    if (!closure) return null;
-    const rows = ((sensitivityQuery.data as RawRow[] | null) ?? []).filter(
-      (r) => toText(r.closed_centre_id) === closure.centreId
-    );
-    const cutOffAt = SENSITIVITY_LIMITS_MIN.flatMap((limitMin) => {
-      const row = rows.find((r) => toNumber(r.limit_min) === limitMin);
-      return row ? [{ limitMin, seniors: toNumber(row.seniors_cut_off) }] : [];
-    });
-    return { cutOffAt, alone: closure.alsoClosed.length === 0, error: sensitivityQuery.error };
-  }, [closure, sensitivityQuery.data, sensitivityQuery.error]);
-
   // Frame the town, widened to any affected block across its border.
   const fitTo = useMemo(() => {
     if (!blocks) return null;
@@ -117,9 +103,9 @@ export function SeniorsPage() {
   const closedCentre = closure ? (centreById.get(closure.centreId) ?? null) : null;
   const picked = selection?.kind === 'closure' ? selection.closure : null;
   const alongside = useMemo(() => {
-    if (!picked || !outcomes) return { works: [], cleaning: [] };
+    if (!picked || !outcomes) return [];
     const neighbours = new Set(outcomes.flatMap((o) => o.block.options.slice(1).map((x) => x.centre_id)));
-    return nearbyAlongside(picked, closures, neighbours);
+    return nearbyWorks(picked, closures, neighbours);
   }, [picked, outcomes, closures]);
 
   const closeCentre = (c: Centre) =>
@@ -198,7 +184,6 @@ export function SeniorsPage() {
               priorityAreas={priorityIds?.size ?? null}
               severity={severity}
               severityPending={!subzonesReady}
-              sensitivity={sensitivity}
               loading={!blocks}
             />
             {closedCentre && outcomes && (
