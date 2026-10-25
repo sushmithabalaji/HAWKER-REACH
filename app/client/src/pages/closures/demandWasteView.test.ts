@@ -32,7 +32,6 @@ describe('demandWasteView', () => {
         baseline: '3,130',
         extraDiners: '410',
         perStall: '+4.2',
-        pctOverBaseline: '+13%',
         flagged: false,
         wasteKg: '82',
         possiblyUndercounted: false,
@@ -50,21 +49,13 @@ describe('demandWasteView', () => {
     expect(r.wasteKg).toBe('0.6');
   });
 
-  test('a centre with no baseline is "new"', () => {
-    expect(demandWasteView(waste([row({ pctOverBaseline: 'new', baselineDinersPerDay: 0 })])).rows[0]).toMatchObject({
-      baseline: '0',
-      pctOverBaseline: 'new',
-    });
-  });
+  test('the total row: extra diners across the plan, and waste as the base case and its range', () => {
+    const view = demandWasteView(
+      waste([row({ extraDinersPerDay: 120 }), row({ centreId: 'C2', extraDinersPerDay: 64 })], 100)
+    );
 
-  test('the plan total shows the base case and its range', () => {
-    const view = demandWasteView(waste([row()], 100));
-
-    expect(view.totalBase).toBe('≈100 kg a day');
-    expect(view.totalRange).toBe('30–300 kg a day');
-  });
-
-  test('counts flagged centres', () => {
-    expect(demandWasteView(waste([row({ flagged: true }), row({ centreId: 'C2' })])).flaggedCount).toBe(1);
+    expect(view.totalExtraDiners).toBe('180');
+    expect(view.totalBase).toBe('≈100');
+    expect(view.totalRange).toBe('30–300');
   });
 });

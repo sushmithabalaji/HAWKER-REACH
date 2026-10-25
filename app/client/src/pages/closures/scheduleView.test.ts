@@ -24,7 +24,7 @@ describe('candidateRowView', () => {
       word: 'Safe to close together',
       reason: 'Closing Toa Payoh West too cuts no one off.',
       distance: '1.2 km',
-      age: 'Opened 1975 (51 years ago)',
+      opened: '1975 (51 years ago)',
       cleaningNotes: [],
     });
   });
@@ -38,10 +38,10 @@ describe('candidateRowView', () => {
     });
   });
 
-  test('age reads as a year count, "this year", or unknown', () => {
-    expect(candidateRowView(candidate({ openingYear: 2025, ageYears: 1 })).age).toBe('Opened 2025 (1 year ago)');
-    expect(candidateRowView(candidate({ openingYear: 2026, ageYears: 0 })).age).toBe('Opened 2026 (this year)');
-    expect(candidateRowView(candidate({ openingYear: null, ageYears: null })).age).toBe('Opening year unknown');
+  test('opened reads as the year and a year count, "this year", or unknown', () => {
+    expect(candidateRowView(candidate({ openingYear: 2025, ageYears: 1 })).opened).toBe('2025 (1 year ago)');
+    expect(candidateRowView(candidate({ openingYear: 2026, ageYears: 0 })).opened).toBe('2026 (this year)');
+    expect(candidateRowView(candidate({ openingYear: null, ageYears: null })).opened).toBe('Unknown');
   });
 
   test('a cleaning closure in the window becomes a note', () => {
