@@ -13,7 +13,15 @@ import { QueryError } from '@/components/shared/QueryError';
 import { InkToggleItem } from '@/components/shared/InkToggleItem';
 import { centresLayer } from '@/components/shared/centresLayer';
 import { HIGHLIGHT_HEX, INK_HEX, rgb, WHITE_HEX } from '@/components/shared/mapColours';
-import { ACCESS_LEVELS, MULTIPLIER_BANDS, NOT_AFFECTED_HEX, TIER_LEVEL, tierHex, type AccessLevel } from './legend';
+import {
+  isShaded,
+  ACCESS_LEVELS,
+  MULTIPLIER_BANDS,
+  NOT_AFFECTED_HEX,
+  TIER_LEVEL,
+  tierHex,
+  type AccessLevel,
+} from './legend';
 import { Swatch } from './Swatch';
 import { roughCount, type AccessBlock, type AreaCutOff, type BlockOutcome, type Closure, type Tier } from './scenario';
 import { metres, NO_CENTRE, type Names } from './names';
@@ -93,10 +101,8 @@ export function AccessMap({
         pickable: true,
         stroked: true,
         filled: true,
-        // With a closure picked, only areas with seniors cut off are shaded, so the ones it hits stand out;
-        // with none, every area is, for an overview.
         getFillColor: (f: SubzoneFeature) => {
-          if (closure && !cutOffBySubzone.has(f.properties.subzone_id)) return [0, 0, 0, 0];
+          if (!isShaded(f.properties.subzone_id, closure !== null, cutOffBySubzone)) return [0, 0, 0, 0];
           const band = multiplierBand(subzoneSeniors.get(f.properties.subzone_id)?.multiplier ?? null);
           return band === null ? [0, 0, 0, 0] : rgb(MULTIPLIER_BANDS[band].hex, 200);
         },
@@ -220,6 +226,11 @@ export function AccessMap({
           ) : (
             <Skeleton className="h-[560px] w-full" />
           )}
+          {view === 'multiplier' && closure && areas.length === 0 && (
+            <div className="absolute left-3 top-3 max-w-[80%] rounded-lg border bg-card px-3 py-2 text-sm shadow">
+              No seniors lose their walk with this closure, so no area is shaded.
+            </div>
+          )}
           {view === 'multiplier' && subzonesError && (
             <div className="absolute left-3 top-3 max-w-[80%]">
               <QueryError what="Share aged 65+ by subzone" error={subzonesError} />
@@ -262,12 +273,15 @@ export function AccessMap({
               ) : (
                 <div className="text-muted-foreground">Too few HDB residents for a share aged 65+.</div>
               )}
-              {closure && (
-                <div className="mt-1">
-                  <strong className="font-mono">{roughCount(popupCutOff?.seniors ?? 0)}</strong> seniors lose a{' '}
-                  {LIMIT_MIN}-min walk
-                </div>
-              )}
+              {closure &&
+                (popupCutOff ? (
+                  <div className="mt-1">
+                    <strong className="font-mono">{roughCount(popupCutOff.seniors)}</strong> seniors lose a {LIMIT_MIN}
+                    -min walk
+                  </div>
+                ) : (
+                  <div className="mt-1 font-medium">Not affected by this closure</div>
+                ))}
             </div>
           )}
         </div>
@@ -307,6 +321,12 @@ export function AccessMap({
                 <Swatch colour="transparent" ring={INK_HEX} />
                 {priorityIds ? 'priority area' : 'seniors lose their walk'}
               </span>
+              {closure && (
+                <span className="flex items-center gap-1.5">
+                  <Swatch colour="transparent" />
+                  not affected
+                </span>
+              )}
             </>
           )}
           <span className="flex items-center gap-1.5">
