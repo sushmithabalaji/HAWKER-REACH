@@ -5,9 +5,9 @@ import { demandWasteView } from './demandWasteView';
 
 const FLAG_PCT = Math.round(assumedNumber('actions.waste.flag_pct') * 100);
 const FLAG_RULE = `extra diners above ${FLAG_PCT}% of the diners it has today`;
-const HEAD = 'border-b-2 border-foreground px-3 py-2';
+const HEAD = 'border-b-2 border-border-strong px-3 py-2';
 
-// The "Demand dispersion and waste" section (#54, #72): every centre taking displaced diners, with its load
+// The "Demand and food waste impact" section (#54, #72): every centre taking displaced diners, with its load
 // and extra waste, and a total row for the plan.
 export function DemandWaste({ result, placeholder }: { result: PlanResult | null; placeholder: string }) {
   if (!result) return <p className="text-sm text-muted-foreground">{placeholder}</p>;
@@ -52,7 +52,7 @@ export function DemandWaste({ result, placeholder }: { result: PlanResult | null
             ))}
           </tbody>
           <tfoot>
-            <tr className="border-t-2 border-foreground font-semibold">
+            <tr className="border-t-2 border-border-strong font-semibold">
               <td className="px-3 py-2">Total</td>
               <td className="px-3 py-2" />
               <td className="px-3 py-2 font-mono">{view.totalExtraDiners}</td>

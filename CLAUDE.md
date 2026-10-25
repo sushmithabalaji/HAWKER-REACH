@@ -6,7 +6,7 @@ Databricks notebooks (`01_ingest` → `05_gold_closures`) build bronze, silver a
 
 | Spec | Owner |
 |---|---|
-| 1 · Seniors & access page (gold `block_access` v2, `subzone_seniors`, app shell, Page 2) | Sushmitha |
+| 1 · Seniors & access page (gold `block_access` v2, `subzone_seniors`, app shell, Page 2) | Aanya (from Sushmitha, 26 Oct) |
 | 2 · Closure scenario model (gold `block_options`, `centre_demand`, `closure_scenarios`; notebook `05_gold_closures`; see #6) | Saanvi |
 | 3 · Closure scenarios page: ripple and "can these close together?" | Aanya |
 | 4 · Demand, waste and scheduling candidates | Aanya |

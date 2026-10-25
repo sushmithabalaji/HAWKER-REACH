@@ -1,62 +1,74 @@
 @import '@databricks/appkit-ui/styles.css';
 
 /*
- * HawkerReach's look, from the wireframe (docs/wireframes/v1/source/*.dc.html). Light whatever the OS
- * setting: index.html puts `class="light"` on <html>, which turns off AppKit's prefers-color-scheme
- * dark block, so none of its dark tokens leak in. The `.dark` class still gets AppKit's dark tokens
- * (not designed for; the wireframe has no dark mode). Every pair here meets WCAG AA; the lowest is
- * the highlight on its tint, 5.5:1.
+ * HawkerReach's look (#113): warm cream canvas, chocolate-brown text and borders, reddish-orange accents,
+ * with golden yellow, soft teal and sage as supporting colours. Light whatever the OS setting:
+ * index.html puts `class="light"` on <html>, which turns off AppKit's prefers-color-scheme dark block.
+ * Every text pair here meets WCAG AA (4.5:1). The brand orange #e94b35 is 3.6:1 on cream, so it is for
+ * fills, lines and focus rings only (--brand); text, links and buttons use the deeper --highlight.
  */
 :root:not(.dark) {
   color-scheme: light;
   --radius: 0.5rem; /* cards are rounded-xl: 12px */
-  --background: #f4f5f7;
-  --foreground: #16202a;
+  --background: #fff6e8; /* cream */
+  --foreground: #382116; /* chocolate brown, 14:1 on cream */
   --card: #ffffff;
-  --card-foreground: #16202a;
+  --card-foreground: #382116;
   --popover: #ffffff;
-  --popover-foreground: #16202a;
-  /* Selected controls and the main button are ink, as in the wireframe; the orange is --highlight. */
-  --primary: #16202a;
+  --popover-foreground: #382116;
+  /* Main buttons and selected controls: the deep brand orange, white text 6.1:1 */
+  --primary: #b5321f;
   --primary-foreground: #ffffff;
-  --secondary: #eef1f4;
-  --secondary-foreground: #16202a;
-  --muted: #eef1f4;
-  --muted-foreground: #4a5562;
-  /* AppKit uses accent for hovers, skeletons and selected toggles: kept neutral, the orange is --highlight */
-  --accent: #eef1f4;
-  --accent-foreground: #16202a;
-  --destructive: #b42318;
+  --secondary: #f6ead7;
+  --secondary-foreground: #382116;
+  --muted: #f6ead7;
+  --muted-foreground: #6e5546; /* 6.4:1 on cream, 5.8:1 on muted */
+  /* AppKit uses accent for hovers, skeletons and selected toggles: a warm neutral, not the brand orange */
+  --accent: #f6ead7;
+  --accent-foreground: #382116;
+  --destructive: #9e1b32;
   --destructive-foreground: #ffffff;
-  --border: #dde2e7;
-  --input: #c5cdd5;
-  --ring: #a8380a;
+  --border: #ead7bf;
+  /* Table header rules: a light brown, softer than the text */
+  --border-strong: #b39478;
+  --input: #cdb8a0;
+  --ring: #e94b35;
 }
 
 :root {
-  /* Numbers that matter, links, the closed centre */
-  --highlight: #a8380a;
-  --highlight-tint: #fde8da;
-  /* Number tags */
-  --tag-measured: #0b5e5e;
-  --tag-measured-bg: #ddf1ee;
-  --tag-modelled: #2b3f86;
-  --tag-modelled-bg: #e3e8f7;
-  --tag-assumption: #8a3a08;
-  --tag-assumption-bg: #ffe9d2;
-  /* Page 1's verdicts, from the wireframe (Feature1Ripple.dc.html) */
-  --status-red: #b42318;
-  --status-yellow: #d69e00;
-  --status-green: #1e7d4f;
-  /* The top bar stays ink in either theme */
-  --topbar: #16202a;
-  --topbar-foreground: #e6eaee; /* tabs */
-  --topbar-strong: #ffffff; /* app name, current tab's ring, text on ink cards */
+  /* Brand accents: fills, map lines, focus rings, the logo. Not for small text (3.6:1 on cream). */
+  --brand: #e94b35;
+  --brand-gold: #ffc943;
+  --brand-teal: #bfe3e5;
+  --brand-sage: #83b99a;
+  /* Numbers that matter, links, the closed centre: the brand orange, deep enough for text (5.7:1 on cream) */
+  --highlight: #b5321f;
+  --highlight-tint: #fce4dc;
+  /* Number tags, on the supporting colours */
+  --tag-measured: #0e5a5e;
+  --tag-measured-bg: #bfe3e5;
+  --tag-modelled: #382116;
+  --tag-modelled-bg: #dcebdf;
+  --tag-assumption: #382116;
+  --tag-assumption-bg: #ffe7a8;
+  /* Page 1's verdicts: kept apart from the brand orange and gold, so risk never reads as decoration */
+  --status-red: #9e1b32;
+  --status-yellow: #9a6400;
+  --status-green: #2d6a4f;
+  /* The top bar and summary cards: a softer warm brown than the text (#114), cream text 6:1 on it */
+  --topbar: #7a5644;
+  --topbar-foreground: #f6ead7; /* tabs */
+  --topbar-strong: #fff6e8; /* app name, current tab's ring, text on dark cards */
 }
 
 @theme inline {
   --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --color-border-strong: var(--border-strong);
+  --color-brand: var(--brand);
+  --color-brand-gold: var(--brand-gold);
+  --color-brand-teal: var(--brand-teal);
+  --color-brand-sage: var(--brand-sage);
   --color-highlight: var(--highlight);
   --color-highlight-tint: var(--highlight-tint);
   --color-tag-measured: var(--tag-measured);

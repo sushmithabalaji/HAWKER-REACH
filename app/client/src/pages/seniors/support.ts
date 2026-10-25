@@ -52,11 +52,22 @@ export interface SupportArea {
   // The open centre nearest any of the area's cut-off blocks, where its shuttle goes; null if none is in range.
   alternative: { centreId: string; walkM: number } | null;
   supports: SupportNeed[]; // in SUPPORTS order
-  blocks: SupportBlock[]; // furthest walk first
+  blocks: SupportBlock[]; // most vulnerable first: see byVulnerability
 }
 
 // Walk after the closure, with no centre in range as the furthest of all.
 const walkAfter = (o: BlockOutcome) => o.afterWalkM ?? Infinity;
+
+// The order blocks are ranked in within an area (#114): blocks where no one can walk to a centre first,
+// then the most seniors, then the longest walk left, then block id so the rank never flickers.
+export function byVulnerability(a: SupportBlock, b: SupportBlock): number {
+  return (
+    Number(b.outcome.noOneCanWalk) - Number(a.outcome.noOneCanWalk) ||
+    b.outcome.block.est_seniors - a.outcome.block.est_seniors ||
+    walkAfter(b.outcome) - walkAfter(a.outcome) ||
+    a.outcome.block.block_id.localeCompare(b.outcome.block.block_id)
+  );
+}
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
@@ -107,8 +118,9 @@ export function supportList(
   }
   return [...bySubzone.entries()]
     .map(([subzone_id, unsorted]) => {
-      const blocks = unsorted.sort((a, b) => walkAfter(b.outcome) - walkAfter(a.outcome));
-      const nearest = blocks[blocks.length - 1].outcome;
+      const blocks = unsorted.sort(byVulnerability);
+      // The area's shuttle goes from its block with the shortest walk left to an open centre.
+      const nearest = blocks.reduce((best, b) => (walkAfter(b.outcome) < walkAfter(best.outcome) ? b : best)).outcome;
       return {
         subzone_id,
         seniors: blocks.reduce((sum, b) => sum + b.outcome.block.est_seniors, 0),
