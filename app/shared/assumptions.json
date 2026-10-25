@@ -249,10 +249,10 @@
   },
   "waste.kg_per_diner_per_day.low": {
     "name": "Food waste per diner per day, low end of range",
-    "value": 0.05,
+    "value": 0.09,
     "unit": "kg/diner/day",
     "tag": "ASSUMPTION",
-    "source": "Placeholder, unsourced (#57 replaces it)",
+    "source": "Bracketed, not measured: NEA 2015 pilot (>1 t/day each at Tiong Bahru and Ang Mo Kio 628) over our modelled diners; CAS 93 g/meal for China catering. No published Singapore per-diner figure (#57)",
     "status": "open",
     "owner": "Aanya",
     "used_by": [
@@ -261,10 +261,10 @@
   },
   "waste.kg_per_diner_per_day.base": {
     "name": "Food waste per diner per day, base case",
-    "value": 0.1,
+    "value": 0.2,
     "unit": "kg/diner/day",
     "tag": "ASSUMPTION",
-    "source": "Placeholder, unsourced (#57 replaces it)",
+    "source": "Bracketed, not measured: NEA 2015 pilot (>1 t/day each at Tiong Bahru and Ang Mo Kio 628) over our modelled diners; CAS 93 g/meal for China catering. No published Singapore per-diner figure (#57)",
     "status": "open",
     "owner": "Aanya",
     "used_by": [
@@ -273,10 +273,10 @@
   },
   "waste.kg_per_diner_per_day.high": {
     "name": "Food waste per diner per day, high end of range",
-    "value": 0.2,
+    "value": 0.32,
     "unit": "kg/diner/day",
     "tag": "ASSUMPTION",
-    "source": "Placeholder, unsourced (#57 replaces it)",
+    "source": "Bracketed, not measured: NEA 2015 pilot (>1 t/day each at Tiong Bahru and Ang Mo Kio 628) over our modelled diners; CAS 93 g/meal for China catering. No published Singapore per-diner figure (#57)",
     "status": "open",
     "owner": "Aanya",
     "used_by": [
