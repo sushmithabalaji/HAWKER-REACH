@@ -63,6 +63,8 @@ The 21% super-aged threshold is MOH's definition (NPTD Population in Brief 2026)
 
 ## Changes
 
+- 2026-10-26: Page 2 map legends in plain words (#75). Tiers show three levels (OK, Concerning, Highly vulnerable; T2 and T3 share a colour), and the multiplier has four named bands (Low, Moderate, High, Extremely vulnerable), with the lowest two of the wireframe's five merged.
+
 - 2026-10-26: Page 2's right-hand column rebuilt as four cards (#79): what's closing, impact on seniors, severity (Severe / Moderate / Low), and what to do (top priority areas with their supports). Outcome groups and the sensitivity line are behind "Details"; the sources paragraph, closure notes, rule footer and per-block rows are gone from the default view.
 
 - 2026-10-26: Page 2 suggested support depends on each area's conditions (#78). Walking buddy is dropped; an area gets its alternative centre plus only what it triggers: shuttle, meal delivery or vouchers, volunteer check-ins, or a temporary food point. See ASSUMPTIONS.md.

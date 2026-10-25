@@ -2,8 +2,8 @@ import { describe, expect, test } from 'vitest';
 import { multiplierBand, multiplierBandLabel, toSubzoneSeniors } from './subzoneSeniors';
 
 describe('multiplierBand', () => {
-  test('five bands, each including its lower break', () => {
-    expect([0.3, 0.6, 0.9, 1.1, 1.34, 1.35, 2].map(multiplierBand)).toEqual([0, 1, 2, 3, 3, 4, 4]);
+  test('four bands, each including its lower break', () => {
+    expect([0.3, 0.85, 0.9, 1.1, 1.34, 1.35, 2].map(multiplierBand)).toEqual([0, 1, 1, 2, 2, 3, 3]);
   });
 
   test('small subzones have no band', () => {
@@ -11,7 +11,7 @@ describe('multiplierBand', () => {
   });
 
   test('labels', () => {
-    expect([0, 1, 4].map(multiplierBandLabel)).toEqual(['under ×0.6', '×0.6–0.85', '×1.35+']);
+    expect([0, 1, 3].map(multiplierBandLabel)).toEqual(['under ×0.85', '×0.85–1.1', '×1.35+']);
   });
 });
 
