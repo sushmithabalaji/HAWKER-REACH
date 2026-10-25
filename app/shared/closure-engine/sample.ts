@@ -126,14 +126,14 @@ export function verdictTown(extraBlocks: ReturnType<typeof block>[] = []) {
         { diners: 40 }
       ),
       block('bD', [['HC_D', 200]], { diners: 10 }),
-      ...PADDING.map((perStall, i) =>
+      ...PADDING.map((pctOfToday, i) =>
         block(
           `bP${i}`,
           [
             [`HC_P${i}`, 300],
             [`HC_Q${i}`, 600],
           ],
-          { diners: perStall * 10 }
+          { diners: pctOfToday * 10 }
         )
       ),
       ...extraBlocks,

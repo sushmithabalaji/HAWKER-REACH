@@ -2,8 +2,8 @@ import type { AssumptionLine } from '@shared/assumptions';
 import { spec2Assumptions } from '../../assumptions/spec2';
 import { spec4Assumptions } from '../../assumptions/spec4';
 
-// Page 1's Assumptions panel (#11, Assumptions panel lines). The benchmark's values today join
-// the panel with the verdict cards.
+// Page 1's Assumptions panel (#11, Assumptions panel lines). The verdict rules and their constants are in
+// assumptions.json and ASSUMPTIONS.md (#90).
 export const closuresAssumptions: AssumptionLine[] = [
   {
     text: 'Diners per block per day: HDB residents × share who eat at hawker centres × visits per week ÷ 7, base case 3 visits a week, range 1–5. The survey covered adults aged 18–69 in 2018',

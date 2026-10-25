@@ -216,13 +216,12 @@ export function evaluatePlan(
 
   const receivers = [...extra]
     .map(([centreId, extraDinersPerDay]): Receiver => {
-      const baseline = demand.get(centreId)?.baseline_diners_per_day ?? 0;
       return {
         centreId,
         name: centres.get(centreId)!.name,
         extraDinersPerDay,
         extraDinersPerStall: perStall(prepared, centreId, extraDinersPerDay),
-        pctOverBaseline: baseline >= 1 ? (extraDinersPerDay / baseline) * 100 : 'new',
+        pctOverBaseline: pctOf(prepared, centreId, extraDinersPerDay) ?? 'new',
         shareOfDisplaced: extraDinersPerDay / displaced,
         possiblyUndercounted: demand.get(centreId)?.possibly_undercounted ?? false,
       };
