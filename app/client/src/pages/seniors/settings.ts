@@ -16,6 +16,5 @@ export const SUPER_AGED_PCT = Math.round(SUPER_AGED_SHARE * 100);
 export const SENSITIVITY_LIMITS_MIN = String(assumptions['access.sensitivity_limits_min'].value)
   .split(',')
   .map((v) => Number(v.trim()));
-export const MEAL_SUPPORT_WALK_MIN = assumedNumber('access.meal_support_walk_min');
-// 1,800 m: how far a senior walks in the meal-support time (ASSUMPTIONS.md, meal-support rule).
-export const MEAL_SUPPORT_WALK_M = PACES[0] * MEAL_SUPPORT_WALK_MIN * 60;
+// A temporary food point if at least this many seniors in one area have no open centre in range.
+export const FOOD_POINT_MIN_SENIORS = assumedNumber('access.food_point_min_seniors');

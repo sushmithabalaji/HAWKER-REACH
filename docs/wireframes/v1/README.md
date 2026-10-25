@@ -31,7 +31,7 @@ Question it answers: *if this centre closes, which seniors lose a walkable hawke
 - **Map:** HDB blocks coloured by walking tier, with a popup per subzone showing % aged 65+, seniors who lost a 15-min walk, and the multiplier. *Built (#31): tiers are at 15 min only (T1 a senior can walk it, T2 a typical walker only, T3 a brisk walker only, T4 no one can), shown before or after the closure.*
 - **AACs to alert:** areas where 21% or more of residents are 65+ and seniors lost their walk, ranked by seniors affected × multiplier. *Changed (ASSUMPTIONS.md): "Areas to alert", one row per subzone sorted by seniors cut off, with 21%+ as a badge and no multiplied score (#32).*
 - ~~**Slower walkers lose more:** the loss at each walking speed.~~ *Removed (#31). Replaced by the line "If the limit were 10 or 20 min…", from `gold.access_sensitivity`.*
-- **Senior meal-support list:** subzone, blocks, estimated seniors, nearest open centre, suggested support (walking buddy or meal delivery), and nearest AAC. The AAC column is Phase 2 and waits on the MSF data. Download as CSV, or print a 1-page brief.
+- **Senior meal-support list:** subzone, blocks, estimated seniors, nearest open centre, suggested support (walking buddy or meal delivery), and nearest AAC. *Changed (#78): now the "Senior support list", with the alternative centre and only the supports each area triggers (shuttle, meal delivery or vouchers, volunteer check-ins, temporary food point); walking buddy is dropped.* The AAC column is Phase 2 and waits on the MSF data. Download as CSV, or print a 1-page brief.
 
 Planned Gold tables: `block_access (block, subzone, nearest_id, walk_m, second_walk_m)` and `subzone_seniors (subzone, pct_65p, multiplier)`
 
@@ -51,7 +51,7 @@ The 21% super-aged threshold is MOH's definition (NPTD Population in Brief 2026)
 | Seniors per block | subzone 65+ residents spread evenly over its blocks | |
 | Vulnerability multiplier | subzone % aged 65+ ÷ HDB average | |
 | AAC alert threshold | 21%+ aged 65+ | |
-| Meal-support rule | open centre within 30 min at 1.0 m/s → walking buddy, otherwise meal delivery | editable |
+| Meal-support rule | open centre within 30 min at 1.0 m/s → walking buddy, otherwise meal delivery | replaced by the suggested-support rules in ASSUMPTIONS.md (#78) |
 | Diner shares | stalls ÷ distance² within 2.5 km | illustrative; the real version uses walking time from every block |
 | Waste | scales with diners; kg per diner per day not sourced yet | needs a source |
 
@@ -62,6 +62,8 @@ The 21% super-aged threshold is MOH's definition (NPTD Population in Brief 2026)
 - Anchor case: Kim Keat Palm's nearest neighbour is only about 460 m away, so in Toa Payoh the story may be overload rather than lost access. The notes say to pick the final anchor after the model runs.
 
 ## Changes
+
+- 2026-10-26: Page 2 suggested support depends on each area's conditions (#78). Walking buddy is dropped; an area gets its alternative centre plus only what it triggers: shuttle, meal delivery or vouchers, volunteer check-ins, or a temporary food point. See ASSUMPTIONS.md.
 
 - 2026-10-24: Page 2 as built (#31). The age-group control and "Slower walkers lose more" panel are removed, tiers are at 15 min, every number is tagged, and the 21% source is added. See ASSUMPTIONS.md for the full list of changes from this draft.
 

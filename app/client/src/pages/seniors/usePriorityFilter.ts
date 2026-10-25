@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-// Areas to alert and the meal-support list show priority areas until the user asks for all of them
+// Areas to alert and the support list show priority areas until the user asks for all of them
 // (ASSUMPTIONS.md, priority areas). Null priority ids means the rule can't run yet (super-aged flags still
 // loading or failed), so every area shows as before, with no toggle.
 export function usePriorityFilter<T extends { subzone_id: string }>(

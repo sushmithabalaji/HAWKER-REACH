@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Button, Skeleton, useAnalyticsQuery } from '@databricks/appkit-ui/react';
 import { Panel, PanelContent } from '@/components/shared/Panel';
 import type { Bounds } from '@/components/shared/basemapStyles';
@@ -20,7 +20,7 @@ import {
   type NeaClosure,
 } from './closures';
 import { AreasToAlert } from './AreasToAlert';
-import { MealSupportList } from './MealSupportList';
+import { SupportList } from './SupportList';
 import { OutcomePanel, type Sensitivity } from './OutcomePanel';
 import {
   areasCutOff,
@@ -87,9 +87,10 @@ export function SeniorsPage() {
   const areas = useMemo(() => (outcomes ? areasCutOff(outcomes) : []), [outcomes]);
   // Null until the super-aged flags load (or if they fail), so no super-aged area is hidden as non-priority.
   const subzonesReady = !!subzonesQuery.data && !subzonesQuery.error;
+  const isSuperAged = useCallback((id: string) => subzoneSeniors.get(id)?.is_super_aged ?? false, [subzoneSeniors]);
   const priorityIds = useMemo(
-    () => (subzonesReady ? priorityAreaIds(areas, (id) => subzoneSeniors.get(id)?.is_super_aged ?? false) : null),
-    [areas, subzoneSeniors, subzonesReady]
+    () => (subzonesReady ? priorityAreaIds(areas, isSuperAged) : null),
+    [areas, isSuperAged, subzonesReady]
   );
   // The lists reset to priority areas only whenever the closure changes, overlapping closures included.
   const closureKey = closure ? [closure.centreId, ...closure.alsoClosed].join('|') : '';
@@ -227,10 +228,11 @@ export function SeniorsPage() {
         }
       />
 
-      <MealSupportList
+      <SupportList
         key={closureKey}
         outcomes={outcomes}
         priorityIds={priorityIds}
+        isSuperAged={subzonesReady ? isSuperAged : null}
         closedName={closedCentre ? shortName(closedCentre.name) : null}
         names={names}
       />

@@ -1,7 +1,7 @@
 import { Button } from '@databricks/appkit-ui/react';
 import { TagBadge } from '@/components/shared/TagBadge';
 
-// The two pieces Areas to alert and the meal-support list share around usePriorityFilter.
+// The two pieces Areas to alert and the support list share around usePriorityFilter.
 export function NoneUrgent({ areas, className }: { areas: number; className: string }) {
   return (
     <p className={className}>
