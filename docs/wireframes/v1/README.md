@@ -63,6 +63,8 @@ The 21% super-aged threshold is MOH's definition (NPTD Population in Brief 2026)
 
 ## Changes
 
+- 2026-10-26: Page 2 (#110): the priority list under severity has column headers and "seniors" units; the Senior support list shows the top 5 areas (priority first) with a Vulnerability column; the vulnerability map shades every subzone again, with a plain-words legend.
+
 - 2026-10-26: Page 2 demo polish (#99): the "What to do" card is gone (it repeated the support list) and an "Access before → after" card shows seniors moving between levels; the closed centre gets a "×" as on Page 1; the vulnerability multiplier is back on the orange theme.
 
 - 2026-10-26: Page 2's "Details" toggle removed (#96): the outcome groups, the 10/20 min line and cleaning nearby are no longer on the page.

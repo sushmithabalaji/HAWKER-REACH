@@ -13,20 +13,12 @@ import { QueryError } from '@/components/shared/QueryError';
 import { InkToggleItem } from '@/components/shared/InkToggleItem';
 import { centresLayer } from '@/components/shared/centresLayer';
 import { HIGHLIGHT_HEX, INK_HEX, rgb, WHITE_HEX } from '@/components/shared/mapColours';
-import {
-  isShaded,
-  ACCESS_LEVELS,
-  MULTIPLIER_BANDS,
-  NOT_AFFECTED_HEX,
-  TIER_LEVEL,
-  tierHex,
-  type AccessLevel,
-} from './legend';
+import { ACCESS_LEVELS, MULTIPLIER_BANDS, NOT_AFFECTED_HEX, TIER_LEVEL, tierHex, type AccessLevel } from './legend';
 import { Swatch } from './Swatch';
 import { roughCount, type AccessBlock, type AreaCutOff, type BlockOutcome, type Closure, type Tier } from './scenario';
 import { metres, NO_CENTRE, type Names } from './names';
 import { LIMIT_MIN, SUPER_AGED_PCT } from './settings';
-import { multiplierBand, multiplierBandLabel, type SubzoneSeniors } from './subzoneSeniors';
+import { multiplierBand, multiplierBandMeaning, type SubzoneSeniors } from './subzoneSeniors';
 
 type View = 'tiers' | 'multiplier';
 type Phase = 'before' | 'after';
@@ -102,7 +94,6 @@ export function AccessMap({
         stroked: true,
         filled: true,
         getFillColor: (f: SubzoneFeature) => {
-          if (!isShaded(f.properties.subzone_id, closure !== null, cutOffBySubzone)) return [0, 0, 0, 0];
           const band = multiplierBand(subzoneSeniors.get(f.properties.subzone_id)?.multiplier ?? null);
           return band === null ? [0, 0, 0, 0] : rgb(MULTIPLIER_BANDS[band].hex, 200);
         },
@@ -110,7 +101,7 @@ export function AccessMap({
         getLineWidth: (f: SubzoneFeature) => (outlined(f) ? 2.5 : 0.5),
         lineWidthUnits: 'pixels',
         updateTriggers: {
-          getFillColor: [subzoneSeniors, closure, cutOffBySubzone],
+          getFillColor: [subzoneSeniors],
           getLineColor: [priorityIds, cutOffBySubzone],
           getLineWidth: [priorityIds, cutOffBySubzone],
         },
@@ -226,11 +217,6 @@ export function AccessMap({
           ) : (
             <Skeleton className="h-[560px] w-full" />
           )}
-          {view === 'multiplier' && closure && areas.length === 0 && (
-            <div className="absolute left-3 top-3 max-w-[80%] rounded-lg border bg-card px-3 py-2 text-sm shadow">
-              No seniors lose their walk with this closure, so no area is shaded.
-            </div>
-          )}
           {view === 'multiplier' && subzonesError && (
             <div className="absolute left-3 top-3 max-w-[80%]">
               <QueryError what="Share aged 65+ by subzone" error={subzonesError} />
@@ -287,9 +273,7 @@ export function AccessMap({
         </div>
 
         {view === 'multiplier' && (
-          <p className="text-sm">
-            How much older this area is than the HDB average. Higher means more seniors need support.
-          </p>
+          <p className="text-sm font-medium">Seniors living here, compared with the average HDB area</p>
         )}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
           {view === 'tiers' ? (
@@ -314,19 +298,13 @@ export function AccessMap({
                 <span key={hex} className="flex items-center gap-1.5">
                   <Swatch colour={hex} />
                   <strong className="text-foreground">{name}</strong>
-                  {multiplierBandLabel(band)}
+                  {multiplierBandMeaning(band)}
                 </span>
               ))}
               <span className="flex items-center gap-1.5">
                 <Swatch colour="transparent" ring={INK_HEX} />
                 {priorityIds ? 'priority area' : 'seniors lose their walk'}
               </span>
-              {closure && (
-                <span className="flex items-center gap-1.5">
-                  <Swatch colour="transparent" />
-                  not affected
-                </span>
-              )}
             </>
           )}
           <span className="flex items-center gap-1.5">

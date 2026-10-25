@@ -4,20 +4,48 @@ import { Pill } from '@/components/shared/Pill';
 import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/shared/Panel';
 import { metres, type Names } from './names';
 import { roughCount } from './scenario';
-import { NoneUrgent, ShowAllToggle } from './priority';
-import { usePriorityFilter } from './usePriorityFilter';
+import { useTopAreas } from './useTopAreas';
+import { MULTIPLIER_BANDS } from './legend';
+import { Swatch } from './Swatch';
+import { multiplierBand, type SubzoneSeniors } from './subzoneSeniors';
 import { LIMIT_MIN } from './settings';
 import { AreaSupports, SupportPill } from './SupportPills';
-import { blockReason, supportCsv, type SupportArea } from './support';
+import { blockReason, supportCsv, TOP_AREAS, type SupportArea } from './support';
 
 interface SupportListProps {
   areas: SupportArea[];
   closedName: string | null;
   priorityIds: ReadonlySet<string> | null;
+  subzoneSeniors: Map<string, SubzoneSeniors>;
   names: Names;
 }
 
+// The area's vulnerability band and multiplier, as on the vulnerability map.
+function Vulnerability({ seniors }: { seniors: SubzoneSeniors | undefined }) {
+  const multiplier = seniors?.multiplier ?? null;
+  const band = multiplierBand(multiplier);
+  if (multiplier === null || band === null) return <span>Too few residents</span>;
+  return (
+    <span className="flex items-center gap-1.5 whitespace-nowrap">
+      <Swatch colour={MULTIPLIER_BANDS[band].hex} square />
+      {MULTIPLIER_BANDS[band].name}
+      <span className="font-mono">×{multiplier.toFixed(2)}</span>
+    </span>
+  );
+}
+
 const walk = (m: number | null) => (m === null ? '' : ` · ${metres(m)}`);
+
+// Switches the list between its top areas and every affected area.
+function ShowAllToggle({ showAll, areas, onToggle }: { showAll: boolean; areas: number; onToggle: () => void }) {
+  return (
+    <div>
+      <Button variant="ghost" size="sm" className="-ml-2" onClick={onToggle}>
+        {showAll ? `Show the top ${TOP_AREAS} only` : `Show all ${areas} affected areas`}
+      </Button>
+    </div>
+  );
+}
 
 // The link is added to the page and the URL kept a moment, or Firefox and Safari can drop the download.
 function download(csv: string, filename: string) {
@@ -38,8 +66,9 @@ const fileSafe = (s: string) =>
     .replace(/^-|-$/g, '');
 
 // Who needs what support after the closure: one row per subzone with seniors cut off, its blocks behind
-// an expand control. Priority areas only until the user asks for all; the download always has every block.
-export function SupportList({ areas, closedName, priorityIds, names }: SupportListProps) {
+// an expand control. The top areas (priority first) until the user asks for all; the download always has
+// every block.
+export function SupportList({ areas, closedName, priorityIds, subzoneSeniors, names }: SupportListProps) {
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
   const toggleBlocks = (id: string) =>
     setExpanded((s) => {
@@ -47,14 +76,18 @@ export function SupportList({ areas, closedName, priorityIds, names }: SupportLi
       if (!next.delete(id)) next.add(id);
       return next;
     });
-  const filter = usePriorityFilter(areas, priorityIds);
+  const filter = useTopAreas(areas, priorityIds);
   const shown = filter.shown;
   const blocks = shown.reduce((n, a) => n + a.blocks.length, 0);
 
   const onDownload = () => {
     if (!closedName) return;
     const date = new Date().toISOString().slice(0, 10);
-    download(supportCsv(areas, names, priorityIds ?? new Set()), `senior-support-${fileSafe(closedName)}-${date}.csv`);
+    const multiplierOf = (id: string) => subzoneSeniors.get(id)?.multiplier ?? null;
+    download(
+      supportCsv(areas, names, priorityIds ?? new Set(), multiplierOf),
+      `senior-support-${fileSafe(closedName)}-${date}.csv`
+    );
   };
 
   return (
@@ -63,8 +96,10 @@ export function SupportList({ areas, closedName, priorityIds, names }: SupportLi
         <PanelTitle className="flex-1 text-xl">Senior support list</PanelTitle>
         {closedName && shown.length > 0 && (
           <Pill tone="outline">
-            {shown.length} {filter.showAll || !priorityIds ? '' : 'priority '}
-            {shown.length === 1 ? 'area' : 'areas'} · {blocks} blocks · after {closedName} closes
+            {filter.showAll || !filter.canToggle
+              ? `${shown.length} ${shown.length === 1 ? 'area' : 'areas'}`
+              : `Top ${TOP_AREAS} of ${areas.length} areas`}{' '}
+            · {blocks} blocks · after {closedName} closes
           </Pill>
         )}
       </PanelHeader>
@@ -79,9 +114,6 @@ export function SupportList({ areas, closedName, priorityIds, names }: SupportLi
             No senior loses a {LIMIT_MIN}-min walk when {closedName} closes, so no one needs support.
           </p>
         )}
-        {filter.noneUrgent && (
-          <NoneUrgent areas={areas.length} className="rounded-md bg-muted p-3 text-sm text-muted-foreground" />
-        )}
         {shown.length > 0 && (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[720px] border-collapse text-sm">
@@ -89,6 +121,7 @@ export function SupportList({ areas, closedName, priorityIds, names }: SupportLi
                 <tr className="text-left font-mono text-xs tracking-wide text-muted-foreground">
                   <th className="border-b-2 border-foreground px-3 py-2">SUBZONE / BLOCK</th>
                   <th className="border-b-2 border-foreground px-3 py-2">EST. SENIORS</th>
+                  <th className="border-b-2 border-foreground px-3 py-2">VULNERABILITY</th>
                   <th className="border-b-2 border-foreground px-3 py-2">ALTERNATIVE CENTRE</th>
                   <th className="border-b-2 border-foreground px-3 py-2">SUGGESTED SUPPORT</th>
                 </tr>
@@ -96,9 +129,14 @@ export function SupportList({ areas, closedName, priorityIds, names }: SupportLi
               <tbody>
                 {shown.map((area) => (
                   <Fragment key={area.subzone_id}>
-                    <tr className={`border-b bg-muted/40 ${filter.muted(area)}`}>
+                    <tr className="border-b bg-muted/40">
                       <td className="px-3 py-2">
                         <strong>{names.subzone(area.subzone_id)}</strong>
+                        {priorityIds?.has(area.subzone_id) && (
+                          <span className="ml-2">
+                            <Pill tone="highlight">Priority</Pill>
+                          </span>
+                        )}
                         <Button
                           variant="link"
                           size="sm"
@@ -112,6 +150,9 @@ export function SupportList({ areas, closedName, priorityIds, names }: SupportLi
                       </td>
                       <td className="px-3 py-2 font-mono">{roughCount(area.seniors)}</td>
                       <td className="px-3 py-2">
+                        <Vulnerability seniors={subzoneSeniors.get(area.subzone_id)} />
+                      </td>
+                      <td className="px-3 py-2">
                         {area.alternative
                           ? `${names.centre(area.alternative.centreId)}${walk(area.alternative.walkM)}`
                           : names.centre(null)}
@@ -122,9 +163,10 @@ export function SupportList({ areas, closedName, priorityIds, names }: SupportLi
                     </tr>
                     {expanded.has(area.subzone_id) &&
                       area.blocks.map(({ outcome: o, support }) => (
-                        <tr key={o.block.block_id} className={`border-b text-muted-foreground ${filter.muted(area)}`}>
+                        <tr key={o.block.block_id} className="border-b text-muted-foreground">
                           <td className="py-1.5 pl-8 pr-3">{o.block.block_label}</td>
                           <td className="px-3 py-1.5 font-mono">{roughCount(o.block.est_seniors)}</td>
+                          <td className="px-3 py-1.5" />
                           <td className="px-3 py-1.5">
                             {names.centre(o.afterCentreId)}
                             {walk(o.afterWalkM)}

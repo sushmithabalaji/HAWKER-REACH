@@ -98,7 +98,7 @@ export function SeniorsPage() {
   );
   const shifts = useMemo(() => (outcomes ? levelShifts(outcomes) : []), [outcomes]);
   const severity = summary && priorityIds ? severityOf(summary, priorityIds.size) : null;
-  // The lists reset to priority areas only whenever the closure changes, overlapping closures included.
+  // The support list resets to its top areas whenever the closure changes, overlapping closures included.
   const closureKey = closure ? [closure.centreId, ...closure.alsoClosed].join('|') : '';
 
   // Frame the town, widened to any affected block across its border.
@@ -204,6 +204,7 @@ export function SeniorsPage() {
         key={closureKey}
         areas={supportAreas}
         priorityIds={priorityIds}
+        subzoneSeniors={subzoneSeniors}
         closedName={closedCentre ? shortName(closedCentre.name) : null}
         names={names}
       />

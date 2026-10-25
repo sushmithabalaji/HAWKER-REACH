@@ -24,9 +24,3 @@ export const MULTIPLIER_BANDS = [
   { name: 'Extremely vulnerable', hex: '#A93A0B' },
 ];
 export const NOT_AFFECTED_HEX = '#C5CDD5';
-
-// Whether the vulnerability view shades a subzone: every one with no closure picked, for an overview; with
-// one, only those with seniors cut off, so the areas it hits stand out.
-export function isShaded(subzoneId: string, closurePicked: boolean, cutOffIds: { has(id: string): boolean }): boolean {
-  return !closurePicked || cutOffIds.has(subzoneId);
-}

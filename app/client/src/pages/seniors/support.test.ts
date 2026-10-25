@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { runScenario, type AccessBlock, type Tier } from './scenario';
-import { supportList, supportCsv, supportFor } from './support';
+import { rankAreas, supportList, supportCsv, supportFor } from './support';
 
 const notSuperAged = () => false;
 
@@ -166,7 +166,7 @@ test('supportCsv writes seniors as plain numbers, under 5 as 0', () => {
     ]),
     notSuperAged
   );
-  const seniors = supportCsv(list, { subzone: () => 'X', centre: () => 'Y' }, new Set())
+  const seniors = supportCsv(list, { subzone: () => 'X', centre: () => 'Y' }, new Set(), () => null)
     .trim()
     .split('\n')
     .slice(1)
@@ -193,11 +193,24 @@ test('supportCsv has one row per block, quotes commas and marks priority areas',
   const csv = supportCsv(
     list,
     { subzone: () => 'TOA PAYOH CENTRAL, NORTH', centre: (id) => `Centre ${id}` },
-    new Set(['SZ1'])
+    new Set(['SZ1']),
+    () => 1.437
   );
   expect(csv.split('\n')).toEqual([
-    'subzone_id,subzone,block_id,block,est_seniors,tier_before,tier_after,nearest_open_centre,walk_m_after,block_support,area_supports,priority',
-    'SZ1,"TOA PAYOH CENTRAL, NORTH",a,a TOA PAYOH,10,T1,T2,Centre D,1000,Shuttle,Shuttle,yes',
+    'subzone_id,subzone,block_id,block,est_seniors,tier_before,tier_after,nearest_open_centre,walk_m_after,block_support,area_supports,priority,vulnerability_multiplier',
+    'SZ1,"TOA PAYOH CENTRAL, NORTH",a,a TOA PAYOH,10,T1,T2,Centre D,1000,Shuttle,Shuttle,yes,1.44',
     '',
   ]);
+});
+
+describe('rankAreas', () => {
+  const areas = ['A', 'B', 'C', 'D'].map((subzone_id) => ({ subzone_id }));
+
+  test('priority areas first, each group keeping its order', () => {
+    expect(rankAreas(areas, new Set(['C', 'B'])).map((a) => a.subzone_id)).toEqual(['B', 'C', 'A', 'D']);
+  });
+
+  test('unchanged until the priority areas are known', () => {
+    expect(rankAreas(areas, null).map((a) => a.subzone_id)).toEqual(['A', 'B', 'C', 'D']);
+  });
 });

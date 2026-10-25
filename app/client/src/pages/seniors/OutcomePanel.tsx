@@ -156,14 +156,24 @@ function SeverityCard({
           </span>
         </div>
         {listed.length > 0 && (
-          <ul className="flex flex-col divide-y text-sm">
-            {listed.map((a) => (
-              <li key={a.subzoneId} className="flex items-baseline gap-3 py-1.5">
-                <span className="flex-1 font-medium">{a.name}</span>
-                <span className="font-mono">{roughCount(a.seniors)}</span>
-              </li>
-            ))}
-          </ul>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b text-left text-xs uppercase tracking-wide text-muted-foreground">
+                <th className="py-1.5 font-medium">Priority area</th>
+                <th className="py-1.5 text-right font-medium">Seniors cut off</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y">
+              {listed.map((a) => (
+                <tr key={a.subzoneId}>
+                  <td className="py-1.5 font-medium">{a.name}</td>
+                  <td className="py-1.5 text-right">
+                    <span className="font-mono font-semibold">{roughCount(a.seniors)}</span> seniors
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
         {more > 0 && (
           <a href="#support-list" className="text-sm font-medium underline underline-offset-2">

@@ -123,6 +123,22 @@ export function supportList(
     .sort((a, b) => b.seniors - a.seniors);
 }
 
+// The support list shows this many areas until the user asks for all of them.
+export const TOP_AREAS = 5;
+
+// Priority areas first, then the rest, each keeping its order (most seniors cut off first). With no
+// priority ids yet (super-aged flags still loading), the order is unchanged.
+export function rankAreas<T extends { subzone_id: string }>(
+  areas: readonly T[],
+  priorityIds: ReadonlySet<string> | null
+): T[] {
+  if (!priorityIds) return [...areas];
+  return [
+    ...areas.filter((a) => priorityIds.has(a.subzone_id)),
+    ...areas.filter((a) => !priorityIds.has(a.subzone_id)),
+  ];
+}
+
 const CSV_COLUMNS = [
   'subzone_id',
   'subzone',
@@ -136,6 +152,7 @@ const CSV_COLUMNS = [
   'block_support',
   'area_supports',
   'priority',
+  'vulnerability_multiplier',
 ] as const;
 
 // "a,b" and quotes inside a value are quoted, as in RFC 4180.
@@ -147,7 +164,12 @@ const csvCell = (v: string | number) => {
 // Block-level CSV of the list, every affected area included, with its priority as yes or no and the area's
 // supports joined by "; ". Seniors are rounded to 5 as on the page, but as plain numbers (under 5 is 0)
 // so the column sums in a spreadsheet.
-export function supportCsv(areas: readonly SupportArea[], names: Names, priorityIds: ReadonlySet<string>): string {
+export function supportCsv(
+  areas: readonly SupportArea[],
+  names: Names,
+  priorityIds: ReadonlySet<string>,
+  multiplierOf: (subzoneId: string) => number | null
+): string {
   const rows = areas.flatMap((area) =>
     area.blocks.map(({ outcome: o, support }) => [
       area.subzone_id,
@@ -162,6 +184,7 @@ export function supportCsv(areas: readonly SupportArea[], names: Names, priority
       support,
       area.supports.map((s) => s.support).join('; '),
       priorityIds.has(area.subzone_id) ? 'yes' : 'no',
+      multiplierOf(area.subzone_id)?.toFixed(2) ?? '',
     ])
   );
   return [CSV_COLUMNS, ...rows].map((row) => row.map(csvCell).join(',')).join('\n') + '\n';
