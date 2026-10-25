@@ -61,10 +61,10 @@ export const seniorsAssumptions: AssumptionLine[] = [
   { key: 'access.food_point_min_seniors' },
   {
     limitation:
-      'Community meal points are not suggested yet: there is no data on where they are. A crowding check on the alternative centre is a follow-up',
+      'Community meal points are not suggested yet: there is no data on where they are. A crowding check on the alternative centre is a follow-up (#86)',
   },
   {
-    text: 'Meal-support list and Areas to alert: blocks whose seniors are cut off (T1 → T2–T4) by the closure',
+    text: 'Support list and Areas to alert: blocks whose seniors are cut off (T1 → T2–T4) by the closure',
     tag: 'MODELLED',
     source: 'ASSUMPTIONS.md (outcome groups)',
     status: 'decided',

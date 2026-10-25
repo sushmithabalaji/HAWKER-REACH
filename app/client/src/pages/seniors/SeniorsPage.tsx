@@ -20,7 +20,7 @@ import {
   type NeaClosure,
 } from './closures';
 import { AreasToAlert } from './AreasToAlert';
-import { MealSupportList } from './MealSupportList';
+import { SupportList } from './SupportList';
 import { OutcomePanel, type Sensitivity } from './OutcomePanel';
 import {
   areasCutOff,
@@ -228,11 +228,11 @@ export function SeniorsPage() {
         }
       />
 
-      <MealSupportList
+      <SupportList
         key={closureKey}
         outcomes={outcomes}
         priorityIds={priorityIds}
-        isSuperAged={isSuperAged}
+        isSuperAged={subzonesReady ? isSuperAged : null}
         closedName={closedCentre ? shortName(closedCentre.name) : null}
         names={names}
       />

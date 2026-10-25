@@ -51,15 +51,17 @@ Where this file disagrees with the wireframe, this file wins.
   | ↳ Now worse | T2/T3 → T4 (sub-count) |
   | Unaffected | T1 → T1 |
 
-- **Suggested support** (#78, replaces the meal-support rule; walking buddy is dropped, since asking seniors to walk further isn't the answer). Each area shows its **alternative centre** (the next open centre for its furthest block, with the walk) and only the supports its conditions trigger, each with a short reason on hover:
+- **Suggested support** (#78, replaces the meal-support rule; walking buddy is dropped, since asking seniors to walk further isn't the answer). Each area shows its **alternative centre** (the open centre nearest any of its cut-off blocks, with the walk; where its shuttle goes) and only the supports its conditions trigger, each with a short reason on hover:
   - **Shuttle:** an open centre is still within 2 km. One shuttle per subzone picks up from its cut-off blocks and goes to the nearest open centre.
   - **Meal delivery or vouchers:** a cut-off block has no open centre within 2 km.
   - **Volunteer check-ins:** a super-aged area where some block has no centre anyone can walk to (T1 → T4).
-  - **Temporary food point:** at least `access.food_point_min_seniors` (100, status `open`) seniors in the area have no open centre within 2 km.
+  - **Temporary food point:** at least `access.food_point_min_seniors` (100, status `open`) seniors cut off by the closure in the area have no open centre within 2 km. Blocks that were already without a walkable centre before the closure aren't counted.
+  - Check-ins wait until `subzone_seniors` loads, so they never quietly drop out.
+  - "No open centre within 2 km" means the block's second and third nearest centres are closed or out of range (gold keeps three per block).
   - Each block row keeps its own support (shuttle or meals). The CSV has `block_support` and `area_supports` columns.
-  - **Not built yet:** community meal points (no data on where they are), and a "may be crowded" flag on the alternative centre (it needs the closure engine's receivers from Spec 2's `centre_demand`; follow-up).
+  - **Not built yet:** community meal points (no data on where they are), and a "may be crowded" flag on the alternative centre (it needs the closure engine's receivers from Spec 2's `centre_demand`; #86).
 - **Priority areas** (#77): an area to alert is a priority if a block in it went T1 → T4 (no one can walk to a centre) or it is super-aged (21%+ aged 65+).
-  - Areas to alert and the meal-support list show priority areas only, with a "Show all N affected areas" toggle that adds the rest, muted.
+  - Areas to alert and the support list show priority areas only, with a "Show all N affected areas" toggle that adds the rest, muted.
   - On the vulnerability map, only priority areas get the dark outline.
   - The CSV keeps every affected block, with a `priority` column (yes / no).
   - If no area is a priority, the lists say "No area needs urgent help" and how many areas have a longer walk.

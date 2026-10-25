@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { runScenario, type AccessBlock, type Tier } from './scenario';
-import { mealSupportList, supportCsv, supportFor } from './support';
+import { supportList, supportCsv, supportFor } from './support';
 
 const notSuperAged = () => false;
 
@@ -32,7 +32,7 @@ describe('supportFor', () => {
   });
 });
 
-describe('mealSupportList', () => {
+describe('supportList', () => {
   const outcomes = run([
     block(
       'near',
@@ -76,21 +76,41 @@ describe('mealSupportList', () => {
       50
     ),
   ]);
-  const supportsOf = (list: ReturnType<typeof mealSupportList>, id: string) =>
+  const supportsOf = (list: ReturnType<typeof supportList>, id: string) =>
     list.find((a) => a.subzone_id === id)?.supports.map((s) => s.support);
 
   test('one row per subzone with seniors cut off, most seniors first, furthest block first', () => {
-    const list = mealSupportList(outcomes, notSuperAged);
+    const list = supportList(outcomes, notSuperAged);
     expect(list.map((a) => [a.subzone_id, a.seniors])).toEqual([
       ['SZ2', 20],
       ['SZ1', 7],
     ]);
     expect(list[1].blocks.map((b) => b.outcome.block.block_id)).toEqual(['far', 'near']);
-    expect(list[1].furthest.outcome.block.block_id).toBe('far');
+    expect(list[1].alternative).toEqual({ centreId: 'D', walkM: 1000 });
+    expect(list[0].alternative).toBeNull();
+  });
+
+  test('a mixed area gets a shuttle to its in-range centre and meals for the rest', () => {
+    const [area] = supportList(
+      run([
+        block('none', 'SZ1', 'T1', [['C', 300]]),
+        block('in', 'SZ1', 'T1', [
+          ['C', 300],
+          ['D', 1500],
+        ]),
+      ]),
+      notSuperAged
+    );
+    expect(area.alternative).toEqual({ centreId: 'D', walkM: 1500 });
+    expect(area.supports.map((s) => s.support)).toEqual(['Shuttle', 'Meal delivery or vouchers']);
+  });
+
+  test('no check-ins until the share aged 65+ has loaded', () => {
+    expect(supportsOf(supportList(outcomes, null), 'SZ2')).toEqual(['Meal delivery or vouchers']);
   });
 
   test('only the supports an area triggers, each with a reason', () => {
-    const list = mealSupportList(outcomes, notSuperAged);
+    const list = supportList(outcomes, notSuperAged);
     expect(supportsOf(list, 'SZ1')).toEqual(['Shuttle']);
     expect(supportsOf(list, 'SZ2')).toEqual(['Meal delivery or vouchers']);
     expect(list[0].supports[0].reason).toBe('1 block has no centre within 2 km');
@@ -99,14 +119,14 @@ describe('mealSupportList', () => {
   test('volunteer check-ins for a super-aged area where some block has no centre anyone can walk to', () => {
     expect(
       supportsOf(
-        mealSupportList(outcomes, (id) => id === 'SZ2'),
+        supportList(outcomes, (id) => id === 'SZ2'),
         'SZ2'
       )
     ).toEqual(['Meal delivery or vouchers', 'Volunteer check-ins']);
     // SZ1's blocks are T1 → T2 and T1 → T4 at 1,900 m, so super-aged SZ1 gets check-ins too.
     expect(
       supportsOf(
-        mealSupportList(outcomes, (id) => id === 'SZ1'),
+        supportList(outcomes, (id) => id === 'SZ1'),
         'SZ1'
       )
     ).toEqual(['Shuttle', 'Volunteer check-ins']);
@@ -114,14 +134,14 @@ describe('mealSupportList', () => {
 
   test('a temporary food point once 100 seniors in the area have no centre in range', () => {
     const area = (seniors: number) =>
-      mealSupportList(run([block('a', 'SZ1', 'T1', [['C', 300]], seniors)]), notSuperAged)[0];
+      supportList(run([block('a', 'SZ1', 'T1', [['C', 300]], seniors)]), notSuperAged)[0];
     expect(area(100).supports.map((s) => s.support)).toEqual(['Meal delivery or vouchers', 'Temporary food point']);
     expect(area(99).supports.map((s) => s.support)).toEqual(['Meal delivery or vouchers']);
   });
 });
 
 test('supportCsv writes seniors as plain numbers, under 5 as 0', () => {
-  const list = mealSupportList(
+  const list = supportList(
     run([
       block(
         'a',
@@ -155,7 +175,7 @@ test('supportCsv writes seniors as plain numbers, under 5 as 0', () => {
 });
 
 test('supportCsv has one row per block, quotes commas and marks priority areas', () => {
-  const list = mealSupportList(
+  const list = supportList(
     run([
       block(
         'a',
