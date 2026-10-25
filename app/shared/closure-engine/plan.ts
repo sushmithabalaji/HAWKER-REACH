@@ -1,4 +1,5 @@
 import type { Assumptions } from '../assumptions';
+import { demandWasteOf, type DemandWaste } from './demandWaste';
 import type { BlockOptionRow, CentreClosureRow, CentreDemandRow, CentreRow, GoldData } from './gold';
 
 export interface Receiver {
@@ -47,6 +48,8 @@ export interface PlanResult {
     threshold: number;
     centres: NeaAction[];
   };
+  /** Spec 4: every receiver with its load and extra waste, and the plan's waste total. */
+  demandWaste: DemandWaste;
 }
 
 export type Status = 'red' | 'yellow' | 'green';
@@ -232,6 +235,8 @@ export function evaluatePlan(
       .map(({ centreId, name, extraDinersPerStall }) => ({ centreId, name, extraDinersPerStall }))
       .sort(byWorstLoad);
 
+  const nea = needsAction(receivers);
+
   const cards = selectedIds.map((id): VerdictCard => {
     const name = centres.get(id)!.name;
     const without = regroup(prepared, new Set(planIds.filter((p) => p !== id)));
@@ -327,7 +332,14 @@ export function evaluatePlan(
     benchmark,
     cards,
     plan,
-    neaActions: { threshold: actionThreshold, centres: needsAction(receivers) },
+    neaActions: { threshold: actionThreshold, centres: nea },
+    demandWaste: demandWasteOf(
+      receivers,
+      new Map([...demand].map(([id, d]) => [id, d.baseline_diners_per_day])),
+      new Set(nea.map((c) => c.centreId)),
+      actionThreshold,
+      assumptions
+    ),
   };
 }
 
