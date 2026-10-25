@@ -17,7 +17,7 @@ Where this file disagrees with the wireframe, this file wins.
 | Priority areas | Every area to alert listed alike (#32) | Replaces #32's "list every area" rule: only priority areas show by default (see below); the rest are behind "Show all". Still no multiplied score: priority filters the list and the order stays by seniors cut off. (#77) |
 | AAC column | Phase 2 | Still Phase 2, plus a spike ticket on AAC data sources. |
 | Seniors per block | Subzone 65+ residents spread evenly over its blocks | `silver.blocks.est_seniors`, weighted by flat type. |
-| Number tags | Page 1 only | Every number on Page 2 too, each with a line in the shared Assumptions panel. |
+| Number tags | Page 1 only | Every number on Page 2 has a line in the Assumptions panel, which carries its tag. Since #91 tags aren't shown beside numbers on Page 2 (as on Page 1, #80). |
 | Print brief | In the wireframe | Deferred. CSV download (built in React) stays in the MVP. |
 | Page 2 data sources | Some silver | Gold only. Spec 1 adds `gold.centres` and `gold.centre_closures` for both pages. |
 
@@ -71,6 +71,7 @@ Where this file disagrees with the wireframe, this file wins.
   - **Impact:** seniors who lose a 15-min walk, and how many of them no one can walk for.
   - **Severity** (ASSUMPTION, status `open`): **Severe** at `access.severity.severe_priority_areas` (3) or more priority areas, or `access.severity.severe_no_walk_seniors` (50) or more seniors no one can walk for; **Moderate** with any priority area; **Low** when seniors only have a longer walk. Shown once the super-aged flags load.
   - **What to do** (was "Areas to alert"): the top 5 priority areas with the supports each needs, linking to the support list, which has every area, the "Show all" toggle, every block and the download. Severity waits for `subzone_seniors`, with a line saying so.
+  - **No helper text** (#91): Page 2 shows no tags beside numbers and no small grey explanatory lines, only what happened, who is affected, how serious it is and what to do, plus empty and loading states. The Assumptions panel keeps only lines a reader needs; method notes (rounding to 5, outline simplification, small-subzone cutoff, HDB residents vs citizens, overlap handling, Phase 2 and follow-up notes) live in this file only.
   - The outcome groups, the 10 and 20 min figures and cleaning nearby are behind "Details". The sources paragraph moved into the Assumptions panel; block rows in the support list are behind a per-area "Show N blocks".
 - **Map legends** (#75): plain words instead of tier codes and bare multipliers.
   - Access tiers show three levels of concern: **OK** (T1, a senior can walk there in 15 min), **Concerning** (T2 and T3, too far for a senior to walk) and **Highly vulnerable** (T4, no one can walk there). T2 and T3 share the amber colour; the tier codes stay in the model, the block tooltip and the CSV.
