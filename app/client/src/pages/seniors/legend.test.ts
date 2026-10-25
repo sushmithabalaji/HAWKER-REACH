@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
-import { levelShifts, MULTIPLIER_BANDS, tierHex } from './legend';
-import { runScenario, type AccessBlock, type Tier } from './scenario';
+import { MULTIPLIER_BANDS, tierHex } from './legend';
+import { levelShifts, runScenario, type AccessBlock, type Tier } from './scenario';
 import { MULTIPLIER_BREAKS } from './subzoneSeniors';
 
 describe('map legends', () => {

@@ -6,6 +6,7 @@ import {
   type RawRow,
   type RawValue,
 } from '@/components/shared/queryValues';
+import { TIER_LEVEL, type AccessLevel } from './legend';
 import { LIMIT_MIN, PACES, SEVERE_NO_WALK_SENIORS, SEVERE_PRIORITY_AREAS } from './settings';
 
 export const TIERS = ['T1', 'T2', 'T3', 'T4'] as const;
@@ -187,4 +188,29 @@ export function roughCount(n: number): string {
 // The same rounding as a number, for the CSV: under 5 is 0, so the column always sums.
 export function roundedCount(n: number): number {
   return n < 5 ? 0 : Math.round(n / 5) * 5;
+}
+
+export interface LevelShift {
+  from: AccessLevel;
+  to: AccessLevel;
+  seniors: number;
+}
+
+const LEVEL_ORDER: AccessLevel[] = ['ok', 'concerning', 'vulnerable'];
+
+// Seniors in blocks whose nearest centre closed, by access level before → after, for the shifts that change
+// level only, mildest start first (ok → concerning, ok → vulnerable, concerning → vulnerable).
+export function levelShifts(outcomes: readonly BlockOutcome[]): LevelShift[] {
+  const byPair = new Map<string, LevelShift>();
+  for (const o of outcomes) {
+    const from = TIER_LEVEL[o.block.tier_now];
+    const to = TIER_LEVEL[o.after];
+    if (from === to) continue;
+    const key = `${from}>${to}`;
+    const shift = byPair.get(key) ?? { from, to, seniors: 0 };
+    shift.seniors += o.block.est_seniors;
+    byPair.set(key, shift);
+  }
+  const rank = (s: LevelShift) => LEVEL_ORDER.indexOf(s.from) * 3 + LEVEL_ORDER.indexOf(s.to);
+  return [...byPair.values()].sort((a, b) => rank(a) - rank(b));
 }

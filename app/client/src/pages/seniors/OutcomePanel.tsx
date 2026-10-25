@@ -2,9 +2,10 @@ import { Skeleton } from '@databricks/appkit-ui/react';
 import { Panel, PanelContent } from '@/components/shared/Panel';
 import { shortName, type Centre } from '@/components/shared/centres';
 import { closureLabel, dateRange, type NeaClosure } from './closures';
-import { roughCount, type Severity, type Summary } from './scenario';
+import { roughCount, type LevelShift, type Severity, type Summary } from './scenario';
 import { LIMIT_MIN } from './settings';
-import { ACCESS_LEVELS, type AccessLevel, type LevelShift } from './legend';
+import { ACCESS_LEVELS, type AccessLevel } from './legend';
+import { Swatch } from './Swatch';
 
 interface OutcomePanelProps {
   centre: Centre | null;
@@ -90,10 +91,7 @@ function ImpactCard({ summary }: { summary: Summary }) {
 function LevelChip({ level }: { level: AccessLevel }) {
   return (
     <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-sm">
-      <span
-        className="inline-block h-3 w-3 shrink-0 rounded-sm"
-        style={{ background: ACCESS_LEVELS[level].hex, border: '1px solid rgb(0 0 0 / 0.35)' }}
-      />
+      <Swatch colour={ACCESS_LEVELS[level].hex} square />
       {ACCESS_LEVELS[level].label}
     </span>
   );
@@ -101,7 +99,7 @@ function LevelChip({ level }: { level: AccessLevel }) {
 
 // 2b · Where their walk moves: seniors by access level before → after, with a bar for each share.
 function ShiftsCard({ shifts }: { shifts: LevelShift[] }) {
-  const most = Math.max(...shifts.map((s) => s.seniors));
+  const most = Math.max(...shifts.map((s) => s.seniors)) || 1;
   return (
     <Panel>
       <PanelContent className="gap-2">

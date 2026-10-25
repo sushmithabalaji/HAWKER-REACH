@@ -12,10 +12,10 @@ import { AccessMap } from './AccessMap';
 import { closureFor, dateRange, nearbyWorks, pickableIn, toNeaClosure, type NeaClosure } from './closures';
 import { SupportList } from './SupportList';
 import { supportList } from './support';
-import { levelShifts } from './legend';
 import { OutcomePanel } from './OutcomePanel';
 import {
   areasCutOff,
+  levelShifts,
   priorityAreaIds,
   runScenario,
   severityOf,
