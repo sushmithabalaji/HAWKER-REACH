@@ -1,4 +1,5 @@
 import type { AssumptionLine } from '@shared/assumptions';
+import { spec2Assumptions } from '../../assumptions/spec2';
 
 // Page 1's Assumptions panel (#11, Assumptions panel lines). The benchmark's values today join
 // the panel with the verdict cards.
@@ -31,12 +32,6 @@ export const closuresAssumptions: AssumptionLine[] = [
     status: 'decided',
   },
   {
-    text: 'Newly unserved: residents with no open centre within 2 km because of the plan. Residents already without one before any closure are not counted',
-    tag: 'MODELLED',
-    source: 'gold.block_options',
-    status: 'decided',
-  },
-  {
     text: 'Diners and residents are shown to the nearest 10 (≈), seniors to the nearest 5 (under 5 as "<5"), and extra diners per stall to one decimal place, because they are modelled',
     tag: 'ASSUMPTION',
     source: 'Team decision (Spec 3, display rounding)',
@@ -49,9 +44,7 @@ export const closuresAssumptions: AssumptionLine[] = [
   { key: 'actions.waste.typical_centre_quantile' },
   { key: 'undercount_factor' },
   { key: 'plan.max_extra_centres' },
-  { limitation: 'HDB residents only: workers, visitors and private-housing residents are not modelled' },
-  { limitation: 'A whole block moves to its next-nearest centre together, a worst case for neighbours' },
-  { limitation: 'Every displaced diner goes to another hawker centre, which overstates the load on neighbours' },
+  ...spec2Assumptions,
   {
     limitation: 'Diners go to their nearest centre only; spreading them over several centres (a Huff model) is Phase 2',
   },
