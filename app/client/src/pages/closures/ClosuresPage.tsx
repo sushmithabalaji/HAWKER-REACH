@@ -11,6 +11,7 @@ import { TagBadge } from '@/components/shared/TagBadge';
 import { addToPlan, EMPTY_PLAN, removeFromPlan, withAnchor, type Plan } from './plan';
 import { undercountNotes as notesFor } from './notes';
 import { BLOCK_BANDS, blockPoints } from './blocks';
+import { DispersionTabs } from './DispersionTabs';
 import { RippleMap } from './RippleMap';
 import { TOP_RECEIVERS, WALK_LIMITS } from './settings';
 import { takeawaySentence } from './takeaway';
@@ -70,6 +71,14 @@ function ClosuresContent({
   }, [data, plan]);
   const result = outcome?.result ?? null;
   const statusById = new Map((result?.cards ?? []).map((c) => [c.centreId, c.status]));
+
+  const panelPlaceholder =
+    outcome?.error ??
+    (error
+      ? 'Blocks and centres did not load, so there is nothing to show yet.'
+      : data
+        ? 'Pick an anchor centre to see the extra demand and waste.'
+        : 'Loading blocks and centres…');
 
   const pickAnchor = (c: Centre | CentreRow) => {
     setPlan((p) => withAnchor(p, c.centre_id));
@@ -268,16 +277,7 @@ function ClosuresContent({
           </div>
         </>
       )}
-      <Panel>
-        <PanelHeader>
-          <PanelTitle>Demand dispersion and waste</PanelTitle>
-        </PanelHeader>
-        <PanelContent>
-          <p className="text-sm text-muted-foreground">
-            Extra diners and waste per centre, and centres to schedule alongside, come with Spec 4.
-          </p>
-        </PanelContent>
-      </Panel>
+      <DispersionTabs result={result} placeholder={panelPlaceholder} />
     </div>
   );
 }
