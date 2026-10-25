@@ -11,7 +11,7 @@ import { QueryError } from '@/components/shared/QueryError';
 import { AccessMap } from './AccessMap';
 import { TagBadge } from '@/components/shared/TagBadge';
 import { closureFor, dateRange, nearbyAlongside, pickableIn, toNeaClosure, type NeaClosure } from './closures';
-import { AreasToAlert } from './AreasToAlert';
+import { WhatToDo } from './WhatToDo';
 import { SupportList } from './SupportList';
 import { supportList } from './support';
 import { OutcomePanel, type Sensitivity } from './OutcomePanel';
@@ -117,7 +117,7 @@ export function SeniorsPage() {
   const pickable = useMemo(() => pickableIn(closures, town), [closures, town]);
   const closedCentre = closure ? (centreById.get(closure.centreId) ?? null) : null;
   const picked = selection?.kind === 'closure' ? selection.closure : null;
-  const notes = useMemo(() => {
+  const alongside = useMemo(() => {
     if (!picked || !outcomes) return { works: [], cleaning: [] };
     const neighbours = new Set(outcomes.flatMap((o) => o.block.options.slice(1).map((x) => x.centre_id)));
     return nearbyAlongside(picked, closures, neighbours);
@@ -196,15 +196,16 @@ export function SeniorsPage() {
             <OutcomePanel
               centre={closedCentre}
               picked={picked}
-              alongside={notes}
+              alongside={alongside}
               summary={summary}
               priorityAreas={priorityIds?.size ?? null}
               severity={severity}
+              severityPending={!subzonesReady}
               sensitivity={sensitivity}
               loading={!blocks}
             />
             {closedCentre && outcomes && (
-              <AreasToAlert
+              <WhatToDo
                 key={closureKey}
                 areas={areas}
                 subzoneSeniors={subzoneSeniors}

@@ -179,9 +179,8 @@ export function priorityAreaIds(
   return new Set(areas.filter((a) => isPriority(a, isSuperAged(a.subzone_id))).map((a) => a.subzone_id));
 }
 
-// How serious a closure is for seniors (ASSUMPTIONS.md, severity): Severe with many priority areas or many
-// seniors no one can walk for, Moderate with any priority area, Low when seniors only have a longer walk.
-// Null when no senior is cut off.
+// How serious a closure is for seniors, by the rule in ASSUMPTIONS.md (Page 2 layout, severity). Null when
+// no senior is cut off.
 export type Severity = 'Severe' | 'Moderate' | 'Low';
 
 export function severityOf(summary: Summary, priorityAreas: number): Severity | null {

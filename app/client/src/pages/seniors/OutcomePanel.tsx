@@ -22,6 +22,7 @@ interface OutcomePanelProps {
   summary: Summary | null;
   priorityAreas: number | null; // null until the super-aged flags load
   severity: Severity | null; // null with no senior cut off, or until priority areas are known
+  severityPending: boolean; // the share aged 65+ is still loading or failed, so severity can't be worked out
   sensitivity: Sensitivity | null;
   loading: boolean;
 }
@@ -74,7 +75,7 @@ function ImpactCard({ summary }: { summary: Summary }) {
   return (
     <Panel>
       <PanelContent className="gap-1">
-        {cutOff.blocks === 0 ? (
+        {cutOff.seniors === 0 ? (
           <p className="text-base font-medium">
             No senior loses a {LIMIT_MIN}-min walk. Another centre is close enough.
           </p>
@@ -85,11 +86,15 @@ function ImpactCard({ summary }: { summary: Summary }) {
               <Modelled />
             </div>
             <div className="text-base font-medium">seniors lose a {LIMIT_MIN}-min walk to a hawker centre</div>
-            {summary.noOneCanWalk.blocks > 0 && (
-              <div className="text-sm text-muted-foreground">
-                {seniorsInWords(summary.noOneCanWalk.seniors)} of them <Modelled /> have no centre anyone can walk to.
-              </div>
-            )}
+            <div className="text-sm text-muted-foreground">
+              {summary.noOneCanWalk.blocks > 0 ? (
+                <>
+                  {seniorsInWords(summary.noOneCanWalk.seniors)} of them <Modelled /> have no centre anyone can walk to.
+                </>
+              ) : (
+                <>Each of them can still reach a centre in {LIMIT_MIN} min at a typical or brisk pace.</>
+              )}
+            </div>
           </>
         )}
       </PanelContent>
@@ -134,7 +139,6 @@ function GroupRow({ title, rule, count, sub }: { title: string; rule: string; co
 }
 
 function SensitivityLine({ sensitivity }: { sensitivity: Sensitivity }) {
-  if (sensitivity.error) return <QueryError what="Other time limits" error={sensitivity.error} />;
   if (sensitivity.cutOffAt.length === 0) return null;
   return (
     <p className="text-sm text-muted-foreground">
@@ -164,7 +168,7 @@ function Details({
   cleaning: NeaClosure[];
 }) {
   return (
-    <details className="group rounded-xl border bg-card px-panel py-3">
+    <details className="rounded-xl border bg-card px-panel py-3">
       <summary className="cursor-pointer text-sm font-medium">Details</summary>
       <div className="mt-3 flex flex-col gap-3">
         <p className="text-xs text-muted-foreground">Blocks whose nearest centre was {shortName(centre.name)}</p>
@@ -175,7 +179,7 @@ function Details({
           <GroupRow sub title="Now worse" rule="T2/T3 → T4" count={summary.nowWorse} />
           <GroupRow title="Unaffected" rule="T1 → T1" count={summary.groups.unaffected} />
         </ul>
-        {sensitivity && <SensitivityLine sensitivity={sensitivity} />}
+        {sensitivity && !sensitivity.error && <SensitivityLine sensitivity={sensitivity} />}
         {cleaning.length > 0 && (
           <p className="text-sm text-muted-foreground">
             Cleaning nearby during these dates, counted as open: {cleaning.map(closureLabel).join('; ')}.
@@ -196,10 +200,18 @@ export function OutcomePanel({
   summary,
   priorityAreas,
   severity,
+  severityPending,
   sensitivity,
   loading,
 }: OutcomePanelProps) {
-  if (loading) return <Skeleton className="h-40 w-full rounded-xl" />;
+  if (loading) {
+    return (
+      <div role="status">
+        <Skeleton className="h-40 w-full rounded-xl" />
+        <span className="sr-only">Loading blocks…</span>
+      </div>
+    );
+  }
   if (!centre || !summary) {
     return (
       <section className="rounded-xl bg-topbar px-panel py-4 text-lg font-medium leading-snug text-topbar-strong">
@@ -212,6 +224,10 @@ export function OutcomePanel({
       <ClosingCard centre={centre} picked={picked} alongside={alongside} />
       <ImpactCard summary={summary} />
       {severity && priorityAreas !== null && <SeverityCard severity={severity} priorityAreas={priorityAreas} />}
+      {severityPending && summary.groups['cut-off'].seniors > 0 && (
+        <p className="text-sm text-muted-foreground">How serious this is shows once the share aged 65+ has loaded.</p>
+      )}
+      {sensitivity?.error && <QueryError what="Other time limits" error={sensitivity.error} />}
       <Details centre={centre} summary={summary} sensitivity={sensitivity} cleaning={alongside.cleaning} />
     </>
   );

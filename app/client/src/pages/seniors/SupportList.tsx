@@ -149,6 +149,9 @@ export function SupportList({ areas, closedName, priorityIds, checkInsPending, n
             </table>
           </div>
         )}
+        {shown.length > 0 && (
+          <p className="text-xs text-muted-foreground">Hover a support to see why the area needs it.</p>
+        )}
         {checkInsPending && (
           <p className="text-sm text-muted-foreground">
             Volunteer check-ins appear once the share aged 65+ has loaded.
