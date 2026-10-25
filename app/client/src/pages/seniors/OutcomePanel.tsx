@@ -1,5 +1,6 @@
 import { Skeleton } from '@databricks/appkit-ui/react';
-import { Panel, PanelContent } from '@/components/shared/Panel';
+import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/shared/Panel';
+import { SummaryCard } from '@/components/shared/SummaryCard';
 import { shortName, type Centre } from '@/components/shared/centres';
 import { closureLabel, dateRange, type NeaClosure } from './closures';
 import { roughCount, type LevelShift, type Severity, type Summary } from './scenario';
@@ -28,9 +29,10 @@ const seniorsInWords = (n: number) => {
 };
 
 const SEVERITY_STYLE: Record<Severity, string> = {
-  Severe: 'bg-highlight text-white',
-  Moderate: 'bg-highlight-tint text-highlight',
-  Low: 'bg-muted text-foreground',
+  // The same red / amber / green as the access levels and Page 1's verdicts (#114), always with the word.
+  Severe: 'bg-status-red text-white',
+  Moderate: 'bg-status-yellow text-white',
+  Low: 'bg-status-green text-white',
 };
 
 // 1 · What's closing.
@@ -40,10 +42,8 @@ function ClosingCard({
   alongside,
 }: Pick<OutcomePanelProps, 'picked' | 'alongside'> & { centre: Centre }) {
   return (
-    <section className="rounded-xl bg-topbar px-panel py-4 text-topbar-strong">
-      <div className="text-xs font-medium uppercase tracking-wide opacity-80">Closing</div>
-      <div className="text-xl font-semibold leading-snug">{shortName(centre.name)}</div>
-      <div className="text-sm opacity-80">
+    <SummaryCard label="Closing" title={shortName(centre.name)}>
+      <p>
         {picked ? (
           <>
             {picked.type} · {dateRange(picked)} · {picked.duration_days} days
@@ -51,11 +51,9 @@ function ClosingCard({
         ) : (
           'Closed on the map to test it'
         )}
-      </div>
-      {alongside.length > 0 && (
-        <div className="mt-1 text-xs opacity-80">Also closed then: {alongside.map(closureLabel).join('; ')}</div>
-      )}
-    </section>
+      </p>
+      {alongside.length > 0 && <p>Also closed then: {alongside.map(closureLabel).join('; ')}</p>}
+    </SummaryCard>
   );
 }
 
@@ -103,8 +101,10 @@ function ShiftsCard({ shifts }: { shifts: LevelShift[] }) {
   const most = Math.max(...shifts.map((s) => s.seniors)) || 1;
   return (
     <Panel>
+      <PanelHeader>
+        <PanelTitle>Access before → after</PanelTitle>
+      </PanelHeader>
       <PanelContent className="gap-2">
-        <div className="text-sm font-medium">Access before → after</div>
         <ul className="flex flex-col gap-2">
           {shifts.map((s) => (
             <li key={`${s.from}>${s.to}`} className="grid grid-cols-[auto_auto_auto_1fr_auto] items-center gap-2">
@@ -208,9 +208,7 @@ export function OutcomePanel({
   }
   if (!centre || !summary) {
     return (
-      <section className="rounded-xl bg-topbar px-panel py-4 text-lg font-medium leading-snug text-topbar-strong">
-        Pick a real NEA closure above, or click any hawker centre on the map to close it.
-      </section>
+      <SummaryCard label="Start here" title="Pick a real NEA closure above, or click any hawker centre on the map" />
     );
   }
   return (

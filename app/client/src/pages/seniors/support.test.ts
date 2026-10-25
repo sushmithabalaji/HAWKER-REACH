@@ -79,7 +79,7 @@ describe('supportList', () => {
   const supportsOf = (list: ReturnType<typeof supportList>, id: string) =>
     list.find((a) => a.subzone_id === id)?.supports.map((s) => s.support);
 
-  test('one row per subzone with seniors cut off, most seniors first, furthest block first', () => {
+  test('one row per subzone with seniors cut off, most seniors first; equal blocks furthest walk first', () => {
     const list = supportList(outcomes, notSuperAged);
     expect(list.map((a) => [a.subzone_id, a.seniors])).toEqual([
       ['SZ2', 20],
@@ -88,6 +88,38 @@ describe('supportList', () => {
     expect(list[1].blocks.map((b) => b.outcome.block.block_id)).toEqual(['far', 'near']);
     expect(list[1].alternative).toEqual({ centreId: 'D', walkM: 1000 });
     expect(list[0].alternative).toBeNull();
+  });
+
+  test('ranks blocks no one can walk from first, then most seniors, then longest walk', () => {
+    const [area] = supportList(
+      run([
+        block('few-stranded', 'SZ1', 'T1', [['C', 300]], 5),
+        block(
+          'many',
+          'SZ1',
+          'T1',
+          [
+            ['C', 300],
+            ['D', 1000],
+          ],
+          80
+        ),
+        block(
+          'some',
+          'SZ1',
+          'T1',
+          [
+            ['C', 300],
+            ['D', 1200], // brisk walkers can still make it, so not "no one can walk"
+          ],
+          30
+        ),
+      ]),
+      notSuperAged
+    );
+    expect(area.blocks.map((b) => b.outcome.block.block_id)).toEqual(['few-stranded', 'many', 'some']);
+    // The shuttle still goes from the block with the shortest walk left.
+    expect(area.alternative).toEqual({ centreId: 'D', walkM: 1000 });
   });
 
   test('a mixed area gets a shuttle to its in-range centre and meals for the rest', () => {
@@ -140,7 +172,7 @@ describe('supportList', () => {
   });
 });
 
-test('supportCsv writes seniors as plain numbers, under 5 as 0', () => {
+test('supportCsv writes seniors as plain numbers, under 5 as 0, blocks in rank order', () => {
   const list = supportList(
     run([
       block(
@@ -171,7 +203,7 @@ test('supportCsv writes seniors as plain numbers, under 5 as 0', () => {
     .split('\n')
     .slice(1)
     .map((row) => row.split(',')[4]);
-  expect(seniors).toEqual(['0', '1235']);
+  expect(seniors).toEqual(['1235', '0']); // most vulnerable block first, as in the list
 });
 
 test('supportCsv has one row per block, quotes commas and marks priority areas', () => {

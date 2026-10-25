@@ -1,8 +1,8 @@
-import type { Tiles } from '@shared/closure-engine';
+import type { Status, Tiles } from '@shared/closure-engine';
 import { shortName } from '@/components/shared/centres';
 import { count, pctOverBaseline, roundTo10 } from './format';
 import type { WalkLimits } from './settings';
-import { countsText, STATUS_STYLE } from './verdicts';
+import { STATUS_STYLE } from './verdicts';
 import { worstCaseNote } from './notes';
 
 export interface HeadlineTile {
@@ -12,7 +12,7 @@ export interface HeadlineTile {
   /** Shown on demand behind an ⓘ, e.g. the worst-case note on a rise above +100%. */
   tooltip: string | null;
   /** Numbers shown side by side under the label, each with its own caption; replaces `value` when set. */
-  breakdown: { caption: string; value: string }[] | null;
+  breakdown: { caption: string; value: string; tone?: Status }[] | null;
 }
 
 const STATUS_WORD = { red: 'Red', yellow: 'Yellow', green: 'Green' } as const;
@@ -51,17 +51,26 @@ export function headlineTiles(tiles: Tiles, { cutoffM }: WalkLimits): HeadlineTi
       note: null,
       tooltip: null,
       breakdown: [
-        { caption: 'Senior', value: count(accessLoss.senior) },
-        { caption: 'Typical', value: count(accessLoss.typical) },
-        { caption: 'Brisk', value: count(accessLoss.brisk) },
+        { caption: 'Senior pace', value: count(accessLoss.senior) },
+        { caption: 'Typical pace', value: count(accessLoss.typical) },
+        { caption: 'Brisk pace', value: count(accessLoss.brisk) },
       ],
     },
     {
-      value: verdict.status ? `${STATUS_STYLE[verdict.status].icon} ${STATUS_WORD[verdict.status]}` : '—',
-      label: 'plan verdict',
-      note: verdict.status ? countsText(verdict.counts) : 'add centres above to check whether they can close together',
+      value: '—',
+      label: verdict.status
+        ? `plan verdict: ${STATUS_STYLE[verdict.status].icon} ${STATUS_WORD[verdict.status]}`
+        : 'plan verdict',
+      note: verdict.status ? null : 'add centres above to check whether they can close together',
       tooltip: null,
-      breakdown: null,
+      // Each count in its own colour and word (#114), so the tile reads like the verdict cards.
+      breakdown: verdict.status
+        ? (['red', 'yellow', 'green'] as const).map((tone) => ({
+            caption: `${STATUS_STYLE[tone].icon} ${STATUS_WORD[tone]}`,
+            value: count(verdict.counts[tone]),
+            tone,
+          }))
+        : null,
     },
   ];
 }

@@ -1,11 +1,14 @@
-import { createBrowserRouter, RouterProvider, NavLink, Navigate, Outlet } from 'react-router';
+import { createBrowserRouter, RouterProvider, NavLink, Navigate, Outlet, useLocation } from 'react-router';
 import { AssumptionsPanel } from '@/components/shared/AssumptionsPanel';
 import { GeoDataProvider } from '@/components/shared/GeoData';
 import { pages } from './pages/registry';
 
+// One segmented control for the pages (#114): a single track, the current page filled in.
 const tabClass = ({ isActive }: { isActive: boolean }) =>
-  `rounded-md px-3.5 py-2.5 text-sm transition-colors ${
-    isActive ? 'bg-card font-semibold text-foreground' : 'text-topbar-foreground hover:bg-topbar-foreground/10'
+  `rounded-md px-3.5 py-2 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
+    isActive
+      ? 'bg-card font-semibold text-foreground shadow-sm'
+      : 'text-topbar-foreground hover:bg-topbar-foreground/15 hover:text-topbar-strong'
   }`;
 
 // The shell: a full-width chocolate-brown bar, edged in the brand orange, with the app name and one tab per
@@ -15,9 +18,9 @@ function Layout() {
     <div className="flex min-h-screen flex-col bg-background">
       <header className="flex flex-wrap items-center gap-x-6 gap-y-2.5 border-b-4 border-brand bg-topbar px-4 py-3 text-topbar-strong sm:px-8">
         <h1 className="text-xl font-bold tracking-tight">
-          Hawker<span className="text-brand">Reach</span>
+          Hawker<span className="text-brand-gold">Reach</span>
         </h1>
-        <nav aria-label="Pages" className="flex flex-wrap gap-1">
+        <nav aria-label="Pages" className="flex flex-wrap gap-1 rounded-lg bg-topbar-foreground/10 p-1">
           {pages.map((page) => (
             <NavLink key={page.path} to={page.path} end className={tabClass}>
               {page.label}
@@ -26,8 +29,10 @@ function Layout() {
         </nav>
       </header>
 
-      <main className="mx-auto flex w-full max-w-[1440px] flex-col gap-3.5 px-4 py-panel sm:px-8">
+      <main className="relative mx-auto flex w-full max-w-[1440px] flex-col gap-3.5 px-4 py-panel sm:px-8">
         <GeoDataProvider>
+          <Pages />
+          {/* Renders nothing on a page's path; on "/" or an unknown path it redirects to the first page. */}
           <Outlet />
         </GeoDataProvider>
       </main>
@@ -35,19 +40,37 @@ function Layout() {
   );
 }
 
+// Every page stays mounted (#114), so switching tabs keeps its loaded data, map and choices instead of
+// re-running its queries. The route only picks which page shows; a hidden page is inert and takes no space,
+// but keeps its size so its map needs no re-layout when it comes back.
+function Pages() {
+  const { pathname } = useLocation();
+  return pages.map((page) => {
+    const active = pathname === page.path;
+    return (
+      <div
+        key={page.path}
+        inert={!active}
+        aria-hidden={!active}
+        className={
+          active
+            ? 'flex flex-col gap-3.5'
+            : 'pointer-events-none invisible absolute inset-x-0 top-0 -z-10 h-0 overflow-hidden'
+        }
+      >
+        {page.element}
+        <AssumptionsPanel lines={page.assumptions} />
+      </div>
+    );
+  });
+}
+
 const router = createBrowserRouter([
   {
     element: <Layout />,
     children: [
-      ...pages.map((page) => ({
-        path: page.path,
-        element: (
-          <>
-            {page.element}
-            <AssumptionsPanel lines={page.assumptions} />
-          </>
-        ),
-      })),
+      // The pages render in Layout, so each route only names its path.
+      ...pages.map((page) => ({ path: page.path, element: null })),
       // "/" and any unknown path go to the first page.
       { path: '*', element: <Navigate to={pages[0].path} replace /> },
     ],

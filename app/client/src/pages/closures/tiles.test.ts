@@ -49,17 +49,21 @@ describe('headlineTiles', () => {
         note: null,
         tooltip: null,
         breakdown: [
-          { caption: 'Senior', value: '3' },
-          { caption: 'Typical', value: '5' },
-          { caption: 'Brisk', value: '1,208' },
+          { caption: 'Senior pace', value: '3' },
+          { caption: 'Typical pace', value: '5' },
+          { caption: 'Brisk pace', value: '1,208' },
         ],
       },
       {
-        value: '✕ Red',
-        label: 'plan verdict',
-        note: '1 red · 2 yellow · 0 green',
+        value: '—',
+        label: 'plan verdict: ✕ Red',
+        note: null,
         tooltip: null,
-        breakdown: null,
+        breakdown: [
+          { caption: '✕ Red', value: '1', tone: 'red' },
+          { caption: '! Yellow', value: '2', tone: 'yellow' },
+          { caption: '✓ Green', value: '0', tone: 'green' },
+        ],
       },
     ]);
   });

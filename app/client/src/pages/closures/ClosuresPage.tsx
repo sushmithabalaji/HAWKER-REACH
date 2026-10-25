@@ -7,6 +7,7 @@ import { shortName, townLabel, type Centre } from '@/components/shared/centres';
 import { MapRow } from '@/components/shared/MapRow';
 import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/shared/Panel';
 import { QueryError } from '@/components/shared/QueryError';
+import { SummaryCard } from '@/components/shared/SummaryCard';
 import { NO_PARAMS, toText } from '@/components/shared/queryValues';
 import { localToday, resolveWindow, suggestedWindow, type WindowEdit } from './closureWindow';
 import { addToPlan, EMPTY_PLAN, removeFromPlan, withAnchor, type Plan } from './plan';
@@ -255,18 +256,21 @@ function ClosuresContent({
         side={
           result && anchor ? (
             <>
-              <Panel className="border-foreground/20 bg-muted/40">
-                <PanelContent>
-                  <p className="text-base font-medium leading-relaxed">
-                    {takeawaySentence(result.takeaway, WALK_LIMITS, { withVerdict: false })}
-                    <InfoPopover label="How this is worked out">
-                      Each HDB block&rsquo;s diners go to its nearest open hawker centre by walking distance. Diners are
-                      modelled from residents, so they are rounded; the Assumptions panel at the bottom lists every
-                      figure behind them.
-                    </InfoPopover>
-                  </p>
-                </PanelContent>
-              </Panel>
+              <SummaryCard
+                label="Closing"
+                title={
+                  plan.selectedIds.length > 0
+                    ? `${shortName(anchor.name)} + ${plan.selectedIds.length} more`
+                    : shortName(anchor.name)
+                }
+              >
+                {takeawaySentence(result.takeaway, WALK_LIMITS, { withVerdict: false })}
+                <InfoPopover label="How this is worked out" className="text-topbar-foreground hover:text-topbar-strong">
+                  Each HDB block&rsquo;s diners go to its nearest open hawker centre by walking distance. Diners are
+                  modelled from residents, so they are rounded; the Assumptions panel at the bottom lists every figure
+                  behind them.
+                </InfoPopover>
+              </SummaryCard>
               <VerdictPanel
                 anchorName={shortName(anchor.name)}
                 result={result}
@@ -304,8 +308,14 @@ function ClosuresContent({
                     <div className="grid grid-cols-3 gap-2">
                       {t.breakdown.map((b) => (
                         <div key={b.caption} className="flex flex-col">
-                          <span className="font-mono text-3xl font-semibold leading-tight">{b.value}</span>
-                          <span className="text-xs text-muted-foreground">{b.caption} pace</span>
+                          <span
+                            className={`font-mono text-3xl font-semibold leading-tight ${b.tone ? TONE_CLASS[b.tone].text : ''}`}
+                          >
+                            {b.value}
+                          </span>
+                          <span className={`text-xs ${b.tone ? TONE_CLASS[b.tone].text : 'text-muted-foreground'}`}>
+                            {b.caption}
+                          </span>
                         </div>
                       ))}
                     </div>

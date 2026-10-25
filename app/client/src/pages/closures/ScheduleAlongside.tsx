@@ -4,7 +4,7 @@ import { assumptions } from '@shared/assumptions';
 import { findCandidates, type ClosureWindow, type GoldData } from '@shared/closure-engine';
 import { candidateRowView } from './scheduleView';
 
-const HEAD = 'border-b-2 border-foreground px-3 py-2';
+const HEAD = 'border-b-2 border-border-strong px-3 py-2';
 
 // The "Centres to close in the same window" section (#54, #72, #94): the top centres that could close at the
 // same time as the plan, ranked by R&R need, checked against the anchor's closure window (set under the anchor search).

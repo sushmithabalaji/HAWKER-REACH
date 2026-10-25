@@ -9,6 +9,9 @@ export const INK_HEX = '#382116';
 // Interim centres: open, but not ones you can close. A warm grey.
 export const INTERIM_HEX = '#8c7a6b';
 export const WHITE_HEX = '#ffffff';
+// Red / yellow / green on maps and legends (#114), the theme's --status-* colours. Yellow is a brighter amber
+// than --status-yellow, which is dark enough for text; on a map it is a fill, never text.
+export const STATUS_HEX = { red: '#9e1b32', yellow: '#d69e00', green: '#2d6a4f' } as const;
 
 export function rgb(hex: string, alpha = 255): Color {
   const n = parseInt(hex.slice(1), 16);

@@ -119,11 +119,11 @@ export function SupportList({ areas, closedName, priorityIds, subzoneSeniors, na
             <table className="w-full min-w-[720px] border-collapse text-sm">
               <thead>
                 <tr className="text-left font-mono text-xs tracking-wide text-muted-foreground">
-                  <th className="border-b-2 border-foreground px-3 py-2">SUBZONE / BLOCK</th>
-                  <th className="border-b-2 border-foreground px-3 py-2">EST. SENIORS</th>
-                  <th className="border-b-2 border-foreground px-3 py-2">VULNERABILITY</th>
-                  <th className="border-b-2 border-foreground px-3 py-2">ALTERNATIVE CENTRE</th>
-                  <th className="border-b-2 border-foreground px-3 py-2">SUGGESTED SUPPORT</th>
+                  <th className="border-b-2 border-border-strong px-3 py-2">SUBZONE / BLOCK</th>
+                  <th className="border-b-2 border-border-strong px-3 py-2">EST. SENIORS</th>
+                  <th className="border-b-2 border-border-strong px-3 py-2">VULNERABILITY</th>
+                  <th className="border-b-2 border-border-strong px-3 py-2">ALTERNATIVE CENTRE</th>
+                  <th className="border-b-2 border-border-strong px-3 py-2">SUGGESTED SUPPORT</th>
                 </tr>
               </thead>
               <tbody>
@@ -162,9 +162,17 @@ export function SupportList({ areas, closedName, priorityIds, subzoneSeniors, na
                       </td>
                     </tr>
                     {expanded.has(area.subzone_id) &&
-                      area.blocks.map(({ outcome: o, support }) => (
+                      area.blocks.map(({ outcome: o, support }, i) => (
                         <tr key={o.block.block_id} className="border-b text-muted-foreground">
-                          <td className="py-1.5 pl-8 pr-3">{o.block.block_label}</td>
+                          <td className="py-1.5 pl-6 pr-3">
+                            <span
+                              className="mr-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-muted px-1 font-mono text-xs font-semibold text-foreground"
+                              aria-label={`Rank ${i + 1}`}
+                            >
+                              {i + 1}
+                            </span>
+                            {o.block.block_label}
+                          </td>
                           <td className="px-3 py-1.5 font-mono">{roughCount(o.block.est_seniors)}</td>
                           <td className="px-3 py-1.5" />
                           <td className="px-3 py-1.5">
