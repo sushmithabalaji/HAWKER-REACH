@@ -147,6 +147,7 @@ export interface AreaCutOff {
   subzone_id: string;
   seniors: number;
   blocks: number;
+  noOneCanWalk: boolean; // a block went T1 → T4
 }
 
 // Subzones with seniors cut off, most first: the areas whose AAC should check in.
@@ -155,12 +156,27 @@ export function areasCutOff(outcomes: readonly BlockOutcome[]): AreaCutOff[] {
   for (const o of outcomes) {
     if (o.group !== 'cut-off') continue;
     const id = o.block.subzone_id;
-    const area = bySubzone.get(id) ?? { subzone_id: id, seniors: 0, blocks: 0 };
+    const area = bySubzone.get(id) ?? { subzone_id: id, seniors: 0, blocks: 0, noOneCanWalk: false };
     area.seniors += o.block.est_seniors;
     area.blocks += 1;
+    area.noOneCanWalk ||= o.noOneCanWalk;
     bySubzone.set(id, area);
   }
   return [...bySubzone.values()].sort((a, b) => b.seniors - a.seniors);
+}
+
+// A priority area needs help first: a block where no one can walk to a centre, or a super-aged subzone
+// (ASSUMPTIONS.md, priority areas). It filters the lists and never changes their order.
+export function isPriority(area: AreaCutOff, superAged: boolean): boolean {
+  return area.noOneCanWalk || superAged;
+}
+
+// The subzone ids of the priority areas, given which subzones are super-aged.
+export function priorityAreaIds(
+  areas: readonly AreaCutOff[],
+  isSuperAged: (subzoneId: string) => boolean
+): Set<string> {
+  return new Set(areas.filter((a) => isPriority(a, isSuperAged(a.subzone_id))).map((a) => a.subzone_id));
 }
 
 // Seniors per block are estimates, so counts are shown to the nearest 5.

@@ -19,7 +19,7 @@ interface OutcomePanelProps {
   centre: Centre | null;
   picked: NeaClosure | null;
   summary: Summary | null;
-  areas: number;
+  priorityAreas: number | null; // null until the super-aged flags load
   sensitivity: Sensitivity | null;
   loading: boolean;
 }
@@ -120,7 +120,7 @@ function SensitivityLine({ sensitivity }: { sensitivity: Sensitivity }) {
 }
 
 // The right-hand column of Page 2: headline, outcome groups, number tiles and the sensitivity line.
-export function OutcomePanel({ centre, picked, summary, areas, sensitivity, loading }: OutcomePanelProps) {
+export function OutcomePanel({ centre, picked, summary, priorityAreas, sensitivity, loading }: OutcomePanelProps) {
   const shown = centre && summary;
   return (
     <>
@@ -163,16 +163,16 @@ export function OutcomePanel({ centre, picked, summary, areas, sensitivity, load
         <Tile
           loading={loading}
           value={
-            shown ? (
+            shown && priorityAreas !== null ? (
               <>
-                {areas}
+                {priorityAreas}
                 <Modelled />
               </>
             ) : (
               '–'
             )
           }
-          label="areas where the AAC should check in"
+          label="priority areas for the AAC to check on"
         />
       </div>
 

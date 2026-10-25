@@ -11,6 +11,7 @@ export const PACES = [
 export const LIMIT_MIN = assumedNumber('walk.limit_min');
 export const CUTOFF_M = assumedNumber('walk.cutoff_m');
 export const SUPER_AGED_SHARE = assumedNumber('access.super_aged_share');
+export const SUPER_AGED_PCT = Math.round(SUPER_AGED_SHARE * 100);
 // "10, 20": the extra limits gold.access_sensitivity was run at.
 export const SENSITIVITY_LIMITS_MIN = String(assumptions['access.sensitivity_limits_min'].value)
   .split(',')

@@ -2,41 +2,50 @@ import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/share
 import { Pill } from '@/components/shared/Pill';
 import { TagBadge } from '@/components/shared/TagBadge';
 import { roughCount, type AreaCutOff } from './scenario';
-import { LIMIT_MIN, SUPER_AGED_SHARE } from './settings';
+import { NoneUrgent, ShowAllToggle } from './priority';
+import { usePriorityFilter } from './usePriorityFilter';
+import { LIMIT_MIN, SUPER_AGED_PCT } from './settings';
 import type { SubzoneSeniors } from './subzoneSeniors';
 import type { Names } from './names';
 
 interface AreasToAlertProps {
   areas: AreaCutOff[];
   subzoneSeniors: Map<string, SubzoneSeniors>;
+  priorityIds: ReadonlySet<string> | null;
   names: Names;
 }
 
-const SUPER_AGED_PCT = Math.round(SUPER_AGED_SHARE * 100);
-
-// Subzones whose AAC should check in: every subzone with seniors cut off, most first. The super-aged
-// badge is shown beside the count, never multiplied into it (ASSUMPTIONS.md, Areas to alert).
-export function AreasToAlert({ areas, subzoneSeniors, names }: AreasToAlertProps) {
+// Subzones whose AAC should check in, most seniors cut off first. Only priority areas show until the user
+// asks for all of them (ASSUMPTIONS.md, priority areas). The super-aged badge is shown beside the count,
+// never multiplied into it (ASSUMPTIONS.md, Areas to alert).
+export function AreasToAlert({ areas, subzoneSeniors, priorityIds, names }: AreasToAlertProps) {
+  const filter = usePriorityFilter(areas, priorityIds);
   return (
     <Panel>
       <PanelHeader>
         <PanelTitle>Areas to alert</PanelTitle>
         <p className="text-xs text-muted-foreground">
-          Subzones where seniors lose their {LIMIT_MIN}-min walk, most seniors first. Badged where {SUPER_AGED_PCT}%+ of
-          HDB residents are 65+.
+          Where no one can walk to a centre, or {SUPER_AGED_PCT}%+ of HDB residents are 65+.
         </p>
       </PanelHeader>
       <PanelContent>
-        {areas.length === 0 ? (
+        {areas.length === 0 && (
           <p className="text-sm text-muted-foreground">No senior loses a {LIMIT_MIN}-min walk, so no area to alert.</p>
-        ) : (
+        )}
+        {filter.noneUrgent && <NoneUrgent areas={areas.length} className="text-sm text-muted-foreground" />}
+        {filter.shown.length > 0 && (
           <ul className="flex flex-col divide-y">
-            {areas.map((a) => {
+            {filter.shown.map((a) => {
               const s = subzoneSeniors.get(a.subzone_id);
               return (
-                <li key={a.subzone_id} className="flex items-start gap-3 py-2 text-sm">
+                <li key={a.subzone_id} className={`flex items-start gap-3 py-2 text-sm ${filter.muted(a)}`}>
                   <span className="flex-1">
                     <strong>{names.subzone(a.subzone_id)}</strong>
+                    {a.noOneCanWalk && (
+                      <span className="ml-2">
+                        <Pill tone="highlight">No one can walk to a centre</Pill>
+                      </span>
+                    )}
                     {s?.is_super_aged && (
                       <span className="ml-2">
                         <Pill tone="highlight">⚠ {SUPER_AGED_PCT}%+ aged 65+</Pill>
@@ -64,6 +73,7 @@ export function AreasToAlert({ areas, subzoneSeniors, names }: AreasToAlertProps
             })}
           </ul>
         )}
+        {filter.canToggle && <ShowAllToggle showAll={filter.showAll} areas={areas.length} onToggle={filter.toggle} />}
       </PanelContent>
     </Panel>
   );

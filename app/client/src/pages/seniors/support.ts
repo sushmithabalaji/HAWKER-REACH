@@ -67,6 +67,7 @@ const CSV_COLUMNS = [
   'nearest_open_centre',
   'walk_m_after',
   'suggested_support',
+  'priority',
 ] as const;
 
 // "a,b" and quotes inside a value are quoted, as in RFC 4180.
@@ -75,9 +76,9 @@ const csvCell = (v: string | number) => {
   return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 };
 
-// Block-level CSV of the list. Seniors are rounded to 5 as on the page, but as plain numbers (under 5 is 0)
-// so the column sums in a spreadsheet.
-export function supportCsv(areas: readonly SupportArea[], names: Names): string {
+// Block-level CSV of the list, every affected area included, with its priority as yes or no. Seniors are
+// rounded to 5 as on the page, but as plain numbers (under 5 is 0) so the column sums in a spreadsheet.
+export function supportCsv(areas: readonly SupportArea[], names: Names, priorityIds: ReadonlySet<string>): string {
   const rows = areas.flatMap((area) =>
     area.blocks.map(({ outcome: o, support }) => [
       area.subzone_id,
@@ -90,6 +91,7 @@ export function supportCsv(areas: readonly SupportArea[], names: Names): string 
       names.centre(o.afterCentreId),
       o.afterWalkM === null ? '' : Math.round(o.afterWalkM),
       support,
+      priorityIds.has(area.subzone_id) ? 'yes' : 'no',
     ])
   );
   return [CSV_COLUMNS, ...rows].map((row) => row.map(csvCell).join(',')).join('\n') + '\n';
