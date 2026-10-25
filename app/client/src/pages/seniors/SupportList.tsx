@@ -2,7 +2,6 @@ import { Fragment, useState } from 'react';
 import { Button } from '@databricks/appkit-ui/react';
 import { Pill } from '@/components/shared/Pill';
 import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/shared/Panel';
-import { TagBadge } from '@/components/shared/TagBadge';
 import { metres, type Names } from './names';
 import { roughCount } from './scenario';
 import { NoneUrgent, ShowAllToggle } from './priority';
@@ -15,7 +14,6 @@ interface SupportListProps {
   areas: SupportArea[];
   closedName: string | null;
   priorityIds: ReadonlySet<string> | null;
-  checkInsPending: boolean; // true until the share aged 65+ loads
   names: Names;
 }
 
@@ -41,7 +39,7 @@ const fileSafe = (s: string) =>
 
 // Who needs what support after the closure: one row per subzone with seniors cut off, its blocks behind
 // an expand control. Priority areas only until the user asks for all; the download always has every block.
-export function SupportList({ areas, closedName, priorityIds, checkInsPending, names }: SupportListProps) {
+export function SupportList({ areas, closedName, priorityIds, names }: SupportListProps) {
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
   const toggleBlocks = (id: string) =>
     setExpanded((s) => {
@@ -66,8 +64,7 @@ export function SupportList({ areas, closedName, priorityIds, checkInsPending, n
         {closedName && shown.length > 0 && (
           <Pill tone="outline">
             {shown.length} {filter.showAll || !priorityIds ? '' : 'priority '}
-            {shown.length === 1 ? 'area' : 'areas'} · {blocks} blocks <TagBadge tag="MODELLED" /> · after {closedName}{' '}
-            closes
+            {shown.length === 1 ? 'area' : 'areas'} · {blocks} blocks · after {closedName} closes
           </Pill>
         )}
       </PanelHeader>
@@ -79,7 +76,7 @@ export function SupportList({ areas, closedName, priorityIds, checkInsPending, n
         )}
         {closedName && areas.length === 0 && (
           <p className="rounded-md bg-muted p-3 text-sm text-muted-foreground">
-            No senior loses a {LIMIT_MIN}-min walk when {closedName} closes, so no one needs meal support.
+            No senior loses a {LIMIT_MIN}-min walk when {closedName} closes, so no one needs support.
           </p>
         )}
         {filter.noneUrgent && (
@@ -91,15 +88,9 @@ export function SupportList({ areas, closedName, priorityIds, checkInsPending, n
               <thead>
                 <tr className="text-left font-mono text-xs tracking-wide text-muted-foreground">
                   <th className="border-b-2 border-foreground px-3 py-2">SUBZONE / BLOCK</th>
-                  <th className="border-b-2 border-foreground px-3 py-2">
-                    EST. SENIORS <TagBadge tag="MODELLED" />
-                  </th>
-                  <th className="border-b-2 border-foreground px-3 py-2">
-                    ALTERNATIVE CENTRE <TagBadge tag="MODELLED" />
-                  </th>
-                  <th className="border-b-2 border-foreground px-3 py-2">
-                    SUGGESTED SUPPORT <TagBadge tag="ASSUMPTION" />
-                  </th>
+                  <th className="border-b-2 border-foreground px-3 py-2">EST. SENIORS</th>
+                  <th className="border-b-2 border-foreground px-3 py-2">ALTERNATIVE CENTRE</th>
+                  <th className="border-b-2 border-foreground px-3 py-2">SUGGESTED SUPPORT</th>
                 </tr>
               </thead>
               <tbody>
@@ -148,14 +139,6 @@ export function SupportList({ areas, closedName, priorityIds, checkInsPending, n
               </tbody>
             </table>
           </div>
-        )}
-        {shown.length > 0 && (
-          <p className="text-xs text-muted-foreground">Hover a support to see why the area needs it.</p>
-        )}
-        {checkInsPending && (
-          <p className="text-sm text-muted-foreground">
-            Volunteer check-ins appear once the share aged 65+ has loaded.
-          </p>
         )}
         {filter.canToggle && <ShowAllToggle showAll={filter.showAll} areas={areas.length} onToggle={filter.toggle} />}
         <div>

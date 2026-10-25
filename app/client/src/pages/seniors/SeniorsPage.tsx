@@ -9,7 +9,6 @@ import { useGeoData } from '@/components/shared/GeoData';
 import { NO_PARAMS, toNumber, toText, type RawRow } from '@/components/shared/queryValues';
 import { QueryError } from '@/components/shared/QueryError';
 import { AccessMap } from './AccessMap';
-import { TagBadge } from '@/components/shared/TagBadge';
 import { closureFor, dateRange, nearbyAlongside, pickableIn, toNeaClosure, type NeaClosure } from './closures';
 import { WhatToDo } from './WhatToDo';
 import { SupportList } from './SupportList';
@@ -147,8 +146,7 @@ export function SeniorsPage() {
           />
           <div className="flex flex-wrap items-center gap-2 text-sm">
             <span className="font-medium text-muted-foreground">
-              Real NEA closures{town ? ` in ${townLabel(town)}` : ''}
-              <TagBadge tag="MEASURED" />:
+              Real NEA closures{town ? ` in ${townLabel(town)}` : ''}:
             </span>
             {closuresQuery.loading && <Skeleton className="h-8 w-48" />}
             {!closuresQuery.loading &&
@@ -169,7 +167,6 @@ export function SeniorsPage() {
             {!closuresQuery.loading && pickable.length === 0 && (
               <span className="text-muted-foreground">none current or upcoming</span>
             )}
-            <span className="text-muted-foreground">· or click any centre on the map</span>
           </div>
         </PanelContent>
       </Panel>
@@ -222,7 +219,6 @@ export function SeniorsPage() {
         key={closureKey}
         areas={supportAreas}
         priorityIds={priorityIds}
-        checkInsPending={!subzonesReady}
         closedName={closedCentre ? shortName(closedCentre.name) : null}
         names={names}
       />

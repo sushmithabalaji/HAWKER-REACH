@@ -1,6 +1,5 @@
 import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/shared/Panel';
 import { Pill } from '@/components/shared/Pill';
-import { TagBadge } from '@/components/shared/TagBadge';
 import { roughCount, type AreaCutOff } from './scenario';
 import { NoneUrgent } from './priority';
 import { usePriorityFilter } from './usePriorityFilter';
@@ -33,9 +32,6 @@ export function WhatToDo({ areas, subzoneSeniors, priorityIds, supportsBySubzone
     <Panel>
       <PanelHeader>
         <PanelTitle>What to do</PanelTitle>
-        <p className="text-xs text-muted-foreground">
-          Priority areas first: no one can walk to a centre, or {SUPER_AGED_PCT}%+ of HDB residents are 65+.
-        </p>
       </PanelHeader>
       <PanelContent>
         {areas.length === 0 && (
@@ -60,24 +56,12 @@ export function WhatToDo({ areas, subzoneSeniors, priorityIds, supportsBySubzone
                         <Pill tone="highlight">⚠ {SUPER_AGED_PCT}%+ aged 65+</Pill>
                       </span>
                     )}
-                    <span className="block text-xs text-muted-foreground">
-                      {s?.pct_65p != null ? (
-                        <>
-                          {Math.round(s.pct_65p * 100)}% aged 65+ <TagBadge tag="MEASURED" />
-                        </>
-                      ) : (
-                        'too few residents for a share aged 65+'
-                      )}
-                      {' · '}
-                      {a.blocks} {a.blocks === 1 ? 'block' : 'blocks'} <TagBadge tag="MODELLED" />
-                    </span>
                     <span className="mt-1 block">
                       <AreaSupports supports={supportsBySubzone.get(a.subzone_id) ?? []} />
                     </span>
                   </span>
                   <span className="text-right font-mono text-highlight">
                     {roughCount(a.seniors)}
-                    <TagBadge tag="MODELLED" />
                     <span className="block font-sans text-xs text-muted-foreground">seniors</span>
                   </span>
                 </li>
@@ -89,8 +73,7 @@ export function WhatToDo({ areas, subzoneSeniors, priorityIds, supportsBySubzone
           <p className="text-sm">
             {more > 0 && (
               <>
-                {more} <TagBadge tag="MODELLED" /> more priority {more === 1 ? 'area' : 'areas'}, every block and the
-                download are in the{' '}
+                {more} more priority {more === 1 ? 'area' : 'areas'}, every block and the download are in the{' '}
               </>
             )}
             <a href="#support-list" className="font-medium underline underline-offset-2">

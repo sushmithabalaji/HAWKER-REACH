@@ -11,7 +11,6 @@ import { useGeoData } from '@/components/shared/GeoData';
 import type { SubzoneProps } from '@/components/shared/subzones';
 import { QueryError } from '@/components/shared/QueryError';
 import { InkToggleItem } from '@/components/shared/InkToggleItem';
-import { TagBadge } from '@/components/shared/TagBadge';
 import { centresLayer } from '@/components/shared/centresLayer';
 import { HIGHLIGHT_HEX, INK_HEX, rgb, WHITE_HEX } from '@/components/shared/mapColours';
 import { ACCESS_LEVELS, MULTIPLIER_BANDS, NOT_AFFECTED_HEX, TIER_LEVEL, tierHex, type AccessLevel } from './legend';
@@ -235,15 +234,12 @@ export function AccessMap({
                   <div className="flex items-center gap-1.5 text-base font-semibold">
                     <Swatch colour={MULTIPLIER_BANDS[popupBand].hex} />
                     {MULTIPLIER_BANDS[popupBand].name}
-                    <TagBadge tag="MODELLED" />
                   </div>
                   <div className="text-xs text-muted-foreground">
                     ×{popup.multiplier.toFixed(2)} the HDB average share of seniors
-                    <TagBadge tag="MODELLED" />
                   </div>
                   <div className="mt-1">
                     <strong className="font-mono">{Math.round(popup.pct_65p * 100)}%</strong> of HDB residents are 65+
-                    <TagBadge tag="MEASURED" />
                   </div>
                   {popup.is_super_aged && (
                     <div className="mt-1 font-medium text-highlight">⚠ {SUPER_AGED_PCT}%+ aged 65+ (super-aged)</div>
@@ -256,7 +252,6 @@ export function AccessMap({
                 <div className="mt-1">
                   <strong className="font-mono">{roughCount(popupCutOff?.seniors ?? 0)}</strong> seniors lose a{' '}
                   {LIMIT_MIN}-min walk
-                  <TagBadge tag="MODELLED" />
                 </div>
               )}
             </div>
@@ -284,7 +279,6 @@ export function AccessMap({
                   not affected
                 </span>
               )}
-              <TagBadge tag="MODELLED" />
             </>
           ) : (
             <>
@@ -299,7 +293,6 @@ export function AccessMap({
                 <Swatch colour="transparent" ring={INK_HEX} />
                 {priorityIds ? 'priority area' : 'seniors lose their walk'}
               </span>
-              <TagBadge tag="MODELLED" />
             </>
           )}
           <span className="flex items-center gap-1.5">
@@ -307,11 +300,6 @@ export function AccessMap({
             closed centre
           </span>
         </div>
-        <p className="text-xs text-muted-foreground">
-          {view === 'tiers' && closure && `Coloured blocks lost their nearest centre; grey blocks keep theirs.`}
-          {view === 'tiers' && !closure && 'Click a centre to close it.'}
-          {view === 'multiplier' && 'Click an area for details. Blank areas have too few residents.'}
-        </p>
       </PanelContent>
     </Panel>
   );
