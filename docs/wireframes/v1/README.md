@@ -37,7 +37,7 @@ Planned Gold tables: `block_access (block, subzone, nearest_id, walk_m, second_w
 
 ## Number labels
 
-Page 1 tags every number **MEASURED**, **MODELLED** or **ASSUMPTION** and shows its source table. Page 2 now does too (#31): every number has a tag and a line in the Assumptions panel.
+Every number on both pages has a line in the Assumptions panel, tagged **MEASURED**, **MODELLED** or **ASSUMPTION** with its source. Tags are shown only in the panel, not beside the numbers (#80).
 
 The 21% super-aged threshold is MOH's definition (NPTD Population in Brief 2026), tagged ASSUMPTION. Our share aged 65+ counts SingStat HDB residents, while the official figure counts citizens.
 
