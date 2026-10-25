@@ -93,7 +93,10 @@ export function AccessMap({
         pickable: true,
         stroked: true,
         filled: true,
+        // With a closure picked, only areas with seniors cut off are shaded, so the ones it hits stand out;
+        // with none, every area is, for an overview.
         getFillColor: (f: SubzoneFeature) => {
+          if (closure && !cutOffBySubzone.has(f.properties.subzone_id)) return [0, 0, 0, 0];
           const band = multiplierBand(subzoneSeniors.get(f.properties.subzone_id)?.multiplier ?? null);
           return band === null ? [0, 0, 0, 0] : rgb(MULTIPLIER_BANDS[band].hex, 200);
         },
@@ -101,7 +104,7 @@ export function AccessMap({
         getLineWidth: (f: SubzoneFeature) => (outlined(f) ? 2.5 : 0.5),
         lineWidthUnits: 'pixels',
         updateTriggers: {
-          getFillColor: [subzoneSeniors],
+          getFillColor: [subzoneSeniors, closure, cutOffBySubzone],
           getLineColor: [priorityIds, cutOffBySubzone],
           getLineWidth: [priorityIds, cutOffBySubzone],
         },
