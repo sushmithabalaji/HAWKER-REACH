@@ -13,6 +13,15 @@ const day = (iso: string) => {
   return { y, text: `${d} ${MONTHS[m - 1]}` };
 };
 
+// Diners are modelled, so they are shown to the nearest 10; under 5 would read as 0, so it is "<10".
+export const roughDiners = (n: number) => (n <= 0 ? '0' : roundTo10(n) === 0 ? '<10' : count(roundTo10(n)));
+
+// "Aug 2025"
+export function monthYear(iso: string): string {
+  const [y, m] = iso.split('-').map(Number);
+  return `${MONTHS[m - 1]} ${y}`;
+}
+
 // "14 Sep – 13 Dec 2026", or across years "1 Dec 2026 – 31 Mar 2027", from YYYY-MM-DD dates.
 export function closurePeriod(startDate: string, endDate: string): string {
   const a = day(startDate);
