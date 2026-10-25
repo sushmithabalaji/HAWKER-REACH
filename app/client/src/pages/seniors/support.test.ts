@@ -310,11 +310,15 @@ describe('otherAffected', () => {
   const closure = { centreId: 'C', alsoClosed: ['X'] };
 
   test('already far, then longer walks, then lost backups, skipping cut-off, untouched and overlap areas', () => {
-    expect(otherAffected(blocks, closure, runScenario(blocks, closure))).toEqual([
+    const others = otherAffected(blocks, closure, runScenario(blocks, closure));
+    expect(others.map(({ alternative: _, ...rest }) => rest)).toEqual([
       { subzone_id: 'FAR', seniors: 3, kind: 'already-far' },
       { subzone_id: 'LONGER', seniors: 7, kind: 'longer-walk' },
       { subzone_id: 'BIG', seniors: 40, kind: 'backup' },
       { subzone_id: 'BACKUP', seniors: 4, kind: 'backup' },
     ]);
+    // Where each still walks (#119): the next open centre after the closure, or for a lost backup its own nearest.
+    expect(others[1].alternative).toEqual({ centreId: 'D', walkM: 600 });
+    expect(others[2].alternative).toEqual({ centreId: 'D', walkM: 300 });
   });
 });

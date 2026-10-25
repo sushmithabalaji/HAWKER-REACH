@@ -11,6 +11,30 @@ const tabClass = ({ isActive }: { isActive: boolean }) =>
       : 'text-topbar-foreground hover:bg-topbar-foreground/15 hover:text-topbar-strong'
   }`;
 
+// HawkerReach's mark (#119): a hawker bowl with steam, white on the brand orange, at the right of the top bar.
+function HawkerReachMark() {
+  return (
+    <span
+      className="ml-auto inline-flex h-8 w-8 items-center justify-center rounded-lg bg-brand"
+      role="img"
+      aria-label="HawkerReach"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        className="h-5 w-5"
+        fill="none"
+        stroke="#ffffff"
+        strokeWidth="2"
+        strokeLinecap="round"
+        aria-hidden
+      >
+        <path d="M3.5 12.5h17a8.5 8.5 0 0 1-17 0Z" fill="#ffffff" stroke="none" />
+        <path d="M8 4.5c-1 1.2 1 2 0 3.2M12 3.5c-1 1.2 1 2 0 3.2M16 4.5c-1 1.2 1 2 0 3.2" />
+      </svg>
+    </span>
+  );
+}
+
 // The shell: a full-width warm brown bar, edged in the brand orange, with the app name and one tab per
 // registered page (wrapping on a phone), then the page centred up to 1440px on the cream background (#113).
 function Layout() {
@@ -27,6 +51,7 @@ function Layout() {
             </NavLink>
           ))}
         </nav>
+        <HawkerReachMark />
       </header>
 
       <main className="relative mx-auto flex w-full max-w-[1440px] flex-col gap-3.5 px-4 py-panel sm:px-8">

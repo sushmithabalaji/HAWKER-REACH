@@ -29,7 +29,7 @@ export function DemandWaste({ result, placeholder }: { result: PlanResult | null
               <th className={HEAD}>DINERS A DAY</th>
               <th className={HEAD}>EXTRA A DAY</th>
               <th className={HEAD}>EXTRA PER STALL</th>
-              <th className={HEAD}>EXTRA WASTE, KG A DAY</th>
+              <th className={HEAD}>EXTRA WASTE A DAY</th>
             </tr>
           </thead>
           <tbody>
@@ -47,7 +47,7 @@ export function DemandWaste({ result, placeholder }: { result: PlanResult | null
                 <td className="px-3 py-2 font-mono">{r.baseline}</td>
                 <td className="px-3 py-2 font-mono">{r.extraDiners}</td>
                 <td className="px-3 py-2 font-mono">{r.perStall}</td>
-                <td className="px-3 py-2 font-mono">{r.wasteKg}</td>
+                <td className="px-3 py-2 font-mono">{r.wasteKg} kg</td>
               </tr>
             ))}
           </tbody>
@@ -58,7 +58,8 @@ export function DemandWaste({ result, placeholder }: { result: PlanResult | null
               <td className="px-3 py-2 font-mono">{view.totalExtraDiners}</td>
               <td className="px-3 py-2" />
               <td className="px-3 py-2 font-mono">
-                {view.totalBase} <span className="text-xs font-normal text-muted-foreground">({view.totalRange})</span>
+                {view.totalBase} kg{' '}
+                <span className="text-xs font-normal text-muted-foreground">({view.totalRange} kg)</span>
               </td>
             </tr>
           </tfoot>

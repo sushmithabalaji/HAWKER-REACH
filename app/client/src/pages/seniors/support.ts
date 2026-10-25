@@ -1,5 +1,5 @@
 import { roundedCount, type AccessBlock, type BlockOutcome, type Closure } from './scenario';
-import { CUTOFF_M, FOOD_POINT_MIN_SENIORS } from './settings';
+import { CUTOFF_M, FOOD_POINT_MIN_SENIORS, LIMIT_MIN } from './settings';
 import type { Names } from './names';
 
 // Suggested support (ASSUMPTIONS.md, suggested support). Every area gets its alternative centre; on top of
@@ -145,22 +145,26 @@ export function supportList(
 
 // Areas the closure touches without cutting seniors off, listed after the ones that need support.
 export type OtherKind = 'already-far' | 'longer-walk' | 'backup';
-export const OTHER_LABEL: Record<OtherKind, string> = {
-  'already-far': 'Already a long walk',
-  'longer-walk': 'Longer walk',
-  backup: 'Loses a backup centre',
-};
-// What the support column says for each kind.
+// What the support column says for each kind (#119): one criterion for all, the senior's 15-min walk.
 export const OTHER_NOTE: Record<OtherKind, string> = {
-  'already-far': 'Already without a walkable centre; check existing support',
-  'longer-walk': 'No extra support needed',
-  backup: 'No extra support needed',
+  'already-far': `Was already over ${LIMIT_MIN} min: check existing support`,
+  'longer-walk': `Still within ${LIMIT_MIN} min: no extra support`,
+  backup: `Nearest centre stays open: no extra support`,
 };
 
 export interface OtherArea {
   subzone_id: string;
   seniors: number;
   kind: OtherKind;
+  // The open centre nearest any of the area's touched blocks after the closure, and its walk; null if none.
+  alternative: { centreId: string; walkM: number } | null;
+}
+
+// A touched block and the open centre it walks to after the closure.
+interface Touched {
+  block: AccessBlock;
+  centreId: string | null;
+  walkM: number | null;
 }
 
 // Subzones with no senior cut off where the closure still changes things, in order: already a long walk
@@ -177,32 +181,33 @@ export function otherAffected(
 ): OtherArea[] {
   const closed = new Set([closure.centreId, ...closure.alsoClosed]);
   const seen = new Set(outcomes.filter((o) => o.group === 'cut-off').map((o) => o.block.subzone_id));
-  const group = (kind: OtherKind, from: readonly AccessBlock[]): OtherArea[] => {
+  const group = (kind: OtherKind, from: readonly Touched[]): OtherArea[] => {
     const bySubzone = new Map<string, OtherArea>();
-    for (const b of from) {
+    for (const { block: b, centreId, walkM } of from) {
       if (seen.has(b.subzone_id)) continue;
-      const area = bySubzone.get(b.subzone_id) ?? { subzone_id: b.subzone_id, seniors: 0, kind };
+      const area = bySubzone.get(b.subzone_id) ?? { subzone_id: b.subzone_id, seniors: 0, kind, alternative: null };
       area.seniors += b.est_seniors;
+      if (centreId !== null && walkM !== null && (area.alternative === null || walkM < area.alternative.walkM)) {
+        area.alternative = { centreId, walkM };
+      }
       bySubzone.set(b.subzone_id, area);
     }
     const areas = [...bySubzone.values()].sort((a, b) => b.seniors - a.seniors);
     for (const a of areas) seen.add(a.subzone_id);
     return areas;
   };
-  const alreadyFar = group(
-    'already-far',
-    outcomes.filter((o) => o.group === 'already-without').map((o) => o.block)
-  );
-  const longer = group(
-    'longer-walk',
-    outcomes.filter((o) => o.group === 'unaffected').map((o) => o.block)
-  );
+  const after = (o: BlockOutcome): Touched => ({ block: o.block, centreId: o.afterCentreId, walkM: o.afterWalkM });
+  const alreadyFar = group('already-far', outcomes.filter((o) => o.group === 'already-without').map(after));
+  const longer = group('longer-walk', outcomes.filter((o) => o.group === 'unaffected').map(after));
   const backup = group(
     'backup',
-    blocks.filter(
-      (b) =>
-        b.options[0] && !closed.has(b.options[0].centre_id) && b.options.slice(1).some((o) => closed.has(o.centre_id))
-    )
+    blocks
+      .filter(
+        (b) =>
+          b.options[0] && !closed.has(b.options[0].centre_id) && b.options.slice(1).some((o) => closed.has(o.centre_id))
+      )
+      // Its nearest centre stays open, so that is where it still walks.
+      .map((b) => ({ block: b, centreId: b.options[0].centre_id, walkM: b.options[0].walk_m }))
   );
   return [...alreadyFar, ...longer, ...backup];
 }

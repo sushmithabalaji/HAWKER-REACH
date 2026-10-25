@@ -8,6 +8,7 @@ import { MapRow } from '@/components/shared/MapRow';
 import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/shared/Panel';
 import { QueryError } from '@/components/shared/QueryError';
 import { SummaryCard } from '@/components/shared/SummaryCard';
+import { RECEIVER_HEX } from '@/components/shared/mapColours';
 import { NO_PARAMS, toText } from '@/components/shared/queryValues';
 import { localToday, resolveWindow, suggestedWindow, type WindowEdit } from './closureWindow';
 import { addToPlan, EMPTY_PLAN, removeFromPlan, withAnchor, type Plan } from './plan';
@@ -246,10 +247,37 @@ function ClosuresContent({
               ) : (
                 <Skeleton className="h-[600px] w-full" />
               )}
-              <p className="text-xs text-muted-foreground">
-                × closed · circle size: extra diners a day · lines: top {TOP_RECEIVERS} centres taking its diners ·
-                dashed ring: possibly under-counted
-              </p>
+              {/* One compact line, each item with a small copy of its map symbol (#119), so it stays secondary. */}
+              <ul
+                aria-label="Map key"
+                className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground"
+              >
+                <li className="flex items-center gap-1">
+                  <span aria-hidden className="text-sm font-bold leading-none text-brand">
+                    ×
+                  </span>
+                  Closed
+                </li>
+                <li className="flex items-center gap-1">
+                  <span
+                    aria-hidden
+                    className="inline-block h-2.5 w-2.5 rounded-full"
+                    style={{ background: RECEIVER_HEX }}
+                  />
+                  Circle size = extra diners/day
+                </li>
+                <li className="flex items-center gap-1">
+                  <span aria-hidden className="inline-block h-0.5 w-3.5 rounded-full bg-brand" />
+                  Lines = top {TOP_RECEIVERS} receiving centres
+                </li>
+                <li className="flex items-center gap-1">
+                  <span
+                    aria-hidden
+                    className="inline-block h-2.5 w-2.5 rounded-full border border-dashed border-foreground"
+                  />
+                  Dashed ring = possible undercount
+                </li>
+              </ul>
             </PanelContent>
           </Panel>
         }
