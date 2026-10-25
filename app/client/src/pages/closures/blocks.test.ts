@@ -19,6 +19,12 @@ describe('blockPoints', () => {
   test('one point per block, however many centre rows it has', () => {
     const points = blockPoints([row('B1', 1), row('B1', 2), row('B2', 1)]);
     expect([...points.keys()]).toEqual(['B1', 'B2']);
-    expect(points.get('B1')).toEqual({ blockId: 'B1', lon: 103.8, lat: 1.35, residents: 420 });
+    expect(points.get('B1')).toEqual({ blockId: 'B1', lon: 103.8, lat: 1.35, residents: 420, label: null });
+  });
+
+  test("names a block from gold.block_access's labels when it has one", () => {
+    const points = blockPoints([row('B1', 1), row('B2', 1)], new Map([['B1', '406 FAJAR RD']]));
+    expect(points.get('B1')?.label).toBe('406 FAJAR RD');
+    expect(points.get('B2')?.label).toBeNull();
   });
 });

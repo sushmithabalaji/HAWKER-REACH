@@ -84,6 +84,14 @@ describe('takeawaySentence', () => {
     );
   });
 
+  test('above the verdict panel it leaves the verdict sentence out', () => {
+    const parts: TakeawayParts = {
+      ...anchorAlone,
+      verdict: { status: 'red', counts: { red: 1, yellow: 0, green: 0 } },
+    };
+    expect(takeawaySentence(parts, limits, { withVerdict: false })).toBe(takeawaySentence(anchorAlone, limits));
+  });
+
   test('the verdict summary for one added centre, and for a plan with nothing red', () => {
     const ending = (counts: TakeawayParts['verdict']['counts']) =>
       takeawaySentence({ ...anchorAlone, verdict: { status: 'green', counts } }, limits).split('pace. ')[1];

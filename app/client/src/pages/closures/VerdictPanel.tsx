@@ -6,7 +6,7 @@ import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/share
 import { Pill } from '@/components/shared/Pill';
 import { InfoPopover } from './InfoPopover';
 import { WALK_LIMITS } from './settings';
-import { cardView, planLineView, STATUS_STYLE, TONE_CLASS, type CardView } from './verdicts';
+import { cardView, planLineView, TONE_CLASS, type CardView } from './verdicts';
 
 const pct = (key: string) => `${Math.round(assumedNumber(key) * 100)}%`;
 
@@ -49,19 +49,19 @@ function VerdictCardItem({
         )}
       </div>
       <p className="text-sm">{card.reason}</p>
-      {card.neaActions && <p className="text-sm">{card.neaActions}</p>}
-      {card.overlaps.map((note) => (
-        <p key={note} className="text-sm text-muted-foreground">
-          {note}
-        </p>
-      ))}
-      {card.ownProblems.map((problem) => (
-        <p key={problem} className="text-sm text-muted-foreground">
-          On its own: {problem}
-        </p>
-      ))}
       {open && (
         <div className="flex flex-col gap-1 text-sm">
+          {card.neaActions && <p>{card.neaActions}</p>}
+          {card.overlaps.map((note) => (
+            <p key={note} className="text-muted-foreground">
+              {note}
+            </p>
+          ))}
+          {card.ownProblems.map((problem) => (
+            <p key={problem} className="text-muted-foreground">
+              On its own: {problem}
+            </p>
+          ))}
           <p>{card.readMore.share}</p>
           <div>
             Centres it pushes:
@@ -94,7 +94,8 @@ function VerdictCardItem({
   );
 }
 
-// "Can these close with {anchor}?": the whole-plan line, then one card per centre added (#11, Verdict card).
+// "Can these close with {anchor}?": the whole-plan line, then one card per centre added (#11, Verdict card). Each card
+// is its status, name and one-line reason; everything else is behind Read more (#101).
 export function VerdictPanel({
   anchorName,
   result,
@@ -124,13 +125,6 @@ export function VerdictPanel({
             {pct('verdict.load.yellow_pct')} busier.
           </InfoPopover>
         </PanelTitle>
-        <div className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">
-          {Object.values(STATUS_STYLE).map((s) => (
-            <span key={s.word} className={TONE_CLASS[s.tone].text}>
-              {s.icon} {s.word}
-            </span>
-          ))}
-        </div>
       </PanelHeader>
       <PanelContent>
         {line ? (
@@ -144,12 +138,17 @@ export function VerdictPanel({
               </span>
               <StatusMark {...line} />
               <span className="text-muted-foreground">{line.counts}</span>
+              {line.anchorProblems.length > 0 && (
+                <span className="text-muted-foreground">
+                  · {anchorName} on its own
+                  <InfoPopover label={`What closing ${anchorName} on its own does`}>
+                    {line.anchorProblems.map((p) => (
+                      <p key={p}>{p}</p>
+                    ))}
+                  </InfoPopover>
+                </span>
+              )}
             </div>
-            {line.anchorProblems.map((p) => (
-              <p key={p} className="text-sm text-muted-foreground">
-                {p}
-              </p>
-            ))}
           </div>
         ) : (
           <p className="text-sm text-muted-foreground">Add centres above to check whether they can close together.</p>

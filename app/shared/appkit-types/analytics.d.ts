@@ -5,6 +5,16 @@ import type { SQLTypeMarker, SQLStringMarker, SQLNumberMarker, SQLBooleanMarker,
 
 declare module "@databricks/appkit-ui/react" {
   interface QueryRegistry {
+    closures_block_labels: {
+        name: "closures_block_labels";
+        parameters: Record<string, never>;
+        result: Array<{
+          /** @sqlType STRING */
+          block_id: string;
+          /** @sqlType STRING */
+          block_label: string;
+        }>;
+      };
     closures_block_options: {
         name: "closures_block_options";
         parameters: Record<string, never>;
