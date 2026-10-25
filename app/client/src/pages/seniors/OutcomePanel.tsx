@@ -1,28 +1,19 @@
 import { Skeleton } from '@databricks/appkit-ui/react';
 import { Panel, PanelContent } from '@/components/shared/Panel';
 import { shortName, type Centre } from '@/components/shared/centres';
-import { QueryError } from '@/components/shared/QueryError';
 import { closureLabel, dateRange, type NeaClosure } from './closures';
-import { roughCount, type Count, type Severity, type Summary } from './scenario';
+import { roughCount, type Severity, type Summary } from './scenario';
 import { LIMIT_MIN } from './settings';
-
-export interface Sensitivity {
-  // Seniors cut off at each extra limit (access.sensitivity_limits_min), for the picked centre closing alone.
-  cutOffAt: { limitMin: number; seniors: number }[];
-  alone: boolean; // false when other closures overlap, which these figures leave out
-  error: string | null;
-}
 
 interface OutcomePanelProps {
   centre: Centre | null;
   picked: NeaClosure | null;
-  // Other closures near the picked one during its dates: works count as closed, cleaning as open.
-  alongside: { works: NeaClosure[]; cleaning: NeaClosure[] };
+  // Works closures near the picked one during its dates, which count as closed.
+  alongside: NeaClosure[];
   summary: Summary | null;
   priorityAreas: number | null; // null until the super-aged flags load
   severity: Severity | null; // null with no senior cut off, or until priority areas are known
   severityPending: boolean; // the share aged 65+ is still loading or failed, so severity can't be worked out
-  sensitivity: Sensitivity | null;
   loading: boolean;
 }
 
@@ -57,8 +48,8 @@ function ClosingCard({
           'Closed on the map to test it'
         )}
       </div>
-      {alongside.works.length > 0 && (
-        <div className="mt-1 text-xs opacity-80">Also closed then: {alongside.works.map(closureLabel).join('; ')}</div>
+      {alongside.length > 0 && (
+        <div className="mt-1 text-xs opacity-80">Also closed then: {alongside.map(closureLabel).join('; ')}</div>
       )}
     </section>
   );
@@ -109,74 +100,8 @@ function SeverityCard({ severity, priorityAreas }: { severity: Severity; priorit
   );
 }
 
-function GroupRow({ title, rule, count, sub }: { title: string; rule: string; count: Count; sub?: boolean }) {
-  return (
-    <li className={`flex items-start gap-3 text-sm ${sub ? 'pl-5' : ''}`}>
-      <span className="flex-1">
-        <strong className={sub ? 'font-medium' : ''}>
-          {sub && '↳ '}
-          {title}
-        </strong>{' '}
-        <span className="text-muted-foreground">· {rule}</span>
-      </span>
-      <span className="whitespace-nowrap text-right font-mono text-xs text-muted-foreground">
-        {count.blocks.toLocaleString('en-US')} blocks · {roughCount(count.seniors)} seniors
-      </span>
-    </li>
-  );
-}
-
-function SensitivityLine({ sensitivity }: { sensitivity: Sensitivity }) {
-  if (sensitivity.cutOffAt.length === 0) return null;
-  return (
-    <p className="text-sm text-muted-foreground">
-      {sensitivity.cutOffAt.map(({ limitMin, seniors }, i) => (
-        <span key={limitMin}>
-          {i === 0 ? `If the limit were ${limitMin} min, ` : `; at ${limitMin} min, `}
-          {seniorsInWords(seniors)}
-          {i === 0 && ' seniors'}
-          {i === 0 && ' would be cut off'}
-        </span>
-      ))}
-      .{!sensitivity.alone && ' These are for this centre closing alone.'}
-    </p>
-  );
-}
-
-// The outcome groups, the 10 and 20 min figures and cleaning nearby, for anyone checking the numbers.
-function Details({
-  summary,
-  sensitivity,
-  cleaning,
-}: {
-  summary: Summary;
-  sensitivity: Sensitivity | null;
-  cleaning: NeaClosure[];
-}) {
-  return (
-    <details className="rounded-xl border bg-card px-panel py-3">
-      <summary className="cursor-pointer text-sm font-medium">Details</summary>
-      <div className="mt-3 flex flex-col gap-3">
-        <ul className="flex flex-col gap-2">
-          <GroupRow title="Cut off" rule="T1 → T2–T4" count={summary.groups['cut-off']} />
-          <GroupRow sub title="No one can walk it" rule="T1 → T4" count={summary.noOneCanWalk} />
-          <GroupRow title="Already without access" rule="T2–T4 before" count={summary.groups['already-without']} />
-          <GroupRow sub title="Now worse" rule="T2/T3 → T4" count={summary.nowWorse} />
-          <GroupRow title="Unaffected" rule="T1 → T1" count={summary.groups.unaffected} />
-        </ul>
-        {sensitivity && !sensitivity.error && <SensitivityLine sensitivity={sensitivity} />}
-        {cleaning.length > 0 && (
-          <p className="text-sm text-muted-foreground">
-            Cleaning nearby during these dates, counted as open: {cleaning.map(closureLabel).join('; ')}.
-          </p>
-        )}
-      </div>
-    </details>
-  );
-}
-
 // The right-hand column of Page 2, in the order a reader needs it: what's closing, the impact on seniors,
-// how serious it is, then (in WhatToDo) what to do. The detail behind the numbers is behind "Details".
+// how serious it is, then (in WhatToDo) what to do. How the numbers are worked out is in the Assumptions panel.
 export function OutcomePanel({
   centre,
   picked,
@@ -185,7 +110,6 @@ export function OutcomePanel({
   priorityAreas,
   severity,
   severityPending,
-  sensitivity,
   loading,
 }: OutcomePanelProps) {
   if (loading) {
@@ -211,8 +135,6 @@ export function OutcomePanel({
       {severityPending && summary.groups['cut-off'].seniors > 0 && (
         <p className="text-sm text-muted-foreground">How serious this is shows once the share aged 65+ has loaded.</p>
       )}
-      {sensitivity?.error && <QueryError what="Other time limits" error={sensitivity.error} />}
-      <Details summary={summary} sensitivity={sensitivity} cleaning={alongside.cleaning} />
     </>
   );
 }

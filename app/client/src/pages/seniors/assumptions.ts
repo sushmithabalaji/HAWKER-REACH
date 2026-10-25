@@ -41,12 +41,11 @@ export const seniorsAssumptions: AssumptionLine[] = [
     status: 'sourced',
   },
   {
-    text: `Seniors cut off: their walk to a centre was within ${LIMIT_MIN} min at a senior pace before the closure and isn’t after it. In Details, the other blocks whose centre closed: already without access (T2–T4 before; now worse is T2/T3 → T4) and unaffected (T1 → T1)`,
+    text: `Seniors cut off: their walk to a centre was within ${LIMIT_MIN} min at a senior pace before the closure and isn’t after it.`,
     tag: 'MODELLED',
-    source: 'ASSUMPTIONS.md (outcome groups), matching gold.access_sensitivity',
+    source: 'ASSUMPTIONS.md (outcome groups)',
     status: 'decided',
   },
-  { key: 'access.sensitivity_limits_min' },
   {
     text: `Priority areas: a block where no one can walk to a centre, or ${SUPER_AGED_PCT}%+ of HDB residents aged 65+`,
     tag: 'ASSUMPTION',

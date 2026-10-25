@@ -149,18 +149,6 @@ declare module "@databricks/appkit-ui/react" {
           remarks: string;
         }>;
       };
-    seniors_sensitivity: {
-        name: "seniors_sensitivity";
-        parameters: Record<string, never>;
-        result: Array<{
-          /** @sqlType STRING */
-          closed_centre_id: string;
-          /** @sqlType INT */
-          limit_min: number;
-          /** @sqlType DOUBLE */
-          seniors_cut_off: number;
-        }>;
-      };
     seniors_subzones: {
         name: "seniors_subzones";
         parameters: Record<string, never>;

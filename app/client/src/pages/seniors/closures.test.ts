@@ -3,7 +3,7 @@ import {
   closureFor,
   closureLabel,
   dateRange,
-  nearbyAlongside,
+  nearbyWorks,
   overlappingClosures,
   pickableIn,
   toNeaClosure,
@@ -61,14 +61,13 @@ describe('overlapping closures', () => {
     expect(ids(overlappingClosures(kimKeat, [next]))).toEqual(['k7']);
   });
 
-  test('cleaning at a neighbour is a note, not a closure', () => {
+  test('cleaning at a neighbour counts as open', () => {
     expect(closureFor(kimKeat, closures).alsoClosed).not.toContain('HC_NEXT');
-    expect(ids(nearbyAlongside(kimKeat, closures, new Set(['HC_NEXT'])).cleaning)).toEqual(['k4']);
+    expect(ids(nearbyWorks(kimKeat, closures, new Set(['HC_NEXT'])))).toEqual([]);
   });
 
-  test('the notes only list centres the affected blocks would move to', () => {
-    expect(ids(nearbyAlongside(kimKeat, closures, new Set(['HC_NEXT'])).works)).toEqual([]);
-    expect(ids(nearbyAlongside(kimKeat, closures, new Set(['HC_TB'])).works)).toEqual(['k2']);
+  test('only works at centres the affected blocks would move to are listed', () => {
+    expect(ids(nearbyWorks(kimKeat, closures, new Set(['HC_TB'])))).toEqual(['k2']);
   });
 });
 
