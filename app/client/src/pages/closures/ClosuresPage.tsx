@@ -12,8 +12,8 @@ import { localToday, type WindowEdit } from './closureWindow';
 import { addToPlan, EMPTY_PLAN, removeFromPlan, withAnchor, type Plan } from './plan';
 import { undercountNotes as notesFor } from './notes';
 import { blockPoints } from './blocks';
-import { DispersionTabs } from './DispersionTabs';
-import { ScheduleTab } from './ScheduleTab';
+import { DemandWaste } from './DemandWaste';
+import { ScheduleAlongside } from './ScheduleAlongside';
 import { RippleMap } from './RippleMap';
 import { TOP_RECEIVERS, WALK_LIMITS } from './settings';
 import { takeawaySentence } from './takeaway';
@@ -88,12 +88,12 @@ function ClosuresContent({
   const result = outcome?.result ?? null;
   const statusById = new Map((result?.cards ?? []).map((c) => [c.centreId, c.status]));
 
-  const panelPlaceholder =
+  const panelPlaceholder = (what: string) =>
     outcome?.error ??
     (error
       ? 'Blocks and centres did not load, so there is nothing to show yet.'
       : data
-        ? 'Pick an anchor centre to see the extra demand and waste.'
+        ? `Pick an anchor centre to see ${what}.`
         : 'Loading blocks and centres…');
 
   const pickAnchor = (c: Centre | CentreRow) => {
@@ -289,12 +289,21 @@ function ClosuresContent({
           </div>
         </>
       )}
-      <DispersionTabs
-        result={result}
-        placeholder={panelPlaceholder}
-        schedule={
-          data && plan.anchorId && result ? (
-            <ScheduleTab
+      <Panel>
+        <PanelHeader>
+          <PanelTitle>Demand dispersion and waste</PanelTitle>
+        </PanelHeader>
+        <PanelContent>
+          <DemandWaste result={result} placeholder={panelPlaceholder('the extra demand and waste')} />
+        </PanelContent>
+      </Panel>
+      <Panel>
+        <PanelHeader>
+          <PanelTitle>Centres to close in the same window</PanelTitle>
+        </PanelHeader>
+        <PanelContent>
+          {data && plan.anchorId && result ? (
+            <ScheduleAlongside
               data={data}
               anchorId={plan.anchorId}
               selectedIds={plan.selectedIds}
@@ -303,9 +312,13 @@ function ClosuresContent({
               onAdd={addById}
               today={localToday()}
             />
-          ) : null
-        }
-      />
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {panelPlaceholder('centres that could close in the same window')}
+            </p>
+          )}
+        </PanelContent>
+      </Panel>
     </div>
   );
 }
