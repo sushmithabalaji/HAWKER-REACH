@@ -1,6 +1,6 @@
 # HawkerReach
 
-Databricks notebooks (`01_ingest` → `04_gold_access`) build bronze, silver and gold tables in the `hawkerreach` catalog. The app in `app/` is a React (Vite) front end with deck.gl maps, served by a small Node (Express) API that reads gold tables through `@databricks/sql`, deployed as a Databricks App. No Python UI frameworks (no Streamlit, Dash or FastAPI). The current `app/app.py` is a Streamlit placeholder that Spec 1 replaces. Overview: `docs/architecture.md`; reasoning: `docs/adr/0001-react-and-node-on-databricks-apps.md`. Screens are in `docs/wireframes/v1/README.md`.
+Databricks notebooks (`01_ingest` → `05_gold_closures`) build bronze, silver and gold tables in the `hawkerreach` catalog. The Lakeflow Job `hawkerreach_rebuild` (bundle `databricks.yml` at the repo root) runs them in order on serverless, then logs MLflow sensitivity runs (`06_sensitivity_mlflow`) and checks lineage (`07_lineage_check`). Run it by hand after a data refresh: `databricks bundle deploy && databricks bundle run rebuild` from the repo root. The app in `app/` is a React (Vite) front end with deck.gl maps, served by a small Node (Express) API that reads gold tables through `@databricks/sql`, deployed as a Databricks App. No Python UI frameworks (no Streamlit, Dash or FastAPI). The current `app/app.py` is a Streamlit placeholder that Spec 1 replaces. Overview: `docs/architecture.md`; reasoning: `docs/adr/0001-react-and-node-on-databricks-apps.md`. Screens are in `docs/wireframes/v1/README.md`.
 
 ## Spec owners
 

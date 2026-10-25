@@ -1,0 +1,57 @@
+resources:
+  jobs:
+    rebuild:
+      name: hawkerreach_rebuild
+      description: >-
+        Rebuilds every HawkerReach table from bronze to gold, logs four MLflow access-sensitivity
+        runs and checks lineage. Manual runs only. Owner: Spec 1 (#33).
+      max_concurrent_runs: 1
+      # No schedule or trigger: run it by hand after a data refresh.
+      # No cluster settings: every task runs on serverless.
+      tasks:
+        - task_key: ingest
+          notebook_task:
+            notebook_path: ../01_ingest.ipynb
+
+        - task_key: silver
+          depends_on:
+            - task_key: ingest
+          notebook_task:
+            notebook_path: ../02_silver.ipynb
+
+        - task_key: dist_matrix
+          depends_on:
+            - task_key: silver
+          notebook_task:
+            notebook_path: ../03_dist_matrix.ipynb
+
+        - task_key: gold_access
+          depends_on:
+            - task_key: dist_matrix
+          notebook_task:
+            notebook_path: ../04_gold_access.ipynb
+
+        # Spec 2 (Saanvi). After gold_access, not beside it: it reads gold.block_access and
+        # checks against gold.access_sensitivity.
+        - task_key: gold_closures
+          depends_on:
+            - task_key: gold_access
+          notebook_task:
+            notebook_path: ../05_gold_closures.ipynb
+
+        - task_key: sensitivity_mlflow
+          depends_on:
+            - task_key: gold_access
+          notebook_task:
+            notebook_path: ../06_sensitivity_mlflow.ipynb
+            base_parameters:
+              job_run_id: "{{job.run_id}}"
+
+        # Runs even if an earlier task failed, so lineage is always checked and logged.
+        - task_key: lineage_check
+          depends_on:
+            - task_key: gold_closures
+            - task_key: sensitivity_mlflow
+          run_if: ALL_DONE
+          notebook_task:
+            notebook_path: ../07_lineage_check.ipynb

@@ -84,6 +84,18 @@ Where this file disagrees with the wireframe, this file wins.
 - **Excluded centres:** list which operating centres (about 118 expected) are excluded and why.
 - **Logging:** `data_quality_log` records issues, plus per-step summary rows (`rows_in`, `rows_out`, `dropped`).
 
+## Rebuild job, sensitivity and lineage (#33)
+
+- **Job:** `hawkerreach_rebuild` (bundle `databricks.yml` at the repo root), serverless, manual runs only. Order: `01_ingest` → `02_silver` → `03_dist_matrix` → `04_gold_access` → `05_gold_closures` (Spec 2; after `04` because it reads `gold.block_access`) and `06_sensitivity_mlflow`, then `07_lineage_check`, which runs even if an earlier task failed.
+- **Step-free network:** `03_dist_matrix` reruns the walking search with every OpenStreetMap segment tagged `highway=steps` removed, and writes `silver.dist_matrix_step_free` (same columns, same 2 km cutoff). Ramps, lifts and the slope of a path aren't modelled. The step-free pass takes its own largest connected piece of the network and snaps blocks to it again, so a few walks come out slightly shorter than with steps. "Seniors cut off by steps" is therefore a slight undercount. No gold table the app reads uses this matrix.
+- **MLflow runs** (`06_sensitivity_mlflow`, experiment `hawkerreach_access_sensitivity`): four per job run, at 10, 15 and 20 min on the walking network, plus seniors at 1.0 m/s and 15 min step-free. Params: paces, limit, cutoff, data download dates. Metrics:
+  - `seniors_cut_off_summed_over_closures`: each closable centre closing alone, added up. A senior near several centres counts once per centre, so this compares runs; it isn't a headcount.
+  - `seniors_cut_off_worst_closure`: the single closure that cuts off the most seniors.
+  - `seniors_cut_off_by_steps`: a headcount of seniors who are T1 today but not T1 step-free.
+  - `seniors_without_walk`, `t4_blocks`, `centres_excluded`: today, with every centre open. `centres_excluded` depends on the cutoff, not the time limit, so it's the same in the three limit runs.
+  - The app never reads MLflow. Overload sensitivity (eating share, distance decay) is Spec 2's.
+- **Lineage check** (`07_lineage_check`): gold tables read only `hawkerreach.silver`/`gold`, and the app's service principal reads only `hawkerreach.gold`, from `system.access.table_lineage` over the last 30 days (not only this run). Lineage records only some of the app's reads, so a static check that every app query names only `hawkerreach.gold.*` tables runs too. Results go to `data_quality_log`; the check never fails the run.
+
 ## Tags
 
 | Tag | Numbers |
