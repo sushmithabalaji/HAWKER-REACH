@@ -18,7 +18,7 @@ export const spec4Assumptions: AssumptionLine[] = [
     status: 'open',
   },
   {
-    text: 'Centres to schedule alongside: open centres within 2 km of the anchor that would get a green verdict if added to the plan, with no renovation, redevelopment or partial closure overlapping the closure window. Cleaning overlaps are a note only. Oldest first, then nearest, up to 5; yellow centres fill any gaps, red centres are never shown',
+    text: 'Centres to schedule alongside: open centres within 2 km of the anchor, as the crow flies, that would get a green verdict if added to the plan, with no renovation, redevelopment or partial closure overlapping the closure window. Cleaning overlaps are a note only. Oldest first, then nearest, up to 5; yellow centres fill any gaps, red centres are never shown',
     tag: 'MODELLED',
     source: 'gold.centres · gold.centre_closures · gold.block_options, evaluated in the page',
     status: 'decided',

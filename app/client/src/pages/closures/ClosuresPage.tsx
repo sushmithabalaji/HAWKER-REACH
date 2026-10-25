@@ -8,10 +8,12 @@ import { MapRow } from '@/components/shared/MapRow';
 import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/shared/Panel';
 import { QueryError } from '@/components/shared/QueryError';
 import { TagBadge } from '@/components/shared/TagBadge';
+import { localToday, type WindowEdit } from './closureWindow';
 import { addToPlan, EMPTY_PLAN, removeFromPlan, withAnchor, type Plan } from './plan';
 import { undercountNotes as notesFor } from './notes';
 import { BLOCK_BANDS, blockPoints } from './blocks';
 import { DispersionTabs } from './DispersionTabs';
+import { ScheduleTab } from './ScheduleTab';
 import { RippleMap } from './RippleMap';
 import { TOP_RECEIVERS, WALK_LIMITS } from './settings';
 import { takeawaySentence } from './takeaway';
@@ -31,16 +33,30 @@ type Outcome = { result: PlanResult; error: null } | { result: null; error: stri
 export function ClosuresPage() {
   const [attempt, setAttempt] = useState(0);
   const [plan, setPlan] = useState<Plan>(EMPTY_PLAN);
-  return <ClosuresContent key={attempt} plan={plan} setPlan={setPlan} onRetry={() => setAttempt((n) => n + 1)} />;
+  const [windowEdit, setWindowEdit] = useState<WindowEdit | null>(null);
+  return (
+    <ClosuresContent
+      key={attempt}
+      plan={plan}
+      setPlan={setPlan}
+      windowEdit={windowEdit}
+      setWindowEdit={setWindowEdit}
+      onRetry={() => setAttempt((n) => n + 1)}
+    />
+  );
 }
 
 function ClosuresContent({
   plan,
   setPlan,
+  windowEdit,
+  setWindowEdit,
   onRetry,
 }: {
   plan: Plan;
   setPlan: Dispatch<SetStateAction<Plan>>;
+  windowEdit: WindowEdit | null;
+  setWindowEdit: Dispatch<SetStateAction<WindowEdit | null>>;
   onRetry: () => void;
 }) {
   const { data, error } = usePlanData();
@@ -85,6 +101,14 @@ function ClosuresContent({
     setLimitMessage(null);
   };
   const add = (c: Centre) => {
+    const next = addToPlan(plan, c, MAX_SELECTED);
+    setPlan(next.plan);
+    setLimitMessage(next.message);
+  };
+  // "Add to plan" on a candidate: the same path as the search box, so the limit and interim rules still apply.
+  const addById = (id: string) => {
+    const c = centreById.get(id);
+    if (!c) return;
     const next = addToPlan(plan, c, MAX_SELECTED);
     setPlan(next.plan);
     setLimitMessage(next.message);
@@ -277,7 +301,23 @@ function ClosuresContent({
           </div>
         </>
       )}
-      <DispersionTabs result={result} placeholder={panelPlaceholder} />
+      <DispersionTabs
+        result={result}
+        placeholder={panelPlaceholder}
+        schedule={
+          data && plan.anchorId && result ? (
+            <ScheduleTab
+              data={data}
+              anchorId={plan.anchorId}
+              selectedIds={plan.selectedIds}
+              edit={windowEdit}
+              onEdit={setWindowEdit}
+              onAdd={addById}
+              today={localToday()}
+            />
+          ) : null
+        }
+      />
     </div>
   );
 }
