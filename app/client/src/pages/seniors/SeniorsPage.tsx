@@ -87,6 +87,15 @@ export function SeniorsPage() {
     () => (outcomes ? supportList(outcomes, subzonesReady ? isSuperAged : null) : []),
     [outcomes, isSuperAged, subzonesReady]
   );
+  const priorityList = useMemo(
+    () =>
+      priorityIds
+        ? areas
+            .filter((a) => priorityIds.has(a.subzone_id))
+            .map((a) => ({ subzoneId: a.subzone_id, name: names.subzone(a.subzone_id), seniors: a.seniors }))
+        : null,
+    [areas, priorityIds, names]
+  );
   const shifts = useMemo(() => (outcomes ? levelShifts(outcomes) : []), [outcomes]);
   const severity = summary && priorityIds ? severityOf(summary, priorityIds.size) : null;
   // The lists reset to priority areas only whenever the closure changes, overlapping closures included.
@@ -182,7 +191,7 @@ export function SeniorsPage() {
               alongside={alongside}
               summary={summary}
               shifts={shifts}
-              priorityAreas={priorityIds?.size ?? null}
+              priorityAreas={priorityList}
               severity={severity}
               severityPending={!subzonesReady}
               loading={!blocks}

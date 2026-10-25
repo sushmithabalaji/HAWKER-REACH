@@ -14,7 +14,8 @@ interface OutcomePanelProps {
   alongside: NeaClosure[];
   summary: Summary | null;
   shifts: LevelShift[]; // seniors moving between access levels, for blocks whose nearest centre closed
-  priorityAreas: number | null; // null until the super-aged flags load
+  // The priority areas, most seniors cut off first; null until the super-aged flags load.
+  priorityAreas: { subzoneId: string; name: string; seniors: number }[] | null;
   severity: Severity | null; // null with no senior cut off, or until priority areas are known
   severityPending: boolean; // the share aged 65+ is still loading or failed, so severity can't be worked out
   loading: boolean;
@@ -125,16 +126,44 @@ function ShiftsCard({ shifts }: { shifts: LevelShift[] }) {
   );
 }
 
-// 3 · How serious.
-function SeverityCard({ severity, priorityAreas }: { severity: Severity; priorityAreas: number }) {
+// The first few priority areas named under the severity badge; the rest are in the support list.
+const LISTED_AREAS = 6;
+
+// 3 · How serious, and which areas need help first.
+function SeverityCard({
+  severity,
+  priorityAreas,
+}: {
+  severity: Severity;
+  priorityAreas: NonNullable<OutcomePanelProps['priorityAreas']>;
+}) {
+  const listed = priorityAreas.slice(0, LISTED_AREAS);
+  const more = priorityAreas.length - listed.length;
   return (
     <Panel>
-      <PanelContent className="flex-row items-center gap-3">
-        <span className={`rounded-md px-2.5 py-1 text-sm font-bold ${SEVERITY_STYLE[severity]}`}>{severity}</span>
-        <span className="text-sm">
-          <strong className="font-mono">{priorityAreas}</strong>{' '}
-          {priorityAreas === 1 ? 'priority area needs' : 'priority areas need'} help first
-        </span>
+      <PanelContent className="gap-2">
+        <div className="flex items-center gap-3">
+          <span className={`rounded-md px-2.5 py-1 text-sm font-bold ${SEVERITY_STYLE[severity]}`}>{severity}</span>
+          <span className="text-sm">
+            <strong className="font-mono">{priorityAreas.length}</strong>{' '}
+            {priorityAreas.length === 1 ? 'priority area needs' : 'priority areas need'} help first
+          </span>
+        </div>
+        {listed.length > 0 && (
+          <ul className="flex flex-col divide-y text-sm">
+            {listed.map((a) => (
+              <li key={a.subzoneId} className="flex items-baseline gap-3 py-1.5">
+                <span className="flex-1 font-medium">{a.name}</span>
+                <span className="font-mono">{roughCount(a.seniors)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        {more > 0 && (
+          <a href="#support-list" className="text-sm font-medium underline underline-offset-2">
+            and {more} more in the support list
+          </a>
+        )}
       </PanelContent>
     </Panel>
   );

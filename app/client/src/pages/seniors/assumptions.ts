@@ -17,7 +17,7 @@ export const seniorsAssumptions: AssumptionLine[] = [
     status: 'decided',
   },
   {
-    text: 'Map colours: OK is T1, Concerning is T2 and T3 together, Highly vulnerable is T4',
+    text: 'Map colours: Accessible is T1, Concerning is T2 and T3 together, Highly vulnerable is T4',
     tag: 'ASSUMPTION',
     source: 'Team decision (ASSUMPTIONS.md, map legends)',
     status: 'decided',
