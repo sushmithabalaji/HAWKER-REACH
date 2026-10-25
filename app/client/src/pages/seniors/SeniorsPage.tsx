@@ -191,7 +191,7 @@ export function SeniorsPage() {
               alongside={alongside}
               summary={summary}
               shifts={shifts}
-              priorityAreas={priorityList}
+              priorityList={priorityList}
               severity={severity}
               severityPending={!subzonesReady}
               loading={!blocks}

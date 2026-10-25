@@ -15,7 +15,7 @@ interface OutcomePanelProps {
   summary: Summary | null;
   shifts: LevelShift[]; // seniors moving between access levels, for blocks whose nearest centre closed
   // The priority areas, most seniors cut off first; null until the super-aged flags load.
-  priorityAreas: { subzoneId: string; name: string; seniors: number }[] | null;
+  priorityList: { subzoneId: string; name: string; seniors: number }[] | null;
   severity: Severity | null; // null with no senior cut off, or until priority areas are known
   severityPending: boolean; // the share aged 65+ is still loading or failed, so severity can't be worked out
   loading: boolean;
@@ -132,21 +132,27 @@ const LISTED_AREAS = 6;
 // 3 · How serious, and which areas need help first.
 function SeverityCard({
   severity,
-  priorityAreas,
+  priorityList,
 }: {
   severity: Severity;
-  priorityAreas: NonNullable<OutcomePanelProps['priorityAreas']>;
+  priorityList: NonNullable<OutcomePanelProps['priorityList']>;
 }) {
-  const listed = priorityAreas.slice(0, LISTED_AREAS);
-  const more = priorityAreas.length - listed.length;
+  const listed = priorityList.slice(0, LISTED_AREAS);
+  const more = priorityList.length - listed.length;
   return (
     <Panel>
       <PanelContent className="gap-2">
         <div className="flex items-center gap-3">
           <span className={`rounded-md px-2.5 py-1 text-sm font-bold ${SEVERITY_STYLE[severity]}`}>{severity}</span>
           <span className="text-sm">
-            <strong className="font-mono">{priorityAreas.length}</strong>{' '}
-            {priorityAreas.length === 1 ? 'priority area needs' : 'priority areas need'} help first
+            {priorityList.length === 0 ? (
+              'No area needs urgent help'
+            ) : (
+              <>
+                <strong className="font-mono">{priorityList.length}</strong>{' '}
+                {priorityList.length === 1 ? 'priority area needs' : 'priority areas need'} help first
+              </>
+            )}
           </span>
         </div>
         {listed.length > 0 && (
@@ -177,7 +183,7 @@ export function OutcomePanel({
   alongside,
   summary,
   shifts,
-  priorityAreas,
+  priorityList,
   severity,
   severityPending,
   loading,
@@ -202,7 +208,7 @@ export function OutcomePanel({
       <ClosingCard centre={centre} picked={picked} alongside={alongside} />
       <ImpactCard summary={summary} />
       {shifts.length > 0 && <ShiftsCard shifts={shifts} />}
-      {severity && priorityAreas !== null && <SeverityCard severity={severity} priorityAreas={priorityAreas} />}
+      {severity && priorityList !== null && <SeverityCard severity={severity} priorityList={priorityList} />}
       {severityPending && summary.groups['cut-off'].seniors > 0 && (
         <p className="text-sm text-muted-foreground">How serious this is shows once the share aged 65+ has loaded.</p>
       )}
