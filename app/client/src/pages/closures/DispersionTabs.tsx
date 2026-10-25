@@ -4,7 +4,7 @@ import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/share
 import { DemandWasteTab } from './DemandWasteTab';
 
 // Below the headline numbers: demand and waste per centre, and centres to schedule alongside (Spec 4).
-export function DispersionTabs({ result, loading }: { result: PlanResult | null; loading: boolean }) {
+export function DispersionTabs({ result, placeholder }: { result: PlanResult | null; placeholder: string }) {
   return (
     <Panel>
       <PanelHeader>
@@ -17,7 +17,7 @@ export function DispersionTabs({ result, loading }: { result: PlanResult | null;
             <TabsTrigger value="schedule">Schedule alongside</TabsTrigger>
           </TabsList>
           <TabsContent value="demand" className="pt-3">
-            <DemandWasteTab result={result} loading={loading} />
+            <DemandWasteTab result={result} placeholder={placeholder} />
           </TabsContent>
           <TabsContent value="schedule" className="pt-3">
             <p className="text-sm text-muted-foreground">Centres to schedule alongside come with Spec 4.5.</p>

@@ -5,17 +5,12 @@ import { TagBadge } from '@/components/shared/TagBadge';
 import { demandWasteView } from './demandWasteView';
 
 const FLAG_PCT = Math.round(assumedNumber('actions.waste.extra_per_stall_share') * 100);
+const FLAG_RULE = `extra diners per stall above ${FLAG_PCT}% of a typical centre's diners per stall`;
 const HEAD = 'border-b-2 border-foreground px-3 py-2';
 
 // The "Demand & waste" tab (#54): every centre taking displaced diners, with its load and extra waste.
-export function DemandWasteTab({ result, loading }: { result: PlanResult | null; loading: boolean }) {
-  if (!result) {
-    return (
-      <p className="text-sm text-muted-foreground">
-        {loading ? 'Loading blocks and centres…' : 'Pick an anchor centre to see the extra demand and waste.'}
-      </p>
-    );
-  }
+export function DemandWasteTab({ result, placeholder }: { result: PlanResult | null; placeholder: string }) {
+  if (!result) return <p className="text-sm text-muted-foreground">{placeholder}</p>;
   const view = demandWasteView(result.demandWaste);
   if (view.rows.length === 0) {
     return (
@@ -55,7 +50,11 @@ export function DemandWasteTab({ result, loading }: { result: PlanResult | null;
               <tr key={r.centreId} className={`border-b ${r.flagged ? 'bg-highlight-tint/40' : ''}`}>
                 <td className="px-3 py-2">
                   <span className="font-medium">{r.name}</span>{' '}
-                  {r.flagged && <Pill tone="highlight">! Over the +{FLAG_PCT}% flag</Pill>}{' '}
+                  {r.flagged && (
+                    <span title={FLAG_RULE}>
+                      <Pill tone="highlight">! NEA actions flag</Pill>
+                    </span>
+                  )}{' '}
                   {r.possiblyUndercounted && <Pill tone="outline">Possibly under-counted</Pill>}
                 </td>
                 <td className="px-3 py-2 font-mono">{r.baseline}</td>
@@ -71,11 +70,10 @@ export function DemandWasteTab({ result, loading }: { result: PlanResult | null;
         </table>
       </div>
       <p className="text-xs text-muted-foreground">
-        {view.flaggedCount > 0
-          ? `${view.flaggedCount} centre${view.flaggedCount === 1 ? '' : 's'} flagged: extra diners per stall above ${FLAG_PCT}% of a typical centre's, the same rule as the NEA actions line on the verdict cards.`
-          : `No centre is over the flag: extra diners per stall above ${FLAG_PCT}% of a typical centre's, the same rule as the NEA actions line.`}{' '}
-        Waste is extra diners × kg per diner per day, an unsourced bracket (see the Assumptions panel). Reads
-        gold.block_options · gold.centres · gold.centre_demand.
+        {view.flaggedCount > 0 ? `${view.flaggedCount} flagged` : 'None flagged'}: {FLAG_RULE}, the same rule as the NEA
+        actions line on the verdict cards. Waste is extra diners × kg per diner per day, an unsourced bracket; the range
+        also covers 1–5 visits a week (see the Assumptions panel). Reads gold.block_options · gold.centres ·
+        gold.centre_demand.
       </p>
     </div>
   );

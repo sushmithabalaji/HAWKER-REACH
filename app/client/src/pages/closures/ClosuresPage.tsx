@@ -72,6 +72,14 @@ function ClosuresContent({
   const result = outcome?.result ?? null;
   const statusById = new Map((result?.cards ?? []).map((c) => [c.centreId, c.status]));
 
+  const panelPlaceholder =
+    outcome?.error ??
+    (error
+      ? 'Blocks and centres did not load, so there is nothing to show yet.'
+      : data
+        ? 'Pick an anchor centre to see the extra demand and waste.'
+        : 'Loading blocks and centres…');
+
   const pickAnchor = (c: Centre | CentreRow) => {
     setPlan((p) => withAnchor(p, c.centre_id));
     setLimitMessage(null);
@@ -269,7 +277,7 @@ function ClosuresContent({
           </div>
         </>
       )}
-      <DispersionTabs result={result} loading={!data && !error} />
+      <DispersionTabs result={result} placeholder={panelPlaceholder} />
     </div>
   );
 }
