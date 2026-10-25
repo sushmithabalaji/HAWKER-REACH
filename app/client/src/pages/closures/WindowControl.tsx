@@ -41,6 +41,12 @@ export function WindowControl({
   const link = 'h-auto p-0 text-sm';
   return (
     <div className="flex flex-col gap-1">
+      {showPickers && !suggested && !ownDates && (
+        <p className="text-sm">
+          No closure is scheduled for this centre. Enter its closure dates to check which other centres are closed at
+          the same time.
+        </p>
+      )}
       {showPickers ? (
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
           <span className="text-muted-foreground">Closes</span>
@@ -72,9 +78,6 @@ export function WindowControl({
             <Button variant="link" size="sm" className={link} onClick={() => onEdit(null)}>
               Use NEA dates
             </Button>
-          )}
-          {!suggested && !ownDates && (
-            <span className="text-xs text-muted-foreground">No works scheduled: enter dates.</span>
           )}
         </div>
       ) : (

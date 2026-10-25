@@ -45,7 +45,10 @@ export function ScheduleAlongside({
       ) : (
         <>
           {!result.overlapChecked && (
-            <p className="text-xs text-muted-foreground">Overlap not checked: enter dates to compare closures.</p>
+            <p className="text-xs text-muted-foreground">
+              Closures in the window aren&rsquo;t checked yet: enter the anchor&rsquo;s closure dates under the search
+              box at the top.
+            </p>
           )}
           <div className="overflow-x-auto">
             <table className="w-full min-w-[600px] border-collapse text-sm">
