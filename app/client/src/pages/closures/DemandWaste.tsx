@@ -22,7 +22,7 @@ export function DemandWaste({ result, placeholder }: { result: PlanResult | null
   return (
     <div className="flex flex-col gap-3">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[760px] border-collapse text-sm">
+        <table className="w-full min-w-[560px] border-collapse text-sm">
           <thead>
             <tr className="text-left font-mono text-xs tracking-wide text-muted-foreground">
               <th className={HEAD}>CENTRE</th>

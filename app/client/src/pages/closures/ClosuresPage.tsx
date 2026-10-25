@@ -1,5 +1,5 @@
 import { useMemo, useState, type Dispatch, type SetStateAction } from 'react';
-import { Button, Skeleton } from '@databricks/appkit-ui/react';
+import { Button, Skeleton, useAnalyticsQuery } from '@databricks/appkit-ui/react';
 import { assumedNumber, assumptions } from '@shared/assumptions';
 import { evaluatePlan, PlanError, type CentreRow, type PlanResult } from '@shared/closure-engine';
 import { CentreSearch } from '@/components/shared/CentreSearch';
@@ -7,7 +7,8 @@ import { shortName, townLabel, type Centre } from '@/components/shared/centres';
 import { MapRow } from '@/components/shared/MapRow';
 import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/shared/Panel';
 import { QueryError } from '@/components/shared/QueryError';
-import { localToday, type WindowEdit } from './closureWindow';
+import { NO_PARAMS, toText } from '@/components/shared/queryValues';
+import { localToday, resolveWindow, suggestedWindow, type WindowEdit } from './closureWindow';
 import { addToPlan, EMPTY_PLAN, removeFromPlan, withAnchor, type Plan } from './plan';
 import { undercountNotes as notesFor } from './notes';
 import { blockPoints } from './blocks';
@@ -20,6 +21,7 @@ import { takeawaySentence } from './takeaway';
 import { headlineTiles } from './tiles';
 import { usePlanData } from './usePlanData';
 import { VerdictPanel } from './VerdictPanel';
+import { WindowControl } from './WindowControl';
 import { STATUS_STYLE, TONE_CLASS } from './verdicts';
 
 const MAX_SELECTED = assumedNumber('plan.max_extra_centres');
@@ -73,7 +75,21 @@ function ClosuresContent({
   );
   const anchor = plan.anchorId ? (centreById.get(plan.anchorId) ?? null) : null;
 
-  const blocks = useMemo(() => blockPoints(data?.blockOptions ?? []), [data]);
+  // Block labels only name blocks on the map, so the page works without them.
+  const blockLabels = useAnalyticsQuery('closures_block_labels', NO_PARAMS);
+  const labels = useMemo(
+    () => new Map((blockLabels.data ?? []).map((r) => [toText(r.block_id), toText(r.block_label)])),
+    [blockLabels.data]
+  );
+  const blocks = useMemo(() => blockPoints(data?.blockOptions ?? [], labels), [data, labels]);
+
+  const today = localToday();
+  const suggested = useMemo(
+    () => (data && plan.anchorId ? suggestedWindow(data.centreClosures, plan.anchorId, today) : null),
+    [data, plan.anchorId, today]
+  );
+  const anchorWindow = plan.anchorId ? resolveWindow(windowEdit, plan.anchorId, suggested) : null;
+  const closureWindow = anchorWindow?.state.kind === 'ok' ? anchorWindow.state.window : null;
   const undercountNotes = useMemo(() => notesFor(data?.centreDemand ?? [], UNDERCOUNT_FACTOR), [data]);
 
   const outcome: Outcome = useMemo(() => {
@@ -125,13 +141,25 @@ function ClosuresContent({
         <PanelContent className="grid gap-4 md:grid-cols-2">
           <div className="flex flex-col gap-2">
             <span className="text-sm font-semibold">Anchor hawker centre</span>
-            <CentreSearch
-              selectedId={plan.anchorId}
-              onSelect={pickAnchor}
-              placeholder="Search for a centre to close"
-              describe={describe}
-            />
-            <span className="text-xs text-muted-foreground">Or click a centre on the map.</span>
+            <div className="flex flex-col gap-2 rounded-md border bg-muted/30 p-2">
+              <CentreSearch
+                selectedId={plan.anchorId}
+                onSelect={pickAnchor}
+                placeholder="Search for a centre to close, or click one on the map"
+                describe={describe}
+              />
+              {plan.anchorId && anchorWindow && data && (
+                <WindowControl
+                  anchorId={plan.anchorId}
+                  suggested={suggested}
+                  edit={windowEdit}
+                  from={anchorWindow.from}
+                  to={anchorWindow.to}
+                  state={anchorWindow.state}
+                  onEdit={setWindowEdit}
+                />
+              )}
+            </div>
           </div>
           <div className="flex flex-col gap-2">
             <span className="text-sm font-semibold">
@@ -226,12 +254,26 @@ function ClosuresContent({
         }
         side={
           result && anchor ? (
-            <VerdictPanel
-              anchorName={shortName(anchor.name)}
-              result={result}
-              undercountNotes={undercountNotes}
-              onRemove={remove}
-            />
+            <>
+              <Panel className="border-foreground/20 bg-muted/40">
+                <PanelContent>
+                  <p className="text-base font-medium leading-relaxed">
+                    {takeawaySentence(result.takeaway, WALK_LIMITS, { withVerdict: false })}
+                    <InfoPopover label="How this is worked out">
+                      Each HDB block&rsquo;s diners go to its nearest open hawker centre by walking distance. Diners are
+                      modelled from residents, so they are rounded; the Assumptions panel at the bottom lists every
+                      figure behind them.
+                    </InfoPopover>
+                  </p>
+                </PanelContent>
+              </Panel>
+              <VerdictPanel
+                anchorName={shortName(anchor.name)}
+                result={result}
+                undercountNotes={undercountNotes}
+                onRemove={remove}
+              />
+            </>
           ) : (
             <Panel>
               <PanelContent>
@@ -254,16 +296,22 @@ function ClosuresContent({
       )}
       {result && (
         <>
-          <Panel className="border-foreground/20 bg-muted/40">
-            <PanelContent>
-              <p className="text-lg font-medium leading-relaxed">{takeawaySentence(result.takeaway, WALK_LIMITS)}</p>
-            </PanelContent>
-          </Panel>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {headlineTiles(result.tiles, WALK_LIMITS).map((t) => (
               <Panel key={t.label}>
                 <PanelContent className="h-full gap-1">
-                  <span className="font-mono text-3xl font-semibold leading-tight">{t.value}</span>
+                  {t.breakdown ? (
+                    <div className="grid grid-cols-3 gap-2">
+                      {t.breakdown.map((b) => (
+                        <div key={b.caption} className="flex flex-col">
+                          <span className="font-mono text-3xl font-semibold leading-tight">{b.value}</span>
+                          <span className="text-xs text-muted-foreground">{b.caption} pace</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="font-mono text-3xl font-semibold leading-tight">{t.value}</span>
+                  )}
                   <span className="text-sm font-medium">{t.label}</span>
                   {t.note && (
                     <span className="text-xs text-muted-foreground">
@@ -277,36 +325,37 @@ function ClosuresContent({
           </div>
         </>
       )}
-      <Panel>
-        <PanelHeader>
-          <PanelTitle>Demand dispersion and waste</PanelTitle>
-        </PanelHeader>
-        <PanelContent>
-          <DemandWaste result={result} placeholder={panelPlaceholder('the extra demand and waste')} />
-        </PanelContent>
-      </Panel>
-      <Panel>
-        <PanelHeader>
-          <PanelTitle>Centres to close in the same window</PanelTitle>
-        </PanelHeader>
-        <PanelContent>
-          {data && plan.anchorId && result ? (
-            <ScheduleAlongside
-              data={data}
-              anchorId={plan.anchorId}
-              selectedIds={plan.selectedIds}
-              edit={windowEdit}
-              onEdit={setWindowEdit}
-              onAdd={addById}
-              today={localToday()}
-            />
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              {panelPlaceholder('centres that could close in the same window')}
-            </p>
-          )}
-        </PanelContent>
-      </Panel>
+      <div className="grid grid-cols-1 items-start gap-panel xl:grid-cols-2">
+        <Panel>
+          <PanelHeader>
+            <PanelTitle>Demand dispersion and waste</PanelTitle>
+          </PanelHeader>
+          <PanelContent>
+            <DemandWaste result={result} placeholder={panelPlaceholder('the extra demand and waste')} />
+          </PanelContent>
+        </Panel>
+        <Panel>
+          <PanelHeader>
+            <PanelTitle>Centres to close in the same window</PanelTitle>
+          </PanelHeader>
+          <PanelContent>
+            {data && plan.anchorId && result ? (
+              <ScheduleAlongside
+                data={data}
+                anchorId={plan.anchorId}
+                selectedIds={plan.selectedIds}
+                closureWindow={closureWindow}
+                onAdd={addById}
+                today={today}
+              />
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                {panelPlaceholder('centres that could close in the same window')}
+              </p>
+            )}
+          </PanelContent>
+        </Panel>
+      </div>
     </div>
   );
 }

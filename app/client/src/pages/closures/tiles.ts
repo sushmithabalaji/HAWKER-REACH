@@ -11,6 +11,8 @@ export interface HeadlineTile {
   note: string | null;
   /** Shown on demand behind an ⓘ, e.g. the worst-case note on a rise above +100%. */
   tooltip: string | null;
+  /** Numbers shown side by side under the label, each with its own caption; replaces `value` when set. */
+  breakdown: { caption: string; value: string }[] | null;
 }
 
 const STATUS_WORD = { red: 'Red', yellow: 'Yellow', green: 'Green' } as const;
@@ -30,6 +32,7 @@ export function headlineTiles(tiles: Tiles, { cutoffM }: WalkLimits): HeadlineTi
       note:
         unserved > 0 ? `+${count(unserved)} diners a day newly unserved (no centre within ${cutoffM / 1000} km)` : null,
       tooltip: null,
+      breakdown: null,
     },
     {
       value: load?.extraDinersPerStall != null ? `+${load.extraDinersPerStall.toFixed(1)}` : '—',
@@ -40,18 +43,25 @@ export function headlineTiles(tiles: Tiles, { cutoffM }: WalkLimits): HeadlineTi
             .join(' · ')
         : 'no centre takes extra diners',
       tooltip: load ? worstCaseNote(load.pctOverBaseline) : null,
+      breakdown: null,
     },
     {
-      value: [accessLoss.senior, accessLoss.typical, accessLoss.brisk].map(count).join(' · '),
-      label: `blocks losing a centre within ${accessLoss.limitMin} min`,
-      note: 'at senior · typical · brisk pace',
+      value: '',
+      label: `blocks left with no hawker centre within a ${accessLoss.limitMin}-min walk`,
+      note: null,
       tooltip: null,
+      breakdown: [
+        { caption: 'Senior', value: count(accessLoss.senior) },
+        { caption: 'Typical', value: count(accessLoss.typical) },
+        { caption: 'Brisk', value: count(accessLoss.brisk) },
+      ],
     },
     {
       value: verdict.status ? `${STATUS_STYLE[verdict.status].icon} ${STATUS_WORD[verdict.status]}` : '—',
       label: 'plan verdict',
       note: verdict.status ? countsText(verdict.counts) : 'add centres above to check whether they can close together',
       tooltip: null,
+      breakdown: null,
     },
   ];
 }

@@ -5,8 +5,13 @@ import type { WalkLimits } from './settings';
 
 const plural = (n: number, one: string, many: string) => `${count(n)} ${n === 1 ? one : many}`;
 
-// The one-sentence takeaway below the map (#11, story 24), written from the engine's facts.
-export function takeawaySentence(parts: TakeawayParts, { limitMin, cutoffM }: WalkLimits): string {
+// The takeaway (#11, story 24), written from the engine's facts. Above the verdict panel it leaves out the
+// verdict sentence, which the panel itself says (#101).
+export function takeawaySentence(
+  parts: TakeawayParts,
+  { limitMin, cutoffM }: WalkLimits,
+  { withVerdict = true }: { withVerdict?: boolean } = {}
+): string {
   const names = parts.closedCentreNames.map(shortName);
   const closing = `Closing ${joinNames(names)}`;
   const top = parts.topReceiver;
@@ -22,7 +27,7 @@ export function takeawaySentence(parts: TakeawayParts, { limitMin, cutoffM }: Wa
     : [
         `No HDB block uses ${joinNames(names)} as its nearest centre, so closing ${names.length > 1 ? 'them' : 'it'} displaces no modelled diners.`,
       ];
-  const verdict = verdictSummary(parts.verdict.counts);
+  const verdict = withVerdict ? verdictSummary(parts.verdict.counts) : null;
   return [...sentences, ...(verdict ? [verdict] : [])].join(' ');
 }
 

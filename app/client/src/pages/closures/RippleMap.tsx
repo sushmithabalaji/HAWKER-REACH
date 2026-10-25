@@ -15,6 +15,8 @@ import { rippleFrame, SETTLED, START, type RippleFrame } from './ripple';
 
 const OTHER_HEX = '#9AA5B1';
 const RECEIVER_HEX = '#2F86B0';
+// Above this many blocks losing access, their names would overlap, so they show only on hover.
+const MAX_BLOCK_LABELS = 25;
 // The "possibly under-counted" badge on the map: a dashed ring (deck.gl has no dashed strokes, so it is an icon).
 const DASHED_RING = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><circle cx="32" cy="32" r="29" fill="none" stroke="${INK_HEX}" stroke-width="3" stroke-dasharray="7 5"/></svg>`
@@ -231,7 +233,22 @@ export function RippleMap({
       backgroundPadding: [4, 2],
       fontFamily: 'system-ui, sans-serif',
     });
-    return [others, accessRings, rings, lines, receiverDots, undercountRings, crosses, labels];
+    // Block names beside the rings when there are few enough to read; otherwise only in the tooltip (#101).
+    const accessLabels = new TextLayer<BlockPoint>({
+      id: 'access-labels',
+      data: showAccess && losingAccess.length <= MAX_BLOCK_LABELS ? losingAccess.filter((b) => b.label) : [],
+      getPosition: (b) => [b.lon, b.lat],
+      getText: (b) => b.label ?? '',
+      characterSet: 'auto',
+      getSize: 11,
+      getColor: rgb(INK_HEX),
+      getPixelOffset: [0, -14],
+      background: true,
+      getBackgroundColor: [255, 255, 255, 210],
+      backgroundPadding: [3, 1],
+      fontFamily: 'system-ui, sans-serif',
+    });
+    return [others, accessRings, rings, lines, receiverDots, undercountRings, crosses, labels, accessLabels];
   }, [centres, closed, receivers, top, losingAccess, showAccess, frame, undercountNotes]);
 
   // What hovering and clicking each pickable layer does, keyed by layer id.
@@ -276,7 +293,11 @@ export function RippleMap({
     },
     access: {
       tooltip: (b: BlockPoint) =>
-        `≈${count(roundTo10(b.residents))} residents\nLeft with no centre within ${WALK_LIMITS.limitMin} min at senior pace`,
+        joinLines(
+          b.label ? `Blk ${b.label}` : null,
+          `≈${count(roundTo10(b.residents))} residents`,
+          `Left with no centre within ${WALK_LIMITS.limitMin} min at senior pace`
+        ),
     },
   };
   const getTooltip = ({ object, layer }: PickingInfo) =>
