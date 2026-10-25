@@ -8,7 +8,7 @@ import { LIMIT_MIN } from './settings';
 // share one level; the tier codes stay in the model, tooltip and CSV.
 export type AccessLevel = 'ok' | 'concerning' | 'vulnerable';
 export const ACCESS_LEVELS: Record<AccessLevel, { label: string; meaning: string; hex: string }> = {
-  ok: { label: 'OK', meaning: `a senior can walk there in ${LIMIT_MIN} min`, hex: '#2F86B0' },
+  ok: { label: 'Accessible', meaning: `a senior can walk there in ${LIMIT_MIN} min`, hex: '#2F86B0' },
   concerning: { label: 'Concerning', meaning: 'too far for a senior to walk', hex: '#F0A35E' },
   vulnerable: { label: 'Highly vulnerable', meaning: 'no one can walk there', hex: '#C0281C' },
 };

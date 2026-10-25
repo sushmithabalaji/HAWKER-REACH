@@ -17,7 +17,7 @@ export const seniorsAssumptions: AssumptionLine[] = [
     status: 'decided',
   },
   {
-    text: 'Map colours: OK is T1, Concerning is T2 and T3 together, Highly vulnerable is T4',
+    text: 'Map colours: Accessible is T1, Concerning is T2 and T3 together, Highly vulnerable is T4',
     tag: 'ASSUMPTION',
     source: 'Team decision (ASSUMPTIONS.md, map legends)',
     status: 'decided',
@@ -53,7 +53,7 @@ export const seniorsAssumptions: AssumptionLine[] = [
     status: 'decided',
   },
   {
-    text: 'Access before → after: seniors in blocks whose nearest centre closed, by map level (OK, Concerning, Highly vulnerable) before and after the closure; blocks that keep their level are left out',
+    text: 'Access before → after: seniors in blocks whose nearest centre closed, by map level (Accessible, Concerning, Highly vulnerable) before and after the closure; blocks that keep their level are left out',
     tag: 'MODELLED',
     source: 'gold.block_access (tier_now, and the next open centre after the closure)',
     status: 'decided',
