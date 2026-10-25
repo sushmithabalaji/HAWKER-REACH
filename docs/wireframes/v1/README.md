@@ -63,6 +63,8 @@ The 21% super-aged threshold is MOH's definition (NPTD Population in Brief 2026)
 
 ## Changes
 
+- 2026-10-26: Page 2 suggested support depends on each area's conditions (#78). Walking buddy is dropped; an area gets its alternative centre plus only what it triggers: shuttle, meal delivery or vouchers, volunteer check-ins, or a temporary food point. See ASSUMPTIONS.md.
+
 - 2026-10-24: Page 2 as built (#31). The age-group control and "Slower walkers lose more" panel are removed, tiers are at 15 min, every number is tagged, and the 21% source is added. See ASSUMPTIONS.md for the full list of changes from this draft.
 
 - 2026-10-22: Page 1's takeaway and headline numbers moved from the top of the page to below the map. Page order is now controls → map and verdict → takeaway → headline numbers → demand and candidates → assumptions.

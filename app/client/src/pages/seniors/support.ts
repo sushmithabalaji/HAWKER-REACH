@@ -1,41 +1,98 @@
 import { roundedCount, type BlockOutcome } from './scenario';
-import { CUTOFF_M, MEAL_SUPPORT_WALK_M, MEAL_SUPPORT_WALK_MIN, PACES } from './settings';
+import { CUTOFF_M, FOOD_POINT_MIN_SENIORS } from './settings';
 import type { Names } from './names';
 
-// Ordered mildest first, so the stricter of two is the later one.
-export const SUPPORTS = ['Walking buddy', 'Meal delivery'] as const;
+// Suggested support (ASSUMPTIONS.md, suggested support). Every area gets its alternative centre; on top of
+// that it shows only the supports its conditions trigger, never the full menu. Walking buddies are gone:
+// asking seniors to walk further isn't the answer.
+export const SUPPORTS = [
+  'Shuttle',
+  'Meal delivery or vouchers',
+  'Volunteer check-ins',
+  'Temporary food point',
+] as const;
 export type Support = (typeof SUPPORTS)[number];
 
-// Walking buddy if the nearest open centre after the closure is within the meal-support walk at the
-// senior pace; meal delivery if it's further or there's no centre within the cutoff.
-export function supportFor(o: BlockOutcome): Support {
-  return o.afterWalkM !== null && o.afterWalkM <= MEAL_SUPPORT_WALK_M ? 'Walking buddy' : 'Meal delivery';
+// A block's own support, for its row and the CSV: a shuttle if an open centre is still within the cutoff,
+// otherwise meals brought to it.
+export type BlockSupport = Extract<Support, 'Shuttle' | 'Meal delivery or vouchers'>;
+
+export function supportFor(o: BlockOutcome): BlockSupport {
+  return o.afterCentreId !== null ? 'Shuttle' : 'Meal delivery or vouchers';
 }
 
-// The rule in words, for the list's footer and the Assumptions panel.
-export const MEAL_SUPPORT_RULE = `Walking buddy if the nearest open centre after the closure is within ${MEAL_SUPPORT_WALK_M.toLocaleString('en-US')} m (${MEAL_SUPPORT_WALK_MIN} min at ${PACES[0]} m/s); meal delivery if it's further or there's no centre within ${CUTOFF_M / 1000} km. A subzone takes the stricter suggestion of its blocks`;
+const KM = `${CUTOFF_M / 1000} km`;
 
-const stricter = (a: Support, b: Support) => (SUPPORTS.indexOf(a) >= SUPPORTS.indexOf(b) ? a : b);
+// The rules in words, for the Assumptions panel.
+export const SUPPORT_RULES: Record<Support, string> = {
+  Shuttle: `an open centre is still within ${KM}: one shuttle per area picks up from its cut-off blocks and takes seniors to the nearest open centre`,
+  'Meal delivery or vouchers': `a cut-off block has no open centre within ${KM}`,
+  'Volunteer check-ins': 'a super-aged area where some block has no centre anyone can walk to (T1 → T4)',
+  'Temporary food point': `at least ${FOOD_POINT_MIN_SENIORS} seniors in the area have no open centre within ${KM}`,
+};
+
+export interface SupportNeed {
+  support: Support;
+  reason: string; // short, for the hover text
+}
 
 export interface SupportBlock {
   outcome: BlockOutcome;
-  support: Support;
+  support: BlockSupport;
 }
 
 export interface SupportArea {
   subzone_id: string;
   seniors: number;
-  // The subzone's block with the longest walk after the closure; its suggestion is the subzone's.
+  // The subzone's block with the longest walk after the closure; its next centre is the area's alternative.
   furthest: SupportBlock;
-  support: Support;
+  supports: SupportNeed[]; // in SUPPORTS order
   blocks: SupportBlock[]; // furthest walk first
 }
 
 // Walk after the closure, with no centre in range as the furthest of all.
 const walkAfter = (o: BlockOutcome) => o.afterWalkM ?? Infinity;
 
+const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+
+// The supports an area's conditions trigger, each with its reason.
+export function supportsFor(blocks: readonly SupportBlock[], superAged: boolean): SupportNeed[] {
+  const inRange = blocks.filter((b) => b.support === 'Shuttle');
+  const outOfRange = blocks.filter((b) => b.support === 'Meal delivery or vouchers');
+  const seniorsOutOfRange = outOfRange.reduce((sum, b) => sum + b.outcome.block.est_seniors, 0);
+  const needs: SupportNeed[] = [];
+  if (inRange.length > 0) {
+    needs.push({
+      support: 'Shuttle',
+      reason: `${plural(inRange.length, 'block has', 'blocks have')} a centre within ${KM}`,
+    });
+  }
+  if (outOfRange.length > 0) {
+    needs.push({
+      support: 'Meal delivery or vouchers',
+      reason: `${plural(outOfRange.length, 'block has', 'blocks have')} no centre within ${KM}`,
+    });
+  }
+  if (superAged && blocks.some((b) => b.outcome.noOneCanWalk)) {
+    needs.push({
+      support: 'Volunteer check-ins',
+      reason: 'Super-aged, and some seniors can no longer walk to a centre',
+    });
+  }
+  if (seniorsOutOfRange >= FOOD_POINT_MIN_SENIORS) {
+    needs.push({
+      support: 'Temporary food point',
+      reason: `${FOOD_POINT_MIN_SENIORS}+ seniors here have no centre within ${KM}`,
+    });
+  }
+  return needs;
+}
+
 // One row per subzone with seniors cut off, most seniors first, with its blocks underneath.
-export function mealSupportList(outcomes: readonly BlockOutcome[]): SupportArea[] {
+export function mealSupportList(
+  outcomes: readonly BlockOutcome[],
+  isSuperAged: (subzoneId: string) => boolean
+): SupportArea[] {
   const bySubzone = new Map<string, SupportBlock[]>();
   for (const outcome of outcomes) {
     if (outcome.group !== 'cut-off') continue;
@@ -49,7 +106,7 @@ export function mealSupportList(outcomes: readonly BlockOutcome[]): SupportArea[
         subzone_id,
         seniors: blocks.reduce((sum, b) => sum + b.outcome.block.est_seniors, 0),
         furthest: blocks[0],
-        support: blocks.map((b) => b.support).reduce(stricter),
+        supports: supportsFor(blocks, isSuperAged(subzone_id)),
         blocks,
       };
     })
@@ -66,7 +123,8 @@ const CSV_COLUMNS = [
   'tier_after',
   'nearest_open_centre',
   'walk_m_after',
-  'suggested_support',
+  'block_support',
+  'area_supports',
   'priority',
 ] as const;
 
@@ -76,8 +134,9 @@ const csvCell = (v: string | number) => {
   return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 };
 
-// Block-level CSV of the list, every affected area included, with its priority as yes or no. Seniors are
-// rounded to 5 as on the page, but as plain numbers (under 5 is 0) so the column sums in a spreadsheet.
+// Block-level CSV of the list, every affected area included, with its priority as yes or no and the area's
+// supports joined by "; ". Seniors are rounded to 5 as on the page, but as plain numbers (under 5 is 0)
+// so the column sums in a spreadsheet.
 export function supportCsv(areas: readonly SupportArea[], names: Names, priorityIds: ReadonlySet<string>): string {
   const rows = areas.flatMap((area) =>
     area.blocks.map(({ outcome: o, support }) => [
@@ -91,6 +150,7 @@ export function supportCsv(areas: readonly SupportArea[], names: Names, priority
       names.centre(o.afterCentreId),
       o.afterWalkM === null ? '' : Math.round(o.afterWalkM),
       support,
+      area.supports.map((s) => s.support).join('; '),
       priorityIds.has(area.subzone_id) ? 'yes' : 'no',
     ])
   );

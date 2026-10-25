@@ -51,10 +51,13 @@ Where this file disagrees with the wireframe, this file wins.
   | ↳ Now worse | T2/T3 → T4 (sub-count) |
   | Unaffected | T1 → T1 |
 
-- **Meal-support rule** (column label "Suggested support"):
-  - **Walking buddy:** nearest open centre after the closure is ≤ 1,800 m away (30 min at 1.0 m/s)
-  - **Meal delivery:** it's further, or there's no centre within 2 km
-  - Fixed and not editable. One row per subzone (the stricter suggestion wins), with block rows underneath. CSV exports at block level.
+- **Suggested support** (#78, replaces the meal-support rule; walking buddy is dropped, since asking seniors to walk further isn't the answer). Each area shows its **alternative centre** (the next open centre for its furthest block, with the walk) and only the supports its conditions trigger, each with a short reason on hover:
+  - **Shuttle:** an open centre is still within 2 km. One shuttle per subzone picks up from its cut-off blocks and goes to the nearest open centre.
+  - **Meal delivery or vouchers:** a cut-off block has no open centre within 2 km.
+  - **Volunteer check-ins:** a super-aged area where some block has no centre anyone can walk to (T1 → T4).
+  - **Temporary food point:** at least `access.food_point_min_seniors` (100, status `open`) seniors in the area have no open centre within 2 km.
+  - Each block row keeps its own support (shuttle or meals). The CSV has `block_support` and `area_supports` columns.
+  - **Not built yet:** community meal points (no data on where they are), and a "may be crowded" flag on the alternative centre (it needs the closure engine's receivers from Spec 2's `centre_demand`; follow-up).
 - **Priority areas** (#77): an area to alert is a priority if a block in it went T1 → T4 (no one can walk to a centre) or it is super-aged (21%+ aged 65+).
   - Areas to alert and the meal-support list show priority areas only, with a "Show all N affected areas" toggle that adds the rest, muted.
   - On the vulnerability map, only priority areas get the dark outline.
@@ -109,7 +112,7 @@ Where this file disagrees with the wireframe, this file wins.
 |---|---|
 | MEASURED | centre locations, closure dates, stall counts, SingStat residents (rounded to 10) |
 | MODELLED | walk distances, tiers, seniors per block, seniors cut off, multiplier, diners per centre / overload |
-| ASSUMPTION | 1.0/1.2/1.4 m/s, the 15-min limit, the 2 km cutoff, the 21% threshold, the 30-min meal-support rule, eating share, waste per meal |
+| ASSUMPTION | 1.0/1.2/1.4 m/s, the 15-min limit, the 2 km cutoff, the 21% threshold, the suggested-support rules and food-point threshold, eating share, waste per meal |
 
 ## App shell
 

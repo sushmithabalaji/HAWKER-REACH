@@ -8,21 +8,42 @@ import { roughCount, type BlockOutcome } from './scenario';
 import { NoneUrgent, ShowAllToggle } from './priority';
 import { usePriorityFilter } from './usePriorityFilter';
 import { LIMIT_MIN } from './settings';
-import { MEAL_SUPPORT_RULE, mealSupportList, supportCsv, type Support } from './support';
+import { mealSupportList, supportCsv, type Support, type SupportNeed } from './support';
 
 interface MealSupportListProps {
   outcomes: BlockOutcome[] | null;
   closedName: string | null;
   priorityIds: ReadonlySet<string> | null;
+  isSuperAged: (subzoneId: string) => boolean;
   names: Names;
 }
 
 const walk = (m: number | null) => (m === null ? '' : ` · ${metres(m)}`);
 
-const SUPPORT_TONE: Record<Support, PillTone> = { 'Walking buddy': 'outline', 'Meal delivery': 'ink' };
+const SUPPORT_TONE: Record<Support, PillTone> = {
+  Shuttle: 'outline',
+  'Meal delivery or vouchers': 'ink',
+  'Volunteer check-ins': 'highlight',
+  'Temporary food point': 'ink',
+};
 
-function SupportPill({ support }: { support: Support }) {
-  return <Pill tone={SUPPORT_TONE[support]}>{support}</Pill>;
+// A support with its reason on hover, e.g. "3 blocks have no centre within 2 km".
+function SupportPill({ support, reason }: { support: Support; reason?: string }) {
+  return (
+    <span title={reason}>
+      <Pill tone={SUPPORT_TONE[support]}>{support}</Pill>
+    </span>
+  );
+}
+
+function AreaSupports({ supports }: { supports: SupportNeed[] }) {
+  return (
+    <span className="flex flex-wrap gap-1">
+      {supports.map(({ support, reason }) => (
+        <SupportPill key={support} support={support} reason={reason} />
+      ))}
+    </span>
+  );
 }
 
 // The link is added to the page and the URL kept a moment, or Firefox and Safari can drop the download.
@@ -45,8 +66,8 @@ const fileSafe = (s: string) =>
 
 // Who needs what support after the closure: one row per subzone with seniors cut off, its blocks
 // underneath. Priority areas only until the user asks for all; the download always has every block.
-export function MealSupportList({ outcomes, closedName, priorityIds, names }: MealSupportListProps) {
-  const areas = useMemo(() => (outcomes ? mealSupportList(outcomes) : []), [outcomes]);
+export function MealSupportList({ outcomes, closedName, priorityIds, isSuperAged, names }: MealSupportListProps) {
+  const areas = useMemo(() => (outcomes ? mealSupportList(outcomes, isSuperAged) : []), [outcomes, isSuperAged]);
   const filter = usePriorityFilter(areas, priorityIds);
   const shown = filter.shown;
   const blocks = shown.reduce((n, a) => n + a.blocks.length, 0);
@@ -93,7 +114,7 @@ export function MealSupportList({ outcomes, closedName, priorityIds, names }: Me
                     EST. SENIORS <TagBadge tag="MODELLED" />
                   </th>
                   <th className="border-b-2 border-foreground px-3 py-2">
-                    NEAREST OPEN CENTRE <TagBadge tag="MODELLED" />
+                    ALTERNATIVE CENTRE <TagBadge tag="MODELLED" />
                   </th>
                   <th className="border-b-2 border-foreground px-3 py-2">
                     SUGGESTED SUPPORT <TagBadge tag="ASSUMPTION" />
@@ -117,7 +138,7 @@ export function MealSupportList({ outcomes, closedName, priorityIds, names }: Me
                         <span className="block text-xs text-muted-foreground">for its furthest block</span>
                       </td>
                       <td className="px-3 py-2">
-                        <SupportPill support={area.support} />
+                        <AreaSupports supports={area.supports} />
                       </td>
                     </tr>
                     {area.blocks.map(({ outcome: o, support }) => (
@@ -140,8 +161,8 @@ export function MealSupportList({ outcomes, closedName, priorityIds, names }: Me
           </div>
         )}
         <p className="text-sm text-muted-foreground">
-          Rule (fixed): {MEAL_SUPPORT_RULE}. <TagBadge tag="ASSUMPTION" /> The nearest AAC is Phase 2, once the MSF data
-          is in.
+          Each area shows only the support its conditions call for; hover a support for why. The rules are in the
+          Assumptions panel. <TagBadge tag="ASSUMPTION" /> Community meal points and the nearest AAC are Phase 2.
         </p>
         {filter.canToggle && <ShowAllToggle showAll={filter.showAll} areas={areas.length} onToggle={filter.toggle} />}
         <div>

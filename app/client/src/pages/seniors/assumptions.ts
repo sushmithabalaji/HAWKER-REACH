@@ -1,6 +1,6 @@
 import type { AssumptionLine } from '@shared/assumptions';
 import { CUTOFF_M, SUPER_AGED_PCT } from './settings';
-import { MEAL_SUPPORT_RULE } from './support';
+import { SUPPORT_RULES, SUPPORTS } from './support';
 
 export const seniorsAssumptions: AssumptionLine[] = [
   { key: 'walk.pace.senior' },
@@ -45,10 +45,23 @@ export const seniorsAssumptions: AssumptionLine[] = [
     status: 'decided',
   },
   {
-    text: `Suggested support: ${MEAL_SUPPORT_RULE}`,
-    tag: 'ASSUMPTION',
-    source: 'Team decision (ASSUMPTIONS.md, meal-support rule)',
+    text: 'Suggested support: every area gets its alternative centre, the next open centre for its furthest block',
+    tag: 'MODELLED',
+    source: 'gold.block_access (second and third nearest centres)',
     status: 'decided',
+  },
+  ...SUPPORTS.map(
+    (support): AssumptionLine => ({
+      text: `${support}: when ${SUPPORT_RULES[support]}`,
+      tag: 'ASSUMPTION',
+      source: 'Team decision (ASSUMPTIONS.md, suggested support, #78)',
+      status: 'decided',
+    })
+  ),
+  { key: 'access.food_point_min_seniors' },
+  {
+    limitation:
+      'Community meal points are not suggested yet: there is no data on where they are. A crowding check on the alternative centre is a follow-up',
   },
   {
     text: 'Meal-support list and Areas to alert: blocks whose seniors are cut off (T1 → T2–T4) by the closure',

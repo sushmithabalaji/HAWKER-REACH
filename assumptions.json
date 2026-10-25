@@ -148,13 +148,13 @@
       "spec1"
     ]
   },
-  "access.meal_support_walk_min": {
-    "name": "Walking buddy if the nearest open centre is within this walk at the senior pace",
-    "value": 30,
-    "unit": "min",
+  "access.food_point_min_seniors": {
+    "name": "Temporary food point if at least this many seniors in one area have no open centre within the walking cutoff",
+    "value": 100,
+    "unit": "seniors",
     "tag": "ASSUMPTION",
-    "source": "Team decision (ASSUMPTIONS.md, meal-support rule)",
-    "status": "decided",
+    "source": "Team proposal (ASSUMPTIONS.md, suggested support, #78); not yet checked against AAC or NEA practice",
+    "status": "open",
     "owner": "Sushmitha",
     "used_by": [
       "spec1"
