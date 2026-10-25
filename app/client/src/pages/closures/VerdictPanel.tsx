@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import { Button } from '@databricks/appkit-ui/react';
+import { assumedNumber } from '@shared/assumptions';
 import type { PlanResult, Status } from '@shared/closure-engine';
 import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/shared/Panel';
 import { Pill } from '@/components/shared/Pill';
 import { InfoPopover } from './InfoPopover';
 import { WALK_LIMITS } from './settings';
 import { cardView, planLineView, STATUS_STYLE, TONE_CLASS, type CardView } from './verdicts';
+
+const pct = (key: string) => `${Math.round(assumedNumber(key) * 100)}%`;
 
 function StatusMark({ icon, word, tone }: { icon: string; word: string; tone: Status }) {
   return (
@@ -52,6 +55,11 @@ function VerdictCardItem({
           {note}
         </p>
       ))}
+      {card.ownProblems.map((problem) => (
+        <p key={problem} className="text-sm text-muted-foreground">
+          On its own: {problem}
+        </p>
+      ))}
       {open && (
         <div className="flex flex-col gap-1 text-sm">
           <p>{card.readMore.share}</p>
@@ -68,7 +76,10 @@ function VerdictCardItem({
             )}
           </div>
           <p>{card.readMore.accessLoss}</p>
-          <p className="text-xs text-muted-foreground">Compared with the same plan where {card.name} stays open.</p>
+          <p className="text-xs text-muted-foreground">
+            Only what happens because {card.name} closes together with the rest of the plan, compared with each closing
+            separately.
+          </p>
         </div>
       )}
       <div className="flex gap-2">
@@ -105,9 +116,12 @@ export function VerdictPanel({
       <PanelHeader>
         <PanelTitle>
           Can these close with {anchorName}?{' '}
-          <InfoPopover label="Load benchmarks">
-            Load benchmarks from NEA&rsquo;s single closures: typical {result.benchmark.typical.toFixed(1)}, 3 in 4{' '}
-            {result.benchmark.threeInFour.toFixed(1)} extra diners per stall at the worst-hit neighbour.
+          <InfoPopover label="How each colour is decided">
+            Only what happens because two centres close together counts. Red: the added centre takes{' '}
+            {pct('verdict.share.red')} or more of the other closures&rsquo; diners, cuts off a block that neither
+            closure cuts off alone, or makes a third centre more than {pct('verdict.load.red_pct')} busier only when
+            both close. Yellow: {pct('verdict.share.yellow')} or more of their diners, or a third centre more than{' '}
+            {pct('verdict.load.yellow_pct')} busier.
           </InfoPopover>
         </PanelTitle>
         <div className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">

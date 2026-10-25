@@ -2,8 +2,8 @@ import type { AssumptionLine } from '@shared/assumptions';
 import { spec2Assumptions } from '../../assumptions/spec2';
 import { spec4Assumptions } from '../../assumptions/spec4';
 
-// Page 1's Assumptions panel (#11, Assumptions panel lines). The benchmark's values today join
-// the panel with the verdict cards.
+// Page 1's Assumptions panel (#11, Assumptions panel lines). The verdict rules and their constants are in
+// assumptions.json and ASSUMPTIONS.md (#90).
 export const closuresAssumptions: AssumptionLine[] = [
   {
     text: 'Diners per block per day: HDB residents × share who eat at hawker centres × visits per week ÷ 7, base case 3 visits a week, range 1–5. The survey covered adults aged 18–69 in 2018',
@@ -38,11 +38,18 @@ export const closuresAssumptions: AssumptionLine[] = [
     source: 'Team decision (Spec 3, display rounding)',
     status: 'decided',
   },
+  {
+    text: 'Can these close together: an added centre is judged only on what happens because it closes together with the rest of the plan. Red or yellow comes from three things only: the share of the rest of the plan’s displaced diners that would move to it, blocks that lose a centre only when both close, and a third centre made much busier only when both close and not by either closure alone. What the centre does on its own is listed under its card and never sets its colour',
+    tag: 'MODELLED',
+    source: 'gold.block_options · gold.centres · gold.centre_demand, regrouped in the page',
+    status: 'decided',
+  },
+  { key: 'verdict.share.red' },
+  { key: 'verdict.share.yellow' },
   { key: 'verdict.access.min_new_blocks' },
-  { key: 'verdict.load.yellow_quantile' },
-  { key: 'verdict.load.red_quantile' },
-  { key: 'actions.waste.extra_per_stall_share' },
-  { key: 'actions.waste.typical_centre_quantile' },
+  { key: 'verdict.load.red_pct' },
+  { key: 'verdict.load.yellow_pct' },
+  { key: 'actions.waste.flag_pct' },
   { key: 'undercount_factor' },
   { key: 'plan.max_extra_centres' },
   ...spec2Assumptions,

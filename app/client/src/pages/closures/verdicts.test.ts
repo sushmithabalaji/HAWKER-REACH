@@ -7,20 +7,18 @@ const red: VerdictCard = {
   name: 'Toa Payoh West Market and Food Centre',
   status: 'red',
   rule: 'load',
-  reason: 'Closing Toa Payoh West Market and Food Centre too pushes Bishan North to 130.2 extra diners per stall.',
+  reason: 'Bishan North Market and Food Centre gets 28% busier',
+  details: ['Bishan North Market and Food Centre would get 28% busier'],
   cutOff: { blocks: 0, seniors: 0 },
-  pastBenchmark: [],
+  shareOfRest: 0,
+  overloaded: [],
   shareOfDisplaced: 0.214,
   pushes: [
-    {
-      centreId: 'C5',
-      name: 'Bishan North Market and Food Centre',
-      extraDinersPerStall: 130.24,
-      withoutThisCentre: 61.5,
-    },
-    { centreId: 'C6', name: 'Toa Payoh Lorong 8 Blk 210', extraDinersPerStall: 12.0, withoutThisCentre: 8.04 },
+    { centreId: 'C5', name: 'Bishan North Market and Food Centre', pct: 28.4, ifApart: 12.3 },
+    { centreId: 'C6', name: 'Toa Payoh Lorong 8 Blk 210', pct: 12.0, ifApart: 8.04 },
   ],
   accessLoss: { senior: 2, typical: 1, brisk: 0 },
+  ownProblems: [],
   neaActions: [{ centreId: 'C5', name: 'Bishan North Market and Food Centre', extraDinersPerStall: 130.24 }],
   possiblyUndercounted: false,
   overlaps: [
@@ -44,6 +42,7 @@ describe('cardView', () => {
       tone: 'red',
       reason: red.reason,
       possiblyUndercounted: false,
+      ownProblems: [],
       neaActions:
         'NEA actions: extra bins, more frequent collection and extra cleaning checks at Bishan North (+130.2 extra diners per stall).',
       overlaps: [
@@ -52,8 +51,8 @@ describe('cardView', () => {
       readMore: {
         share: '21% of the plan’s displaced diners have it as their nearest centre',
         pushes: [
-          'Bishan North: +130.2 extra diners per stall (+61.5 if it stays open)',
-          'Toa Payoh Lorong 8 Blk 210: +12.0 extra diners per stall (+8.0 if it stays open)',
+          'Bishan North: 28% busier (12% if closed separately)',
+          'Toa Payoh Lorong 8 Blk 210: 12% busier (8% if closed separately)',
         ],
         accessLoss:
           '2 · 1 · 0 blocks lose a centre within 15 min at senior · typical · brisk pace because it closes too',

@@ -12,9 +12,9 @@ export const spec4Assumptions: AssumptionLine[] = [
     status: 'decided',
   },
   {
-    text: 'NEA actions flag: a centre is flagged when its extra diners per stall exceed the flag share of a typical (median) centre’s diners per stall. The same rule sets the NEA actions line on the verdict cards',
+    text: 'NEA actions flag: a centre is flagged when its extra diners are more than the flag share of the diners it has today (a centre with almost none today counts as flagged). The same rule sets the NEA actions line on the verdict cards',
     tag: 'ASSUMPTION',
-    source: 'assumptions.json actions.waste.*; gold.centres · gold.centre_demand',
+    source: 'assumptions.json actions.waste.flag_pct; wireframe v1 (+20% waste flag); gold.centre_demand',
     status: 'open',
   },
   {

@@ -84,11 +84,11 @@ export function town(
   return { blockOptions, centres: centreRows, centreDemand, centreClosures };
 }
 
-// Every centre has 10 stalls, so extra diners per stall = extra diners ÷ 10.
-// Single closures and their worst neighbour's extra diners per stall:
-//   A → D 2, B → D 4, C → D 4, and five padding pairs P → Q: 5, 6, 7, 8, 8.
-//   D, and every Q, is nobody's fallback, so their closures move nobody and don't count.
-// Sorted [2, 4, 4, 5, 6, 7, 8, 8]: median 5.5, 0.75 quantile 7.25 (linear, as Spark's percentile).
+// A closes beside B, C and D; D is where A's, B's and C's diners go. Dover (D) has 400 diners a day today and every
+// other centre 1,000, so extra diners as a % of today are:
+//   A alone sends D 20 (5%), B alone 40 (10%), C alone 40 (10%); A + B: D 60 (15%); A + B + C: D 100 (25%).
+//   Five padding pairs P → Q send Q 50 to 80 (5% to 8%) when P closes. Nobody's fallback is a P or a Q, and D is
+//   only a fallback, so closing D or a Q moves nobody.
 export const PADDING = [5, 6, 7, 8, 8];
 
 export function verdictTown(extraBlocks: ReturnType<typeof block>[] = []) {
@@ -97,7 +97,7 @@ export function verdictTown(extraBlocks: ReturnType<typeof block>[] = []) {
       centre('HC_A', { name: 'Anchor Market' }),
       centre('HC_B', { name: 'Bedok Corner' }),
       centre('HC_C', { name: 'Clementi Court' }),
-      centre('HC_D', { name: 'Dover Food Centre' }),
+      centre('HC_D', { name: 'Dover Food Centre', baseline: 400 }),
       ...PADDING.flatMap((_, i) => [centre(`HC_P${i}`), centre(`HC_Q${i}`)]),
     ],
     [
@@ -126,14 +126,14 @@ export function verdictTown(extraBlocks: ReturnType<typeof block>[] = []) {
         { diners: 40 }
       ),
       block('bD', [['HC_D', 200]], { diners: 10 }),
-      ...PADDING.map((perStall, i) =>
+      ...PADDING.map((pctOfToday, i) =>
         block(
           `bP${i}`,
           [
             [`HC_P${i}`, 300],
             [`HC_Q${i}`, 600],
           ],
-          { diners: perStall * 10 }
+          { diners: pctOfToday * 10 }
         )
       ),
       ...extraBlocks,

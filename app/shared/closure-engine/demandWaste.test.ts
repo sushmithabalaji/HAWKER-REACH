@@ -2,9 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { evaluatePlan } from '.';
 import { assumptions, block, centre, town, withValues } from './sample';
 
-// Baselines per stall: A 100, B 1,000, C 100, so a typical centre has 100 and the flag is 20 extra diners per stall.
+// Diners today: A 1,000, B 100, C 1,000, so B's 40 extra diners are 40% and C's 25 are 2.5%; the flag is above 20%.
 const data = town(
-  [centre('HC_A'), centre('HC_B', { stalls: 1, name: 'Tiny Stall Row' }), centre('HC_C', { name: 'Big Centre' })],
+  [
+    centre('HC_A'),
+    centre('HC_B', { stalls: 1, baseline: 100, name: 'Tiny Stall Row' }),
+    centre('HC_C', { name: 'Big Centre' }),
+  ],
   [
     block(
       'B1',
@@ -38,10 +42,10 @@ describe('evaluatePlan: demand and waste', () => {
       {
         centreId: 'HC_B',
         name: 'Tiny Stall Row',
-        baselineDinersPerDay: 1000,
+        baselineDinersPerDay: 100,
         extraDinersPerDay: 40,
         extraDinersPerStall: 40,
-        pctOverBaseline: 4,
+        pctOverBaseline: 40,
         flagged: true,
         extraWasteKgPerDay: 4,
         possiblyUndercounted: false,
