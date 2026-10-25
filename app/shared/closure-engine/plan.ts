@@ -95,6 +95,8 @@ export interface VerdictCard {
   accessLoss: Record<Pace, number>;
   /** What this centre does when it closes on its own, as reasons; listed under the card, never setting its colour. */
   ownProblems: string[];
+  /** The same, as numbers. */
+  ownImpact: OwnImpact;
   /** Centres this closure sends above the NEA actions flag with the plan. */
   neaActions: NeaAction[];
   possiblyUndercounted: boolean;
@@ -251,7 +253,7 @@ export function evaluatePlan(
       neaActions: needsAction(loadsOf(prepared, extra, without.extra)),
       possiblyUndercounted: demand.get(id)?.possibly_undercounted ?? false,
       overlaps: overlapsFor(data, centres, id, planIds),
-      ownProblems: ownProblems(prepared, assumptions, id),
+      ...ownEffects(prepared, assumptions, id),
     };
   });
 
@@ -260,7 +262,7 @@ export function evaluatePlan(
   const plan: PlanLine = {
     status: cards.length > 0 ? worstStatus(cards.map((c) => c.status)) : null,
     counts,
-    anchorProblems: ownProblems(prepared, assumptions, anchorId),
+    anchorProblems: ownEffects(prepared, assumptions, anchorId).ownProblems,
   };
 
   // Same order as closure_scenarios' worst neighbour: most extra diners per stall, nulls last, then centre_id.
@@ -553,28 +555,59 @@ function judge(prepared: Prepared, assumptions: Assumptions, restIds: string[], 
   return verdict('green', null, 'Too far apart to overlap');
 }
 
-/** What closing a centre on its own does, as reasons: for the line under its card, never for its colour. */
-function ownProblems(prepared: Prepared, assumptions: Assumptions, id: string): string[] {
-  const name = prepared.centres.get(id)!.name;
+/** What closing a centre on its own does, as numbers (#107): never part of its colour. */
+export interface OwnImpact {
+  /** Blocks (and their seniors) left with no centre within the limit at senior pace. */
+  cutOff: { blocks: number; seniors: number };
+  /** Centres it makes more than `verdict.load.red_pct` busier than today, busiest first. */
+  busier: { centreId: string; name: string; pct: number }[];
+}
+
+function ownImpact(prepared: Prepared, assumptions: Assumptions, id: string): OwnImpact {
   const alone = regroup(prepared, new Set([id]));
   const blocks = alone.accessLoss.senior.blockIds;
   const redLoad = value(assumptions, 'verdict.load.red_pct') * 100;
-  const problems: string[] = [];
-  if (blocks.length >= value(assumptions, 'verdict.access.min_new_blocks')) {
-    const seniors = blocks.reduce((sum, b) => sum + prepared.blocksById.get(b)!.seniors, 0);
-    problems.push(
-      `Closing ${name} on its own leaves ${blocks.length === 1 ? '1 more block' : `${blocks.length} more blocks`} (${roughSeniors(seniors)} seniors) with no centre within ${prepared.limitMin} min at senior pace.`
-    );
-  }
-  const busy = [...alone.extra]
+  const busier = [...alone.extra]
     .map(([centreId, diners]) => ({ centreId, pct: pctOf(prepared, centreId, diners) }))
     .filter((c): c is { centreId: string; pct: number } => c.pct !== null && c.pct > redLoad)
-    .sort((a, b) => b.pct - a.pct || byCentreId(a, b));
-  if (busy.length > 0) {
-    const names = joinNames(busy.map((c) => `${prepared.centres.get(c.centreId)!.name} (${Math.round(c.pct)}%)`));
+    .sort((a, b) => b.pct - a.pct || byCentreId(a, b))
+    .map((c) => ({ ...c, name: prepared.centres.get(c.centreId)!.name }));
+  const minBlocks = value(assumptions, 'verdict.access.min_new_blocks');
+  return {
+    cutOff:
+      blocks.length >= minBlocks
+        ? { blocks: blocks.length, seniors: blocks.reduce((sum, b) => sum + prepared.blocksById.get(b)!.seniors, 0) }
+        : { blocks: 0, seniors: 0 },
+    busier,
+  };
+}
+
+/** The same, as reasons: for the line under the anchor and the cards. */
+function ownProblems(prepared: Prepared, assumptions: Assumptions, id: string, impact: OwnImpact): string[] {
+  const name = prepared.centres.get(id)!.name;
+  const redLoad = value(assumptions, 'verdict.load.red_pct') * 100;
+  const { blocks, seniors } = impact.cutOff;
+  const problems: string[] = [];
+  if (blocks > 0) {
+    problems.push(
+      `Closing ${name} on its own leaves ${blocks === 1 ? '1 more block' : `${blocks} more blocks`} (${roughSeniors(seniors)} seniors) with no centre within ${prepared.limitMin} min at senior pace.`
+    );
+  }
+  if (impact.busier.length > 0) {
+    const names = joinNames(impact.busier.map((c) => `${c.name} (${Math.round(c.pct)}%)`));
     problems.push(`Closing ${name} on its own makes ${names} more than ${Math.round(redLoad)}% busier.`);
   }
   return problems;
+}
+
+/** What closing a centre on its own does, as numbers and as the matching reasons. */
+function ownEffects(
+  prepared: Prepared,
+  assumptions: Assumptions,
+  id: string
+): Pick<VerdictCard, 'ownImpact' | 'ownProblems'> {
+  const impact = ownImpact(prepared, assumptions, id);
+  return { ownImpact: impact, ownProblems: ownProblems(prepared, assumptions, id, impact) };
 }
 
 function worstStatus(statuses: Status[]): Status {

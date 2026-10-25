@@ -251,6 +251,7 @@ describe('evaluatePlan: only what closing together adds', () => {
     expect(card.ownProblems).toEqual([
       'Closing Changi on its own leaves 1 more block (40 seniors) with no centre within 15 min at senior pace.',
     ]);
+    expect(card.ownImpact).toEqual({ cutOff: { blocks: 1, seniors: 40 }, busier: [] });
   });
 
   it('shows seniors to the nearest 5, and under 5 as "<5", in that line', () => {
