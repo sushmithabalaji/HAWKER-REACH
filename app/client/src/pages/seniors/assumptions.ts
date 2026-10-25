@@ -15,6 +15,12 @@ export const seniorsAssumptions: AssumptionLine[] = [
     status: 'decided',
   },
   {
+    text: 'Map colours: OK is T1, Concerning is T2 and T3 together, Highly vulnerable is T4',
+    tag: 'ASSUMPTION',
+    source: 'Team decision (ASSUMPTIONS.md, map legends)',
+    status: 'decided',
+  },
+  {
     text: 'Seniors per block: the subzone’s HDB residents aged 65+, spread over its blocks by flat type',
     tag: 'MODELLED',
     source: 'silver.blocks.est_seniors (02_silver), from SingStat HDB residents by age and subzone',
@@ -104,6 +110,12 @@ export const seniorsAssumptions: AssumptionLine[] = [
     text: 'Vulnerability multiplier: a subzone’s share aged 65+ ÷ the HDB-wide share aged 65+. Shown on its own map view and never combined into a score',
     tag: 'MODELLED',
     source: 'gold.subzone_seniors (04_gold_access)',
+    status: 'decided',
+  },
+  {
+    text: 'Vulnerability bands: Low under ×0.85, Moderate ×0.85–1.1, High ×1.1–1.35, Extremely vulnerable ×1.35+',
+    tag: 'ASSUMPTION',
+    source: 'Team decision (ASSUMPTIONS.md, map legends)',
     status: 'decided',
   },
   {

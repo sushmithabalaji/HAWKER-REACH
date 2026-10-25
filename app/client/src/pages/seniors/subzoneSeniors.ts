@@ -22,8 +22,9 @@ export function toSubzoneSeniors(row: RawRow): SubzoneSeniors {
   };
 }
 
-// Bands for the vulnerability multiplier map, as in the wireframe: under ×0.6, then up to ×0.85, ×1.1, ×1.35, and above.
-export const MULTIPLIER_BREAKS = [0.6, 0.85, 1.1, 1.35];
+// Bands for the vulnerability multiplier map: under ×0.85, then up to ×1.1, ×1.35, and above. The wireframe's
+// lowest two bands (split at ×0.6) are merged, so each band has a plain name (legend.ts, MULTIPLIER_BANDS).
+export const MULTIPLIER_BREAKS = [0.85, 1.1, 1.35];
 
 export function multiplierBand(multiplier: number | null): number | null {
   if (multiplier === null) return null;

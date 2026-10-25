@@ -14,20 +14,11 @@ import { InkToggleItem } from '@/components/shared/InkToggleItem';
 import { TagBadge } from '@/components/shared/TagBadge';
 import { centresLayer } from '@/components/shared/centresLayer';
 import { HIGHLIGHT_HEX, INK_HEX, rgb, WHITE_HEX } from '@/components/shared/mapColours';
-import { MULTIPLIER_HEX, NOT_AFFECTED_HEX, TIER_HEX } from './colours';
-import {
-  roughCount,
-  TIERS,
-  tierReachM,
-  type AccessBlock,
-  type AreaCutOff,
-  type BlockOutcome,
-  type Closure,
-  type Tier,
-} from './scenario';
+import { ACCESS_LEVELS, MULTIPLIER_BANDS, NOT_AFFECTED_HEX, TIER_LEVEL, tierHex, type AccessLevel } from './legend';
+import { roughCount, type AccessBlock, type AreaCutOff, type BlockOutcome, type Closure, type Tier } from './scenario';
 import { metres, NO_CENTRE, type Names } from './names';
 import { LIMIT_MIN, SUPER_AGED_PCT } from './settings';
-import { multiplierBand, multiplierBandLabel, MULTIPLIER_BREAKS, type SubzoneSeniors } from './subzoneSeniors';
+import { multiplierBand, multiplierBandLabel, type SubzoneSeniors } from './subzoneSeniors';
 
 type View = 'tiers' | 'multiplier';
 type Phase = 'before' | 'after';
@@ -45,28 +36,17 @@ interface AccessMapProps {
   onCentreClick: (centre: Centre) => void;
 }
 
-const TIER_MEANING: Record<Tier, string> = {
-  T1: 'a senior can walk it',
-  T2: 'a typical walker only',
-  T3: 'a brisk walker only',
-  T4: 'no one can walk it',
-};
-
 type SubzoneFeature = Feature<Geometry, SubzoneProps>;
 
-function tierKey(): { tier: Tier; text: string }[] {
-  const reach = tierReachM();
-  return TIERS.map((tier, i) => ({
-    tier,
-    text: `${tier} ${i < 3 ? `up to ${metres(reach[i])}` : `over ${metres(reach[2])} or ${NO_CENTRE}`} · ${TIER_MEANING[tier]}`,
-  }));
-}
+// "Concerning (T2)": the level a reader understands, with the tier code the CSV uses.
+const tierText = (tier: Tier) => `${ACCESS_LEVELS[TIER_LEVEL[tier]].label} (${tier})`;
 
 function Swatch({ colour, ring }: { colour: string; ring?: string }) {
   return (
     <span
       className="inline-block h-3 w-4 shrink-0 rounded-sm"
-      style={{ background: colour, border: ring ? `2px solid ${ring}` : undefined }}
+      // A thin border keeps the palest colours visible on the white card.
+      style={{ background: colour, border: ring ? `2px solid ${ring}` : '1px solid rgb(0 0 0 / 0.35)' }}
     />
   );
 }
@@ -109,7 +89,7 @@ export function AccessMap({
         filled: true,
         getFillColor: (f: SubzoneFeature) => {
           const band = multiplierBand(subzoneSeniors.get(f.properties.subzone_id)?.multiplier ?? null);
-          return band === null ? [0, 0, 0, 0] : rgb(MULTIPLIER_HEX[band], 200);
+          return band === null ? [0, 0, 0, 0] : rgb(MULTIPLIER_BANDS[band].hex, 200);
         },
         getLineColor: (f: SubzoneFeature) => (outlined(f) ? rgb(INK_HEX) : [120, 120, 120, 120]),
         getLineWidth: (f: SubzoneFeature) => (outlined(f) ? 2.5 : 0.5),
@@ -139,7 +119,7 @@ export function AccessMap({
       getRadius: (b) => (outcomeById.has(b.block_id) ? 3.5 : 2),
       getFillColor: (b) => {
         const tier = tierFor(b);
-        return tier ? rgb(TIER_HEX[tier], 230) : rgb(NOT_AFFECTED_HEX, 140);
+        return tier ? rgb(tierHex(tier), 230) : rgb(NOT_AFFECTED_HEX, 140);
       },
       updateTriggers: { getRadius: [outcomeById], getFillColor: [outcomeById, phase, closure] },
     });
@@ -160,10 +140,10 @@ export function AccessMap({
 
   const blockTooltip = (b: AccessBlock) => {
     const nearest = b.options[0];
-    const before = `Now: ${b.tier_now} · ${nearest ? `${metres(nearest.walk_m)} to ${names.centre(nearest.centre_id)}` : NO_CENTRE}`;
+    const before = `Now: ${tierText(b.tier_now)} · ${nearest ? `${metres(nearest.walk_m)} to ${names.centre(nearest.centre_id)}` : NO_CENTRE}`;
     const o = outcomeById.get(b.block_id);
     const after = o
-      ? `\nAfter: ${o.after} · ${o.afterWalkM !== null ? `${metres(o.afterWalkM)} to ` : ''}${names.centre(o.afterCentreId)}`
+      ? `\nAfter: ${tierText(o.after)} · ${o.afterWalkM !== null ? `${metres(o.afterWalkM)} to ` : ''}${names.centre(o.afterCentreId)}`
       : '';
     return `${b.block_label}\n${before}${after}`;
   };
@@ -190,6 +170,7 @@ export function AccessMap({
   const popup = popupId ? subzoneSeniors.get(popupId) : undefined;
   const popupCutOff = popupId ? cutOffBySubzone.get(popupId) : undefined;
   const popupName = popupId ? names.subzone(popupId) : undefined;
+  const popupBand = popup ? multiplierBand(popup.multiplier) : null;
 
   return (
     <Panel>
@@ -249,16 +230,20 @@ export function AccessMap({
                   ×
                 </Button>
               </div>
-              {popup?.pct_65p != null && popup.multiplier != null ? (
+              {popup?.pct_65p != null && popupBand !== null && popup.multiplier !== null ? (
                 <>
-                  <div>
+                  <div className="flex items-center gap-1.5 text-base font-semibold">
+                    <Swatch colour={MULTIPLIER_BANDS[popupBand].hex} />
+                    {MULTIPLIER_BANDS[popupBand].name}
+                    <TagBadge tag="MODELLED" />
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    ×{popup.multiplier.toFixed(2)} the HDB average share of seniors
+                    <TagBadge tag="MODELLED" />
+                  </div>
+                  <div className="mt-1">
                     <strong className="font-mono">{Math.round(popup.pct_65p * 100)}%</strong> of HDB residents are 65+
                     <TagBadge tag="MEASURED" />
-                  </div>
-                  <div>
-                    Vulnerability multiplier <strong className="font-mono">×{popup.multiplier.toFixed(2)}</strong>
-                    <TagBadge tag="MODELLED" />
-                    <span className="block text-xs text-muted-foreground">its share aged 65+ ÷ the HDB-wide share</span>
                   </div>
                   {popup.is_super_aged && (
                     <div className="mt-1 font-medium text-highlight">⚠ {SUPER_AGED_PCT}%+ aged 65+ (super-aged)</div>
@@ -278,13 +263,19 @@ export function AccessMap({
           )}
         </div>
 
+        {view === 'multiplier' && (
+          <p className="text-sm">
+            How much older this area is than the HDB average. Higher means more seniors need support.
+          </p>
+        )}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
           {view === 'tiers' ? (
             <>
-              {tierKey().map(({ tier, text }) => (
-                <span key={tier} className="flex items-center gap-1.5">
-                  <Swatch colour={TIER_HEX[tier]} />
-                  {text}
+              {(Object.keys(ACCESS_LEVELS) as AccessLevel[]).map((level) => (
+                <span key={level} className="flex items-center gap-1.5">
+                  <Swatch colour={ACCESS_LEVELS[level].hex} />
+                  <strong className="text-foreground">{ACCESS_LEVELS[level].label}</strong>
+                  {ACCESS_LEVELS[level].meaning}
                 </span>
               ))}
               {closure && (
@@ -297,9 +288,10 @@ export function AccessMap({
             </>
           ) : (
             <>
-              {MULTIPLIER_HEX.map((hex, band) => (
+              {MULTIPLIER_BANDS.map(({ name, hex }, band) => (
                 <span key={hex} className="flex items-center gap-1.5">
                   <Swatch colour={hex} />
+                  <strong className="text-foreground">{name}</strong>
                   {multiplierBandLabel(band)}
                 </span>
               ))}
@@ -316,18 +308,9 @@ export function AccessMap({
           </span>
         </div>
         <p className="text-xs text-muted-foreground">
-          {view === 'tiers' && closure && (
-            <>
-              Coloured blocks are the {(outcomes?.length ?? 0).toLocaleString('en-US')} <TagBadge tag="MODELLED" />{' '}
-              whose nearest centre closed, shown by their walk {phase} the closure. Grey blocks keep their nearest
-              centre.
-            </>
-          )}
-          {view === 'tiers' &&
-            !closure &&
-            `Every HDB block by its walk to the nearest hawker centre at ${LIMIT_MIN} min. Click a centre to close it.`}
-          {view === 'multiplier' &&
-            `Click an area for its share aged 65+. Bands split at ×${MULTIPLIER_BREAKS.join(', ×')}; blank areas have too few residents.`}
+          {view === 'tiers' && closure && `Coloured blocks lost their nearest centre; grey blocks keep theirs.`}
+          {view === 'tiers' && !closure && 'Click a centre to close it.'}
+          {view === 'multiplier' && 'Click an area for details. Blank areas have too few residents.'}
         </p>
       </PanelContent>
     </Panel>
