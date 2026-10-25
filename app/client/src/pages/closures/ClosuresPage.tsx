@@ -100,18 +100,15 @@ function ClosuresContent({
     setPlan((p) => withAnchor(p, c.centre_id));
     setLimitMessage(null);
   };
-  const add = (c: Centre) => {
+  const add = (c: Pick<CentreRow, 'centre_id' | 'is_interim'>) => {
     const next = addToPlan(plan, c, MAX_SELECTED);
     setPlan(next.plan);
     setLimitMessage(next.message);
   };
-  // "Add to plan" on a candidate: the same path as the search box, so the limit and interim rules still apply.
+  // "Add to plan" on a candidate goes the same way as the search box, so the limit and interim rules still apply.
   const addById = (id: string) => {
     const c = centreById.get(id);
-    if (!c) return;
-    const next = addToPlan(plan, c, MAX_SELECTED);
-    setPlan(next.plan);
-    setLimitMessage(next.message);
+    if (c) add(c);
   };
   const remove = (id: string) => {
     setPlan((p) => removeFromPlan(p, id));

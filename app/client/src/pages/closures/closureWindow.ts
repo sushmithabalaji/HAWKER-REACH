@@ -7,7 +7,8 @@ export interface WindowEdit {
   to: string;
 }
 
-// Works that take a centre out of service for months, as in the candidate engine.
+// The works the prefill follows. The candidate engine also drops centres with partial closures, but a partial closure
+// is not a closure date for the anchor itself.
 const SCHEDULED = new Set(['renovation', 'redevelopment']);
 
 // Prefill (#60): the anchor's next scheduled renovation or redevelopment, the one that is under way or
