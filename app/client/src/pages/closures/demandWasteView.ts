@@ -1,6 +1,6 @@
 import type { DemandWaste, WasteRange } from '@shared/closure-engine';
 import { shortName } from '@/components/shared/centres';
-import { count, pctOverBaseline, roundTo10 } from './format';
+import { count, roundTo10 } from './format';
 
 export interface DemandWasteRowView {
   centreId: string;
@@ -9,7 +9,6 @@ export interface DemandWasteRowView {
   extraDiners: string;
   /** "+x.x", or "—" for a centre with no stalls recorded. */
   perStall: string;
-  pctOverBaseline: string;
   flagged: boolean;
   wasteKg: string;
   possiblyUndercounted: boolean;
@@ -17,10 +16,12 @@ export interface DemandWasteRowView {
 
 export interface DemandWasteView {
   rows: DemandWasteRowView[];
-  /** "≈N kg a day", the base case; the range goes beside it. */
+  /** The total row: extra diners a day across the plan. */
+  totalExtraDiners: string;
+  /** "≈N", the base case in kg a day; the range goes beside it. */
   totalBase: string;
+  /** "low–high" */
   totalRange: string;
-  flaggedCount: number;
 }
 
 // Diners are modelled, so they are shown to the nearest 10; under 5 would read as 0, so it is "<10".
@@ -28,7 +29,8 @@ const diners = (n: number) => (n <= 0 ? '0' : roundTo10(n) === 0 ? '<10' : count
 // Waste is an assumption times modelled diners: whole kilograms, one decimal under 10.
 const kg = (n: number) => (n < 10 ? n.toFixed(1) : count(Math.round(n)));
 
-// The "Demand & waste" tab as Page 1 shows it (#54): every receiving centre, flagged ones first.
+// The "Demand dispersion and waste" section as Page 1 shows it (#54): every receiving centre, flagged ones first,
+// and a total row.
 export function demandWasteView({ rows, totalKgPerDay }: DemandWaste): DemandWasteView {
   return {
     rows: rows.map((r) => ({
@@ -37,15 +39,14 @@ export function demandWasteView({ rows, totalKgPerDay }: DemandWaste): DemandWas
       baseline: diners(r.baselineDinersPerDay),
       extraDiners: diners(r.extraDinersPerDay),
       perStall: r.extraDinersPerStall === null ? '—' : `+${r.extraDinersPerStall.toFixed(1)}`,
-      pctOverBaseline: pctOverBaseline(r.pctOverBaseline),
       flagged: r.flagged,
       wasteKg: kg(r.extraWasteKgPerDay),
       possiblyUndercounted: r.possiblyUndercounted,
     })),
-    totalBase: `≈${kg(totalKgPerDay.base)} kg a day`,
+    totalExtraDiners: diners(rows.reduce((sum, r) => sum + r.extraDinersPerDay, 0)),
+    totalBase: `≈${kg(totalKgPerDay.base)}`,
     totalRange: range(totalKgPerDay),
-    flaggedCount: rows.filter((r) => r.flagged).length,
   };
 }
 
-const range = ({ low, high }: WasteRange) => `${kg(low)}–${kg(high)} kg a day`;
+const range = ({ low, high }: WasteRange) => `${kg(low)}–${kg(high)}`;

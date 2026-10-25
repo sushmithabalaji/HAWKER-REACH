@@ -11,9 +11,9 @@ import { TagBadge } from '@/components/shared/TagBadge';
 import { localToday, type WindowEdit } from './closureWindow';
 import { addToPlan, EMPTY_PLAN, removeFromPlan, withAnchor, type Plan } from './plan';
 import { undercountNotes as notesFor } from './notes';
-import { BLOCK_BANDS, blockPoints } from './blocks';
-import { DispersionTabs } from './DispersionTabs';
-import { ScheduleTab } from './ScheduleTab';
+import { blockPoints } from './blocks';
+import { DemandWaste } from './DemandWaste';
+import { ScheduleAlongside } from './ScheduleAlongside';
 import { RippleMap } from './RippleMap';
 import { TOP_RECEIVERS, WALK_LIMITS } from './settings';
 import { takeawaySentence } from './takeaway';
@@ -88,12 +88,12 @@ function ClosuresContent({
   const result = outcome?.result ?? null;
   const statusById = new Map((result?.cards ?? []).map((c) => [c.centreId, c.status]));
 
-  const panelPlaceholder =
+  const panelPlaceholder = (what: string) =>
     outcome?.error ??
     (error
       ? 'Blocks and centres did not load, so there is nothing to show yet.'
       : data
-        ? 'Pick an anchor centre to see the extra demand and waste.'
+        ? `Pick an anchor centre to see ${what}.`
         : 'Loading blocks and centres…');
 
   const pickAnchor = (c: Centre | CentreRow) => {
@@ -221,19 +221,10 @@ function ClosuresContent({
               <p className="text-xs text-muted-foreground">
                 × closed centre · circles sized by extra diners a day · lines to the{' '}
                 {result ? `top ${TOP_RECEIVERS} centres` : 'centres'} taking their diners, from the nearest closed
-                centre, thicker for a bigger share · dashed ring: possibly under-counted · dark ring: a block left with
-                no centre within {WALK_LIMITS.limitMin} min at senior pace
+                centre · dashed ring: possibly under-counted · dark ring (when shown): a block left with no centre
+                within {WALK_LIMITS.limitMin} min at senior pace
                 <TagBadge tag="MODELLED" />
               </p>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                Displaced blocks (est. residents):
-                {BLOCK_BANDS.map((band) => (
-                  <span key={band.label} className="flex items-center gap-1">
-                    <span className="inline-block h-3 w-3 rounded-full" style={{ background: band.hex }} />
-                    {band.label}
-                  </span>
-                ))}
-              </div>
               <p className="text-xs text-muted-foreground">
                 Reads gold.block_options · gold.centres · gold.centre_demand. Diners go to the nearest open centre by
                 walking distance.
@@ -298,12 +289,21 @@ function ClosuresContent({
           </div>
         </>
       )}
-      <DispersionTabs
-        result={result}
-        placeholder={panelPlaceholder}
-        schedule={
-          data && plan.anchorId && result ? (
-            <ScheduleTab
+      <Panel>
+        <PanelHeader>
+          <PanelTitle>Demand dispersion and waste</PanelTitle>
+        </PanelHeader>
+        <PanelContent>
+          <DemandWaste result={result} placeholder={panelPlaceholder('the extra demand and waste')} />
+        </PanelContent>
+      </Panel>
+      <Panel>
+        <PanelHeader>
+          <PanelTitle>Centres to close in the same window</PanelTitle>
+        </PanelHeader>
+        <PanelContent>
+          {data && plan.anchorId && result ? (
+            <ScheduleAlongside
               data={data}
               anchorId={plan.anchorId}
               selectedIds={plan.selectedIds}
@@ -312,9 +312,13 @@ function ClosuresContent({
               onAdd={addById}
               today={localToday()}
             />
-          ) : null
-        }
-      />
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {panelPlaceholder('centres that could close in the same window')}
+            </p>
+          )}
+        </PanelContent>
+      </Panel>
     </div>
   );
 }

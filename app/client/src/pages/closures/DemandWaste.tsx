@@ -1,15 +1,15 @@
 import { assumedNumber } from '@shared/assumptions';
 import type { PlanResult } from '@shared/closure-engine';
 import { Pill } from '@/components/shared/Pill';
-import { TagBadge } from '@/components/shared/TagBadge';
 import { demandWasteView } from './demandWasteView';
 
 const FLAG_PCT = Math.round(assumedNumber('actions.waste.flag_pct') * 100);
 const FLAG_RULE = `extra diners above ${FLAG_PCT}% of the diners it has today`;
 const HEAD = 'border-b-2 border-foreground px-3 py-2';
 
-// The "Demand & waste" tab (#54): every centre taking displaced diners, with its load and extra waste.
-export function DemandWasteTab({ result, placeholder }: { result: PlanResult | null; placeholder: string }) {
+// The "Demand dispersion and waste" section (#54, #72): every centre taking displaced diners, with its load
+// and extra waste, and a total row for the plan.
+export function DemandWaste({ result, placeholder }: { result: PlanResult | null; placeholder: string }) {
   if (!result) return <p className="text-sm text-muted-foreground">{placeholder}</p>;
   const view = demandWasteView(result.demandWaste);
   if (view.rows.length === 0) {
@@ -21,28 +21,15 @@ export function DemandWasteTab({ result, placeholder }: { result: PlanResult | n
   }
   return (
     <div className="flex flex-col gap-3">
-      <p className="text-sm">
-        Extra waste across the plan: <strong className="font-mono text-base">{view.totalBase}</strong>{' '}
-        <span className="text-muted-foreground">(range {view.totalRange})</span>
-        <TagBadge tag="ASSUMPTION" />
-      </p>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[760px] border-collapse text-sm">
           <thead>
             <tr className="text-left font-mono text-xs tracking-wide text-muted-foreground">
               <th className={HEAD}>CENTRE</th>
-              <th className={HEAD}>
-                DINERS A DAY <TagBadge tag="MODELLED" />
-              </th>
-              <th className={HEAD}>
-                EXTRA A DAY <TagBadge tag="MODELLED" />
-              </th>
-              <th className={HEAD}>
-                EXTRA PER STALL <TagBadge tag="MODELLED" />
-              </th>
-              <th className={HEAD}>
-                EXTRA WASTE, KG A DAY <TagBadge tag="ASSUMPTION" />
-              </th>
+              <th className={HEAD}>DINERS A DAY</th>
+              <th className={HEAD}>EXTRA A DAY</th>
+              <th className={HEAD}>EXTRA PER STALL</th>
+              <th className={HEAD}>EXTRA WASTE, KG A DAY</th>
             </tr>
           </thead>
           <tbody>
@@ -58,23 +45,25 @@ export function DemandWasteTab({ result, placeholder }: { result: PlanResult | n
                   {r.possiblyUndercounted && <Pill tone="outline">Possibly under-counted</Pill>}
                 </td>
                 <td className="px-3 py-2 font-mono">{r.baseline}</td>
-                <td className="px-3 py-2 font-mono">
-                  {r.extraDiners}
-                  <span className="block text-xs text-muted-foreground">{r.pctOverBaseline} on its own baseline</span>
-                </td>
+                <td className="px-3 py-2 font-mono">{r.extraDiners}</td>
                 <td className="px-3 py-2 font-mono">{r.perStall}</td>
                 <td className="px-3 py-2 font-mono">{r.wasteKg}</td>
               </tr>
             ))}
           </tbody>
+          <tfoot>
+            <tr className="border-t-2 border-foreground font-semibold">
+              <td className="px-3 py-2">Total</td>
+              <td className="px-3 py-2" />
+              <td className="px-3 py-2 font-mono">{view.totalExtraDiners}</td>
+              <td className="px-3 py-2" />
+              <td className="px-3 py-2 font-mono">
+                {view.totalBase} <span className="text-xs font-normal text-muted-foreground">({view.totalRange})</span>
+              </td>
+            </tr>
+          </tfoot>
         </table>
       </div>
-      <p className="text-xs text-muted-foreground">
-        {view.flaggedCount > 0 ? `${view.flaggedCount} flagged` : 'None flagged'}: {FLAG_RULE}, the same rule as the NEA
-        actions line on the verdict cards. Waste is extra diners × kg per diner per day, an unsourced bracket; the range
-        also covers 1–5 visits a week (see the Assumptions panel). Reads gold.block_options · gold.centres ·
-        gold.centre_demand.
-      </p>
     </div>
   );
 }
