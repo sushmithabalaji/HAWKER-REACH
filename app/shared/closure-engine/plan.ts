@@ -1,4 +1,5 @@
 import type { Assumptions } from '../assumptions';
+import { demandWasteOf, type DemandWaste } from './demandWaste';
 import type { BlockOptionRow, CentreClosureRow, CentreDemandRow, CentreRow, GoldData } from './gold';
 
 export interface Receiver {
@@ -26,6 +27,8 @@ export interface AccessLoss {
 export interface PlanResult {
   /** Diners per day whose nearest centre closes and who move to another centre. */
   displacedDinersPerDay: number;
+  /** Every block whose nearest centre closes, whether it moves or is left with none; for the map. */
+  displacedBlockIds: string[];
   /** Open centres taking displaced diners, most extra diners first. */
   receivers: Receiver[];
   /** Blocks left with no open centre within the cutoff because of the plan. */
@@ -45,6 +48,8 @@ export interface PlanResult {
     threshold: number;
     centres: NeaAction[];
   };
+  /** Spec 4: every receiver with its load and extra waste, and the plan's waste total. */
+  demandWaste: DemandWaste;
 }
 
 export type Status = 'red' | 'yellow' | 'green';
@@ -230,6 +235,8 @@ export function evaluatePlan(
       .map(({ centreId, name, extraDinersPerStall }) => ({ centreId, name, extraDinersPerStall }))
       .sort(byWorstLoad);
 
+  const nea = needsAction(receivers);
+
   const cards = selectedIds.map((id): VerdictCard => {
     const name = centres.get(id)!.name;
     const without = regroup(prepared, new Set(planIds.filter((p) => p !== id)));
@@ -316,6 +323,7 @@ export function evaluatePlan(
 
   return {
     displacedDinersPerDay: displaced,
+    displacedBlockIds: planOutcome.displacedBlockIds,
     receivers,
     unserved,
     accessLoss,
@@ -324,7 +332,14 @@ export function evaluatePlan(
     benchmark,
     cards,
     plan,
-    neaActions: { threshold: actionThreshold, centres: needsAction(receivers) },
+    neaActions: { threshold: actionThreshold, centres: nea },
+    demandWaste: demandWasteOf(
+      receivers,
+      new Map([...demand].map(([id, d]) => [id, d.baseline_diners_per_day])),
+      new Set(nea.map((c) => c.centreId)),
+      actionThreshold,
+      assumptions
+    ),
   };
 }
 
@@ -381,6 +396,7 @@ interface Regrouped {
   accessLoss: Record<Pace, AccessLoss>;
   /** Blocks losing a centre within the limit at senior pace, plus blocks newly unserved at any distance. */
   cutOffBlockIds: Set<string>;
+  displacedBlockIds: string[];
 }
 
 /** Moves every block whose nearest centre is closed, whole, to its nearest open centre. */
@@ -394,9 +410,11 @@ function regroup({ blocks, limitM }: Prepared, closed: Set<string>): Regrouped {
   ) as Record<Pace, AccessLoss>;
 
   const cutOffBlockIds = new Set<string>();
+  const displacedBlockIds: string[] = [];
   for (const block of blocks) {
     const before = block.options[0];
     if (!before || !closed.has(before.centreId)) continue;
+    displacedBlockIds.push(block.id);
     const after = block.options.find((o) => !closed.has(o.centreId));
     for (const pace of PACES) {
       if (before.walkM <= limitM[pace] && !(after && after.walkM <= limitM[pace])) {
@@ -416,7 +434,7 @@ function regroup({ blocks, limitM }: Prepared, closed: Set<string>): Regrouped {
     displacedFrom.set(before.centreId, (displacedFrom.get(before.centreId) ?? 0) + block.dinersPerDay);
     extra.set(after.centreId, (extra.get(after.centreId) ?? 0) + block.dinersPerDay);
   }
-  return { extra, displacedFrom, displaced, unserved, accessLoss, cutOffBlockIds };
+  return { extra, displacedFrom, displaced, unserved, accessLoss, cutOffBlockIds, displacedBlockIds };
 }
 
 function perStall({ centres }: Prepared, centreId: string, extraDinersPerDay: number): number | null {
@@ -463,7 +481,7 @@ function brokenRules(
     broken.push({
       status: 'red',
       rule: 'access',
-      reason: `${subject} leaves ${blocks} (${cutOff.seniors} seniors) with no centre within ${prepared.limitMin} min at senior pace.`,
+      reason: `${subject} leaves ${blocks} (${roughSeniors(cutOff.seniors)} seniors) with no centre within ${prepared.limitMin} min at senior pace.`,
       cutOff,
       pastBenchmark: [],
     });
@@ -504,6 +522,12 @@ function worstStatus(statuses: Status[]): Status {
 
 function joinNames(parts: string[]): string {
   return parts.length <= 1 ? (parts[0] ?? '') : `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`;
+}
+
+// Seniors per block are estimates, so they are shown to the nearest 5, and under 5 as "<5" (ASSUMPTIONS.md, display rounding).
+function roughSeniors(n: number): string {
+  if (n < 5) return n > 0 ? '<5' : '0';
+  return (Math.round(n / 5) * 5).toLocaleString('en-US');
 }
 
 function fmt(n: number): string {

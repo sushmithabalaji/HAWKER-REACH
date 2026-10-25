@@ -5,6 +5,90 @@ import type { SQLTypeMarker, SQLStringMarker, SQLNumberMarker, SQLBooleanMarker,
 
 declare module "@databricks/appkit-ui/react" {
   interface QueryRegistry {
+    closures_block_options: {
+        name: "closures_block_options";
+        parameters: Record<string, never>;
+        result: Array<{
+          /** @sqlType STRING */
+          block_id: string;
+          /** @sqlType STRING */
+          centre_id: string;
+          /** @sqlType DOUBLE */
+          walk_m: number;
+          /** @sqlType INT */
+          rank: number;
+          /** @sqlType DOUBLE */
+          lon: number;
+          /** @sqlType DOUBLE */
+          lat: number;
+          /** @sqlType STRING */
+          subzone_id: string;
+          /** @sqlType DOUBLE */
+          est_residents: number;
+          /** @sqlType DOUBLE */
+          est_seniors: number;
+          /** @sqlType DOUBLE */
+          diners_per_day: number;
+        }>;
+      };
+    closures_centre_closures: {
+        name: "closures_centre_closures";
+        parameters: Record<string, never>;
+        result: Array<{
+          /** @sqlType STRING */
+          closure_id: string;
+          /** @sqlType STRING */
+          centre_id: string;
+          /** @sqlType STRING */
+          type: string;
+          /** @sqlType STRING */
+          start_date: string;
+          /** @sqlType STRING */
+          end_date: string;
+          /** @sqlType INT */
+          duration_days: number;
+          /** @sqlType STRING */
+          remarks: string;
+        }>;
+      };
+    closures_centre_demand: {
+        name: "closures_centre_demand";
+        parameters: Record<string, never>;
+        result: Array<{
+          /** @sqlType STRING */
+          centre_id: string;
+          /** @sqlType DOUBLE */
+          baseline_residents: number;
+          /** @sqlType DOUBLE */
+          baseline_diners_per_day: number;
+          /** @sqlType DOUBLE */
+          residents_per_stall: number;
+          /** @sqlType BOOLEAN */
+          possibly_undercounted: boolean;
+        }>;
+      };
+    closures_centres: {
+        name: "closures_centres";
+        parameters: Record<string, never>;
+        result: Array<{
+          /** @sqlType STRING */
+          centre_id: string;
+          /** @sqlType STRING */
+          name: string;
+          /** @sqlType DOUBLE */
+          lon: number;
+          /** @sqlType DOUBLE */
+          lat: number;
+          /** @sqlType INT */
+          cooked_food_stalls: number;
+          /** @sqlType BOOLEAN */
+          is_interim: boolean;
+          /** @sqlType STRING */
+          pln_area_n: string;
+          /** @sqlType STRING */
+          subzone_id: string;
+        }>;
+      };
     seniors_blocks: {
         name: "seniors_blocks";
         parameters: Record<string, never>;

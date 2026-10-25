@@ -36,7 +36,7 @@ Spec 1's assumptions and decisions are in `ASSUMPTIONS.md`. Values that more tha
 - The AAC column in the meal-support list is Phase 2 (waits on MSF data).
 - The anchor centre for the demo is picked after the first MVP.
 - App stack: React + Vite + deck.gl, Node/Express API, deployed as a Databricks App (ADR 0001).
-- Still open: a kg-per-diner-per-day waste source (blocks Spec 4).
+- Waste: kg per diner per day is bracketed at 0.09 / 0.20 / 0.32 (low / base / high) from NEA's 2015 pilot totals and a China per-meal figure. No published Singapore per-diner source exists, so it stays an ASSUMPTION with status `open` (#57).
 - Still open: whether "avoid Python frameworks" also covers the PySpark notebooks (assumed no).
 
 ## Agent skills
