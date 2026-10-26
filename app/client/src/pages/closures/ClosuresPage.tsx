@@ -8,6 +8,7 @@ import { MapRow } from '@/components/shared/MapRow';
 import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/shared/Panel';
 import { QueryError } from '@/components/shared/QueryError';
 import { SummaryCard } from '@/components/shared/SummaryCard';
+import { useRetry } from '@/components/shared/useRetry';
 import { RECEIVER_HEX } from '@/components/shared/mapColours';
 import { NO_PARAMS, toText } from '@/components/shared/queryValues';
 import { localToday, resolveWindow, suggestedWindow, type WindowEdit } from './closureWindow';
@@ -35,9 +36,10 @@ type Outcome = { result: PlanResult; error: null } | { result: null; error: stri
 // what else can safely close at the same time? Retry remounts the page, which reruns its queries.
 // The plan lives here, so a retry keeps the centres the planner picked.
 export function ClosuresPage() {
-  const [attempt, setAttempt] = useState(0);
+  const { attempt, mounted, retry } = useRetry();
   const [plan, setPlan] = useState<Plan>(EMPTY_PLAN);
   const [windowEdit, setWindowEdit] = useState<WindowEdit | null>(null);
+  if (!mounted) return <Skeleton className="h-40 w-full rounded-xl" />;
   return (
     <ClosuresContent
       key={attempt}
@@ -45,7 +47,7 @@ export function ClosuresPage() {
       setPlan={setPlan}
       windowEdit={windowEdit}
       setWindowEdit={setWindowEdit}
-      onRetry={() => setAttempt((n) => n + 1)}
+      onRetry={retry}
     />
   );
 }
