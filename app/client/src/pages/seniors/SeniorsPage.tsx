@@ -8,6 +8,7 @@ import { shortName, townLabel, type Centre } from '@/components/shared/centres';
 import { useGeoData } from '@/components/shared/GeoData';
 import { NO_PARAMS, type RawRow } from '@/components/shared/queryValues';
 import { QueryError } from '@/components/shared/QueryError';
+import { useRetry } from '@/components/shared/useRetry';
 import { AccessMap } from './AccessMap';
 import { closureFor, dateRange, nearbyWorks, pickableIn, toNeaClosure, type NeaClosure } from './closures';
 import { SupportList } from './SupportList';
@@ -38,7 +39,14 @@ function boundsOf(blocks: readonly AccessBlock[]): Bounds | null {
 }
 
 // Page 2 · Seniors & access (for AACs): if this centre closes, which seniors lose a walkable hawker centre?
+// Retry remounts the page, which reruns its queries (#121).
 export function SeniorsPage() {
+  const { attempt, mounted, retry } = useRetry();
+  if (!mounted) return <Skeleton className="h-40 w-full rounded-xl" />;
+  return <SeniorsContent key={attempt} onRetry={retry} />;
+}
+
+function SeniorsContent({ onRetry }: { onRetry: () => void }) {
   const { centres, subzones } = useGeoData();
   const blocksQuery = useAnalyticsQuery('seniors_blocks', NO_PARAMS);
   const closuresQuery = useAnalyticsQuery('seniors_closures', NO_PARAMS);
@@ -170,7 +178,14 @@ export function SeniorsPage() {
         </PanelContent>
       </Panel>
 
-      {error && <QueryError what="Blocks or closures" error={error} />}
+      {error && (
+        <div className="flex flex-wrap items-center gap-2">
+          <QueryError what="Blocks or closures" error={error} />
+          <Button variant="outline" size="sm" onClick={onRetry}>
+            Retry
+          </Button>
+        </div>
+      )}
 
       <MapRow
         map={

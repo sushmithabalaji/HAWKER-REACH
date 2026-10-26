@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { createBrowserRouter, RouterProvider, NavLink, Navigate, Outlet, useLocation } from 'react-router';
 import { AssumptionsPanel } from '@/components/shared/AssumptionsPanel';
 import { GeoDataProvider } from '@/components/shared/GeoData';
@@ -65,14 +66,20 @@ function Layout() {
   );
 }
 
-// Every page stays mounted (#114), so switching tabs keeps its loaded data, map and choices instead of
-// re-running its queries. The route only picks which page shows; a hidden page is inert and takes no space,
+// A page stays mounted once opened (#114, #121), so switching tabs keeps its loaded data, map and choices
+// instead of re-running its queries. The route only picks which page shows; a hidden page is inert and takes no space,
 // but keeps its size so its map needs no re-layout when it comes back.
 function Pages() {
   // "/closures/" matches the /closures route too, so compare without a trailing slash.
   const pathname = useLocation().pathname.replace(/(.)\/+$/, '$1');
+  // A page mounts the first time it's opened, then stays (#121): first load runs one page's queries, not all
+  // of them at once, and switching back never reloads.
+  const isPage = (path: string) => pages.some((p) => p.path === path);
+  const [visited, setVisited] = useState<ReadonlySet<string>>(() => new Set(isPage(pathname) ? [pathname] : []));
+  if (!visited.has(pathname) && isPage(pathname)) setVisited(new Set([...visited, pathname]));
   return pages.map((page) => {
     const active = pathname === page.path;
+    if (!visited.has(page.path)) return null;
     return (
       <div
         key={page.path}
