@@ -3,3 +3,9 @@ env:
   # Filled in by Databricks from the app's "sql-warehouse" resource.
   - name: DATABRICKS_WAREHOUSE_ID
     valueFrom: sql-warehouse
+  # "Ask HawkerReach" (Spec 6): the Genie space, from the app's "genie-space" resource.
+  - name: DATABRICKS_GENIE_SPACE_ID
+    valueFrom: genie-space
+  # Turns the chat on. Off until the evaluation passes (docs/genie/eval.md); set "true" to turn it on.
+  - name: HAWKERREACH_GENIE_ENABLED
+    value: "false"

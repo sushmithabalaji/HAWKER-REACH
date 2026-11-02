@@ -4,6 +4,10 @@ bundle:
 variables:
   sql_warehouse_id:
     description: SQL Warehouse ID
+  genie_space_id:
+    description: Genie space for "Ask HawkerReach" (docs/genie/space.md)
+  genie_space_name:
+    description: Genie space display name
 
 resources:
   apps:
@@ -15,9 +19,11 @@ resources:
       # Start the app automatically on deploy.
       lifecycle:
         started: true
-      # Uncomment to enable on behalf of user API scopes. Available scopes: sql, genie, files, model-serving
-      # user_api_scopes:
-      #   - sql
+      # On behalf of user API scopes. Available scopes: sql, genie, files, model-serving
+      # genie: AppKit's genie routes always run as the viewing user (Spec 6, #128), so each viewer needs
+      # CAN_RUN on the space and SELECT on the gold tables it reads (Sql/01_app_grants.sql).
+      user_api_scopes:
+        - genie
 
       # The resources which this app has access to.
       resources:
@@ -25,6 +31,12 @@ resources:
           sql_warehouse:
             id: ${var.sql_warehouse_id}
             permission: CAN_USE
+        # "Ask HawkerReach" (Spec 6). Bound even while HAWKERREACH_GENIE_ENABLED is off in app.yaml.
+        - name: genie-space
+          genie_space:
+            name: ${var.genie_space_name}
+            space_id: ${var.genie_space_id}
+            permission: CAN_RUN
 
 targets:
   default:
@@ -34,3 +46,5 @@ targets:
 
     variables:
       sql_warehouse_id: a8c31c5b693a27fd
+      genie_space_id: 01f1d6d1a23a1742ae05a2cda8ed8ce6
+      genie_space_name: Ask HawkerReach
