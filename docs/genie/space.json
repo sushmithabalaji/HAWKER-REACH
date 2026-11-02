@@ -17,7 +17,7 @@
    {
     "id": "10000000000000000000000000000002",
     "question": [
-     "How many works closures were there per year from 2024 to 2026?"
+     "How many works closures were there per year from 2024 to 2026, and how long did they last?"
     ]
    },
    {
@@ -108,7 +108,7 @@
      "\n",
      "Never add seniors across closures and call it a headcount: a senior near two closures counts twice. If asked for a total across closures, sum per closure and label it \"senior access losses (summed per closure)\", with that caveat.\n",
      "\n",
-     "Rounding: do it in the SQL, never in your head, and quote the rounded values exactly. Seniors: CASE WHEN x < 5 THEN x ELSE ROUND(x / 5) * 5 END. Diners and residents: CASE WHEN x < 5 THEN x ELSE ROUND(x / 10) * 10 END. Percentages: ROUND(x). Keep the column name as the alias. In sentences: seniors to the nearest 5, and any number of seniors under 5 is written \"fewer than 5\". Diners and residents to the nearest 10. Percentages to a whole percent. pct_65p is a fraction from 0 to 1: select ROUND(pct_65p * 100) AS pct_65p and say it as a whole percent (0.249 is 25%). worst_neighbour_pct is already a percent. Never show decimals for people.\n",
+     "Rounding: do it in the SQL, never in your head, and quote the rounded values exactly. Seniors: CASE WHEN x < 5 THEN x ELSE ROUND(x / 5) * 5 END. Diners and residents: CASE WHEN x < 5 THEN x ELSE ROUND(x / 10) * 10 END. Percentages: ROUND(x). Keep the column name as the alias. In sentences: seniors to the nearest 5, and seniors under 5 are \"fewer than 5\". Diners and residents to the nearest 10, and under 5 are \"fewer than 10\". Percentages to a whole percent. pct_65p is a fraction from 0 to 1: select ROUND(pct_65p * 100) AS pct_65p and say it as a whole percent (0.249 is 25%). worst_neighbour_pct is already a percent. Never show decimals for people.\n",
      "Every senior, resident and diner number is an estimate from HawkerReach's model: say so.\n",
      "Keep the gold column names in results (seniors_cut_off, hdb_seniors, baseline_diners_per_day, pct_65p) rather than renaming them.\n",
      "\n",
@@ -136,7 +136,7 @@
      "What are the top 5 works closures starting in 2026 by seniors cut off?"
     ],
     "sql": [
-     "SELECT c.name, cc.type, cc.start_date, cc.end_date, CASE WHEN a.seniors_cut_off < 5 THEN a.seniors_cut_off ELSE ROUND(a.seniors_cut_off / 5) * 5 END AS seniors_cut_off\nFROM hawkerreach.gold.centre_closures cc\nJOIN hawkerreach.gold.centres c ON c.centre_id = cc.centre_id\nLEFT JOIN hawkerreach.gold.access_sensitivity a ON a.closed_centre_id = cc.centre_id AND a.limit_min = 15\nWHERE cc.type IN ('renovation', 'redevelopment', 'partial') AND year(cc.start_date) = 2026\nORDER BY a.seniors_cut_off DESC NULLS LAST\nLIMIT 5"
+     "SELECT c.name, cc.type, cc.start_date, cc.end_date, CASE WHEN a.seniors_cut_off < 5 THEN a.seniors_cut_off ELSE ROUND(a.seniors_cut_off / 5) * 5 END AS seniors_cut_off\nFROM hawkerreach.gold.centre_closures cc\nJOIN hawkerreach.gold.centres c ON c.centre_id = cc.centre_id\nLEFT JOIN hawkerreach.gold.access_sensitivity a ON a.closed_centre_id = cc.centre_id AND a.limit_min = 15\nWHERE cc.type IN ('renovation', 'redevelopment', 'partial') AND year(cc.start_date) = 2026\nORDER BY a.seniors_cut_off DESC NULLS LAST, c.name, cc.start_date\nLIMIT 5"
     ]
    },
    {
@@ -172,7 +172,7 @@
      "Which subzones in Toa Payoh are super-aged?"
     ],
     "sql": [
-     "SELECT subzone_name, CASE WHEN hdb_residents < 5 THEN hdb_residents ELSE ROUND(hdb_residents / 10) * 10 END AS hdb_residents, CASE WHEN hdb_seniors < 5 THEN hdb_seniors ELSE ROUND(hdb_seniors / 5) * 5 END AS hdb_seniors, ROUND(pct_65p * 100) AS pct_65p\nFROM hawkerreach.gold.subzone_seniors\nWHERE pln_area_n = 'TOA PAYOH' AND is_super_aged\nORDER BY pct_65p DESC"
+     "SELECT subzone_name, CASE WHEN hdb_residents < 5 THEN hdb_residents ELSE ROUND(hdb_residents / 10) * 10 END AS hdb_residents, CASE WHEN hdb_seniors < 5 THEN hdb_seniors ELSE ROUND(hdb_seniors / 5) * 5 END AS hdb_seniors, ROUND(pct_65p * 100) AS pct_65p\nFROM hawkerreach.gold.subzone_seniors\nWHERE pln_area_n = 'TOA PAYOH' AND is_super_aged\nORDER BY pct_65p DESC, subzone_name"
     ]
    },
    {

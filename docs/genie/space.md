@@ -33,7 +33,7 @@ Works closures are centre_closures.type IN ('renovation', 'redevelopment', 'part
 
 Never add seniors across closures and call it a headcount: a senior near two closures counts twice. If asked for a total across closures, sum per closure and label it "senior access losses (summed per closure)", with that caveat.
 
-Rounding: do it in the SQL, never in your head, and quote the rounded values exactly. Seniors: CASE WHEN x < 5 THEN x ELSE ROUND(x / 5) * 5 END. Diners and residents: CASE WHEN x < 5 THEN x ELSE ROUND(x / 10) * 10 END. Percentages: ROUND(x). Keep the column name as the alias. In sentences: seniors to the nearest 5, and any number of seniors under 5 is written "fewer than 5". Diners and residents to the nearest 10. Percentages to a whole percent. pct_65p is a fraction from 0 to 1: select ROUND(pct_65p * 100) AS pct_65p and say it as a whole percent (0.249 is 25%). worst_neighbour_pct is already a percent. Never show decimals for people.
+Rounding: do it in the SQL, never in your head, and quote the rounded values exactly. Seniors: CASE WHEN x < 5 THEN x ELSE ROUND(x / 5) * 5 END. Diners and residents: CASE WHEN x < 5 THEN x ELSE ROUND(x / 10) * 10 END. Percentages: ROUND(x). Keep the column name as the alias. In sentences: seniors to the nearest 5, and seniors under 5 are "fewer than 5". Diners and residents to the nearest 10, and under 5 are "fewer than 10". Percentages to a whole percent. pct_65p is a fraction from 0 to 1: select ROUND(pct_65p * 100) AS pct_65p and say it as a whole percent (0.249 is 25%). worst_neighbour_pct is already a percent. Never show decimals for people.
 Every senior, resident and diner number is an estimate from HawkerReach's model: say so.
 Keep the gold column names in results (seniors_cut_off, hdb_seniors, baseline_diners_per_day, pct_65p) rather than renaming them.
 
@@ -47,7 +47,7 @@ We have no data on footfall, coffee shops, buses, AAC locations, or anything at 
 
 - How many seniors are cut off if Kim Keat Palm closes?
 - What are the top 5 works closures starting in 2026 by seniors cut off?
-- How many works closures were there per year from 2024 to 2026?
+- How many works closures were there per year from 2024 to 2026, and how long did they last?
 - What walking pace do you assume for seniors?
 
 ## Trusted queries
@@ -73,7 +73,7 @@ FROM hawkerreach.gold.centre_closures cc
 JOIN hawkerreach.gold.centres c ON c.centre_id = cc.centre_id
 LEFT JOIN hawkerreach.gold.access_sensitivity a ON a.closed_centre_id = cc.centre_id AND a.limit_min = 15
 WHERE cc.type IN ('renovation', 'redevelopment', 'partial') AND year(cc.start_date) = 2026
-ORDER BY a.seniors_cut_off DESC NULLS LAST
+ORDER BY a.seniors_cut_off DESC NULLS LAST, c.name, cc.start_date
 LIMIT 5
 ```
 
@@ -122,7 +122,7 @@ ORDER BY a.limit_min
 SELECT subzone_name, CASE WHEN hdb_residents < 5 THEN hdb_residents ELSE ROUND(hdb_residents / 10) * 10 END AS hdb_residents, CASE WHEN hdb_seniors < 5 THEN hdb_seniors ELSE ROUND(hdb_seniors / 5) * 5 END AS hdb_seniors, ROUND(pct_65p * 100) AS pct_65p
 FROM hawkerreach.gold.subzone_seniors
 WHERE pln_area_n = 'TOA PAYOH' AND is_super_aged
-ORDER BY pct_65p DESC
+ORDER BY pct_65p DESC, subzone_name
 ```
 
 **Expected:** 9 of 11: Potong Pasir 34%, Lorong 8 Toa Payoh 32%, Braddell 29%, Pei Chun 28%, Joo Seng 28%, Boon Teck 26%, Toa Payoh West 26%, Kim Keat 24%, Toa Payoh Central 23%.
@@ -135,7 +135,7 @@ FROM hawkerreach.gold.model_assumptions
 WHERE key IN ('walk.pace.senior', 'walk.limit_min')
 ```
 
-**Expected:** Seniors walk 1.0 m/s and the limit is 15 min (900 m). Both are ASSUMPTIONs with status open: the pace is from 04_gold_access with a gait-speed source still to find, the limit from ASSUMPTIONS.md (Spec 1), source still to find.
+**Expected:** Seniors walk 1.0 m/s and the limit is 15 min. Both are ASSUMPTIONs with status open: the pace is from 04_gold_access with a gait-speed source still to find, the limit from ASSUMPTIONS.md (Spec 1), source still to find.
 
 ## Create or update the space
 
@@ -143,7 +143,7 @@ WHERE key IN ('walk.pace.senior', 'walk.limit_min')
 python3 docs/genie/build_space.py
 # first time:
 databricks genie create-space a8c31c5b693a27fd "$(cat docs/genie/space.json)" \
-  --title "Ask HawkerReach" --description "Questions about HawkerReach's hawker centre closure stress test: seniors cut off, closures, demand and super-aged subzones. Gold tables only. Every number is an estimate." --profile hawkerreach
+  --title "Ask HawkerReach" --description "Questions about HawkerReach's hawker centre closure stress test: seniors cut off, closures, demand and super-aged subzones. Gold tables only. Every number is an estimate."
 # after a change:
-databricks genie update-space 01f1d6d1a23a1742ae05a2cda8ed8ce6 --serialized-space "$(cat docs/genie/space.json)" --profile hawkerreach
+databricks genie update-space 01f1d6d1a23a1742ae05a2cda8ed8ce6 --serialized-space "$(cat docs/genie/space.json)"
 ```
