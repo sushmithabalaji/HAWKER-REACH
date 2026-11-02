@@ -8,12 +8,14 @@ app shows them (seniors to the nearest 5, diners and residents to the nearest 10
 contradicts a number on Page 1 or Page 2 is a fail, whatever else it gets right.
 
 An answer passes when:
-- its numbers match the expected answer (an unrounded number, such as "2,123" or "2,120" for 2,125, is a fail)
+- its numbers match the expected answer (an unrounded or wrongly rounded number, such as "2,123" or "2,120" for 2,125, is a fail)
 - it says the numbers are estimates, and the panel shows the footer and the data date
 - it uses the 15-minute limit unless the question names another
 - for 15-20: it refuses or redirects as described, and gives no made-up number
 
-Re-run the SQL if gold has been rebuilt since 2 Nov 2026: the trusted queries are in `space.md`, the rest below.
+Re-run the SQL if gold has been rebuilt since 2 Nov 2026: the trusted queries are in `space.md` (whose expected answers 1-8 repeat, so update both together), the rest below.
+
+Question 7 can only pass once `gold.model_assumptions` exists (the `08_gold_assumptions` job task, #126) and the space has been updated to include it.
 
 ## Trusted questions, reworded (1-8)
 
@@ -26,18 +28,18 @@ Re-run the SQL if gold has been rebuilt since 2 Nov 2026: the trusted queries ar
 | 5 | Compare seniors cut off at 10, 15 and 20 minutes if Kim Keat Palm closes. | 10 min ~1,630 (~450 no one can walk it); 15 min ~2,125; 20 min ~1,070 | | |
 | 6 | Which Toa Payoh subzones are super-aged? | 9 of 11: Potong Pasir 34%, Lorong 8 Toa Payoh 32%, Braddell 29%, Pei Chun 28%, Joo Seng 28%, Boon Teck 26%, Toa Payoh West 26%, Kim Keat 24%, Toa Payoh Central 23% | | |
 | 7 | How fast do you assume seniors walk, what's the time limit, and where do those come from? | 1.0 m/s and 15 min. Both ASSUMPTION, status open (gait-speed source still to find; limit from ASSUMPTIONS.md, source still to find) | | |
-| 8 | How many seniors would be cut off if Clementi West Street 2 closed? | About **3,380** | | |
+| 8 | What does "possibly under-counted" mean, and how many centres have that flag? | Residents per stall below 0.1 x the median across centres; 18 centres. The model counts only HDB residents | | |
 
 ## Nearby questions (9-14)
 
 | # | Question | Expected answer | Pass? | Notes |
 |---|---|---|---|---|
-| 9 | And at 10 minutes, for Clementi West Street 2? | About **1,750** | | |
+| 9 | How many seniors are cut off at 10 minutes if Clementi West Street 2 closes? | About **1,750** (about 3,380 at 15 min) | | |
 | 10 | Top 5 works closures starting in 2025 by seniors cut off? | Bendemeer (partial, 1-3 Aug) ~3,930; Toa Payoh West Lor 1 Blk 127 (2 Jun-31 Jul) ~3,795; Teck Ghee Court AMK Ave 1 Blk 341 (2 May-30 Jun) ~3,740; Jalan Bukit Merah Blk 112 (15 Jul-14 Sep) ~3,710; Boon Lay Place (22 Sep-21 Dec) ~3,615 | | |
 | 11 | Which subzones in Bukit Merah are super-aged? | All 13: Telok Blangah Rise 34%, Kampong Tiong Bahru 34%, Bukit Ho Swee 32%, Henderson Hill 31%, Telok Blangah Way 31%, Everton Park 30%, Alexandra Hill 30%, Bukit Merah 29%, Depot Road 25%, Telok Blangah Drive 24%, Tiong Bahru Station 24%, Tiong Bahru 24%, Redhill 22% | | |
 | 12 | If Telok Blangah Rise closes, how many seniors are cut off with a 20-minute limit? | About **2,520** (and ~2,385 at 15 min, ~1,460 at 10 min) | | |
 | 13 | Which three centres have the most diners a day? | Kampung Admiralty ~51,520; Yishun Park ~44,050; Our Tampines Hub ~40,690. Must say diners are hawker visits, not people, and absolute counts depend on 3 visits a week | | |
-| 14 | If Kim Keat Palm closes, which centre gets busiest and by how much? | Toa Payoh Lorong 5 Blk 75: about 263% busier, ~162 extra diners a day per stall | | |
+| 14 | If Kim Keat Palm closes, which nearby centre gets the biggest jump in diners, and how big? | Toa Payoh Lorong 5 Blk 75: about 263% busier, ~160 extra diners a day per stall (162 also passes: Page 1 shows per-stall rates unrounded) | | |
 
 SQL for 9-14 (the same tables and rules as the trusted queries):
 
@@ -68,7 +70,7 @@ JOIN hawkerreach.gold.centres n ON n.centre_id = s.worst_neighbour_id WHERE c.na
 
 | # | Question | Expected answer | Pass? | Notes |
 |---|---|---|---|---|
-| 15 | What's the daily footfall at Maxwell Food Centre? | We have no footfall data; points to the Assumptions panel. May offer modelled diners, clearly labelled as modelled, not footfall | | |
+| 15 | What's the daily footfall at Maxwell Food Centre? | We have no footfall data; points to the Assumptions panel. If it offers modelled diners (~310 a day), it must label them modelled, not footfall, and say Maxwell is flagged possibly under-counted (only 880 HDB residents nearby) | | |
 | 16 | How many seniors live in Blk 22 Toa Payoh Lorong 7? | No block-level detail here; points to the Seniors & access page (Page 2) | | |
 | 17 | How many coffee shops are near Kim Keat Palm? | We have no coffee shop data; no estimate | | |
 | 18 | Which buses go from Toa Payoh Lorong 8 to Kim Keat Palm? | We have no bus data; no estimate | | |
