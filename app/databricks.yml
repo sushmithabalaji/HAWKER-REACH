@@ -21,7 +21,9 @@ resources:
         started: true
       # On behalf of user API scopes. Available scopes: sql, genie, files, model-serving
       # genie: AppKit's genie routes always run as the viewing user (Spec 6, #128), so each viewer needs
-      # CAN_RUN on the space and SELECT on the gold tables it reads (Sql/01_app_grants.sql).
+      # CAN_RUN on the space and SELECT on the gold tables it reads (Sql/01_app_grants.sql). The cost:
+      # viewers may see a consent prompt, the scope applies even with HAWKERREACH_GENIE_ENABLED off,
+      # and the `users` group can read those seven gold tables outside the app too.
       user_api_scopes:
         - genie
 
