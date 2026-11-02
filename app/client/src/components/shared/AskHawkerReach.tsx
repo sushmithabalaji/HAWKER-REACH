@@ -1,3 +1,4 @@
+/* eslint-disable react/no-array-index-key -- an answer's blocks, rows and cells never reorder */
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { useAnalyticsQuery, useGenieChat } from '@databricks/appkit-ui/react';
 import { MessageCircle, RotateCcw, Send, X } from 'lucide-react';
@@ -5,13 +6,13 @@ import { GENIE_ALIAS, type Features } from '@shared/features';
 import { Pill } from './Pill';
 import { NO_PARAMS, type RawRow } from './queryValues';
 import {
-  ERROR_MESSAGE,
   FOOTER,
   MAX_QUESTION_LENGTH,
   SLOW_AFTER_MS,
   dataDate,
   keyAction,
   toBlocks,
+  failedMessageId,
   toChatItems,
   toSpans,
   type Answer,
@@ -58,16 +59,33 @@ export function ChatGate({ features }: { features: Features | null }) {
 function Chat() {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const reopen = useRef(false);
+  const wasOpen = useRef(false);
   const { messages, status, sendMessage, reset } = useGenieChat({ alias: GENIE_ALIAS, persistInUrl: false });
   const date = useAnalyticsQuery('shared_data_date', NO_PARAMS);
   const waiting = status === 'streaming';
   const slow = useSlow(waiting);
 
-  // Escape or the close button returns focus to the chat button.
+  // The hook's error clears on the next question, so remember which answer it belonged to.
+  const [failedIds, setFailedIds] = useState<ReadonlySet<string>>(() => new Set());
+  const failed = failedMessageId(messages, status);
+  if (failed && !failedIds.has(failed)) setFailedIds(new Set([...failedIds, failed]));
+  const newChat = () => {
+    reset();
+    setFailedIds(new Set());
+  };
+
+  // Escape closes the panel wherever focus is; closing returns focus to the chat button.
   useEffect(() => {
-    if (!open && reopen.current) buttonRef.current?.focus();
-    reopen.current = open;
+    if (!open) return;
+    const onKey = (e: globalThis.KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open]);
+  useEffect(() => {
+    if (!open && wasOpen.current) buttonRef.current?.focus();
+    wasOpen.current = open;
   }, [open]);
 
   return (
@@ -76,12 +94,12 @@ function Chat() {
       <div aria-hidden className="h-20 shrink-0" />
       {open ? (
         <ChatPanel
-          items={toChatItems(messages, status)}
+          items={toChatItems(messages, status, failedIds)}
           waiting={waiting}
           slow={slow}
           dateLine={dataDate((date.data as RawRow[] | null)?.[0]?.built_at)}
           onSend={sendMessage}
-          onNewChat={reset}
+          onNewChat={newChat}
           onClose={() => setOpen(false)}
         />
       ) : (
@@ -129,7 +147,7 @@ export function ChatPanel({ items, waiting, slow, dateLine, onSend, onNewChat, o
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => inputRef.current?.focus(), []);
+  // On open, and again once an answer is in.
   useEffect(() => {
     if (!waiting) inputRef.current?.focus();
   }, [waiting]);
@@ -153,9 +171,6 @@ export function ChatPanel({ items, waiting, slow, dateLine, onSend, onNewChat, o
     <section
       role="dialog"
       aria-label="Ask HawkerReach"
-      onKeyDown={(e) => {
-        if (e.key === 'Escape') onClose();
-      }}
       className="fixed inset-x-0 bottom-0 z-50 flex h-[85vh] flex-col rounded-t-xl border bg-card text-card-foreground shadow-2xl sm:inset-x-auto sm:bottom-6 sm:right-6 sm:h-[540px] sm:w-[380px] sm:rounded-xl"
     >
       <header className="flex items-center gap-2 border-b px-4 py-3">
@@ -178,11 +193,14 @@ export function ChatPanel({ items, waiting, slow, dateLine, onSend, onNewChat, o
         Answers come from HawkerReach&apos;s gold tables. Numbers are estimates.
       </p>
 
-      <div ref={listRef} aria-live="polite" className="flex flex-1 flex-col gap-3 overflow-y-auto px-4 py-3">
+      <div ref={listRef} className="flex flex-1 flex-col gap-3 overflow-y-auto px-4 py-3">
         {items.length === 0 && <Suggestions disabled={waiting} onPick={send} />}
-        {items.map((item) => (
-          <ChatBubble key={item.id} item={item} slow={slow} dateLine={dateLine} />
-        ))}
+        {/* Only the conversation is announced, not the suggestions. */}
+        <div aria-live="polite" className="flex flex-col gap-3">
+          {items.map((item) => (
+            <ChatBubble key={item.id} item={item} slow={slow} dateLine={dateLine} />
+          ))}
+        </div>
       </div>
 
       <form
@@ -252,8 +270,9 @@ function ChatBubble({ item, slow, dateLine }: { item: ChatItem; slow: boolean; d
   const bubble = 'mr-4 self-start rounded-lg rounded-bl-sm bg-muted px-3 py-2 text-sm';
   if (item.kind === 'pending') {
     return (
-      <div className={bubble} role="status">
-        <span className="inline-flex gap-1" aria-label="Genie is answering">
+      <div className={bubble}>
+        <span className="sr-only">Genie is answering</span>
+        <span className="inline-flex gap-1" aria-hidden>
           {[0, 150, 300].map((delay) => (
             <span
               key={delay}
@@ -266,24 +285,24 @@ function ChatBubble({ item, slow, dateLine }: { item: ChatItem; slow: boolean; d
       </div>
     );
   }
-  if (item.kind === 'error') return <p className={`${bubble} text-destructive`}>{ERROR_MESSAGE}</p>;
+  if (item.kind === 'error') return <p className={`${bubble} text-destructive`}>{item.message}</p>;
   return <AnswerBubble className={bubble} answer={item.answer} dateLine={dateLine} />;
 }
 
 function AnswerBubble({ answer, className, dateLine }: { answer: Answer; className: string; dateLine: string }) {
   return (
     <div className={`${className} flex w-[calc(100%-1rem)] flex-col gap-2`}>
-      {toBlocks(answer.text).map((block) =>
+      {toBlocks(answer.text).map((block, i) =>
         block.kind === 'list' ? (
-          <ul key={block.items.join('\n')} className="list-disc pl-5">
-            {block.items.map((text) => (
-              <li key={text}>
+          <ul key={i} className="list-disc pl-5">
+            {block.items.map((text, j) => (
+              <li key={j}>
                 <Spans text={text} />
               </li>
             ))}
           </ul>
         ) : (
-          <p key={block.text}>
+          <p key={i}>
             <Spans text={block.text} />
           </p>
         )
@@ -302,10 +321,10 @@ function AnswerBubble({ answer, className, dateLine }: { answer: Answer; classNa
               </tr>
             </thead>
             <tbody>
-              {answer.table.rows.map((row) => (
-                <tr key={row.join('\u0001')} className="border-b last:border-b-0">
+              {answer.table.rows.map((row, r) => (
+                <tr key={r} className="border-b last:border-b-0">
                   {row.map((cell, c) => (
-                    <td key={answer.table?.columns[c]} className="px-2 py-1 font-mono">
+                    <td key={c} className="px-2 py-1 font-mono">
                       {cell}
                     </td>
                   ))}
@@ -329,7 +348,5 @@ function AnswerBubble({ answer, className, dateLine }: { answer: Answer; classNa
 }
 
 function Spans({ text }: { text: string }) {
-  return toSpans(text).map((s) =>
-    s.bold ? <strong key={`b${s.text}`}>{s.text}</strong> : <span key={`t${s.text}`}>{s.text}</span>
-  );
+  return toSpans(text).map((s, i) => (s.bold ? <strong key={i}>{s.text}</strong> : <span key={i}>{s.text}</span>));
 }

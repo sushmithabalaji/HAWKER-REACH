@@ -1,6 +1,6 @@
 import type { GenieChatStatus, GenieMessageItem } from '@databricks/appkit-ui/react';
 import { roughSeniors } from '@shared/closure-engine';
-import { roughDiners } from '@/pages/closures/format';
+import { roughDiners } from '@shared/rounding';
 
 // What "Ask HawkerReach" (Spec 6, #129) shows for one Genie answer, and how it rounds the numbers in it:
 // never more precision than Page 1 and Page 2 show for the same thing (#125, rule 3).
@@ -22,12 +22,14 @@ export interface Answer {
   text: string;
   sql: string | null;
   table: AnswerTable | null;
-  // Genie failed, timed out or came back with nothing: show the plain message, never a partial number.
-  failed: boolean;
+  // Genie failed or timed out (failed), or came back with no sentence and no rows (empty): the panel shows a
+  // plain message instead, never a partial number.
+  outcome: 'ok' | 'failed' | 'empty';
 }
 
-// A column that is a share or a ratio, never a count, even when its name says "senior" (e.g. a seniors' share).
-const RATIO = /share|pct|percent|rate|ratio|multiplier|per_stall/;
+// A column that is a share, a ratio or a pace, never a count, even when its name says "senior" (a seniors' share,
+// senior_pace).
+const RATIO = /share|pct|percent|rate|ratio|multiplier|per_stall|pace|speed/;
 const PERCENT = /share|pct|percent/;
 
 const asNumber = (v: Cell) => (v === null || v.trim() === '' ? null : Number(v));
@@ -77,9 +79,9 @@ export function toAnswer(message: GenieMessageItem): Answer {
         result.result.data_array ?? []
       )
     : null;
-  const failed =
-    Boolean(message.error) || message.status === 'FAILED' || message.status === 'CANCELLED' || (!text && !table);
-  return { text, sql: query?.query?.query ?? null, table, failed };
+  const failed = Boolean(message.error) || message.status === 'FAILED' || message.status === 'CANCELLED';
+  const outcome = failed ? 'failed' : !text && !table ? 'empty' : 'ok';
+  return { text, sql: query?.query?.query ?? null, table, outcome };
 }
 
 // Genie writes light markdown: paragraphs, "- " bullets and **bold**. Anything else shows as plain text.
@@ -129,18 +131,37 @@ export type ChatItem =
   | { kind: 'question'; id: string; text: string }
   | { kind: 'pending'; id: string }
   | { kind: 'answer'; id: string; answer: Answer }
-  | { kind: 'error'; id: string };
+  | { kind: 'error'; id: string; message: string };
 
-// The conversation as the panel shows it. The last answer is pending while the stream is open (rows arrive after
-// the sentence), and an error or timeout replaces it with the plain message, never with what arrived so far.
-export function toChatItems(messages: GenieMessageItem[], status: GenieChatStatus): ChatItem[] {
-  return messages.map((m, i) => {
+// The conversation as the panel shows it. The answer is pending while the stream is open (rows arrive after the
+// sentence). An error or timeout shows the plain message, never what arrived so far: for the open question
+// (useGenieChat may already have dropped its placeholder), and for any earlier answer in `failedIds`.
+export function toChatItems(
+  messages: GenieMessageItem[],
+  status: GenieChatStatus,
+  failedIds: ReadonlySet<string> = new Set()
+): ChatItem[] {
+  const error = (id: string, message = ERROR_MESSAGE): ChatItem => ({ kind: 'error', id, message });
+  const items = messages.map((m, i): ChatItem => {
     const id = `${i}-${m.id}`;
     if (m.role === 'user') return { kind: 'question', id, text: m.content };
     const last = i === messages.length - 1;
-    if (last && status === 'error') return { kind: 'error', id };
     if (last && status === 'streaming') return { kind: 'pending', id };
+    if ((last && status === 'error') || failedIds.has(m.id)) return error(id);
     const answer = toAnswer(m);
-    return answer.failed ? { kind: 'error', id } : { kind: 'answer', id, answer };
+    if (answer.outcome === 'failed') return error(id);
+    if (answer.outcome === 'empty') return error(id, EMPTY_MESSAGE);
+    return { kind: 'answer', id, answer };
   });
+  if (messages.at(-1)?.role === 'user') {
+    if (status === 'streaming') items.push({ kind: 'pending', id: 'pending' });
+    if (status === 'error') items.push(error('error'));
+  }
+  return items;
+}
+
+// The assistant message the hook's error belongs to, so it stays an error after later questions.
+export function failedMessageId(messages: GenieMessageItem[], status: GenieChatStatus): string | null {
+  const last = messages.at(-1);
+  return status === 'error' && last?.role === 'assistant' && last.id ? last.id : null;
 }

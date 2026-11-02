@@ -1,7 +1,10 @@
 import { describe, expect, test } from 'vitest';
 import type { GenieMessageItem } from '@databricks/appkit-ui/react';
 import {
+  EMPTY_MESSAGE,
+  ERROR_MESSAGE,
   dataDate,
+  failedMessageId,
   formatColumn,
   formatTable,
   keyAction,
@@ -50,6 +53,7 @@ describe('formatColumn', () => {
   test('never rounds a ratio as a count, even with "senior" or "resident" in its name', () => {
     expect(formatColumn('seniors_multiplier', ['1.1931'])).toEqual(['1.19']);
     expect(formatColumn('residents_per_stall', ['1.42'])).toEqual(['1.42']);
+    expect(formatColumn('senior_pace', ['1.0'])).toEqual(['1']);
   });
 });
 
@@ -100,21 +104,23 @@ describe('toAnswer', () => {
       text: 'About **2,125** seniors.',
       sql: 'SELECT 1',
       table: { columns: ['name', 'seniors_cut_off'], rows: [['Kim Keat', '2,125']] },
-      failed: false,
+      outcome: 'ok',
     });
   });
 
   test('a refusal with no query is a plain text answer', () => {
     const a = toAnswer(message({ attachments: [{ text: { content: "We don't have footfall data." } }] }));
-    expect(a.failed).toBe(false);
+    expect(a.outcome).toBe('ok');
     expect(a.table).toBeNull();
     expect(a.sql).toBeNull();
   });
 
-  test('fails when Genie errors, fails or returns nothing', () => {
-    expect(toAnswer(message({ attachments: [] })).failed).toBe(true);
-    expect(toAnswer(message({ error: 'boom', attachments: [{ text: { content: 'partial' } }] })).failed).toBe(true);
-    expect(toAnswer(message({ status: 'FAILED', attachments: [{ text: { content: 'x' } }] })).failed).toBe(true);
+  test('failed when Genie errors or fails, empty when it returns nothing', () => {
+    expect(toAnswer(message({ attachments: [] })).outcome).toBe('empty');
+    expect(toAnswer(message({ error: 'boom', attachments: [{ text: { content: 'partial' } }] })).outcome).toBe(
+      'failed'
+    );
+    expect(toAnswer(message({ status: 'FAILED', attachments: [{ text: { content: 'x' } }] })).outcome).toBe('failed');
   });
 });
 
@@ -168,7 +174,27 @@ describe('toChatItems', () => {
 
   test('an error or timeout shows the plain message instead of anything partial', () => {
     expect(toChatItems([q, a], 'error').map((i) => i.kind)).toEqual(['question', 'error']);
-    expect(toChatItems([q, message({ id: 'e' })], 'idle').map((i) => i.kind)).toEqual(['question', 'error']);
+    expect(toChatItems([q, a], 'error')[1]).toMatchObject({ message: ERROR_MESSAGE });
+  });
+
+  test('a connection error or timeout after the hook dropped the placeholder still shows the message', () => {
+    expect(toChatItems([q], 'error').map((i) => i.kind)).toEqual(['question', 'error']);
+    expect(toChatItems([q], 'streaming').map((i) => i.kind)).toEqual(['question', 'pending']);
+  });
+
+  test('an empty answer says Genie found nothing', () => {
+    expect(toChatItems([q, message({ id: 'e' })], 'idle')[1]).toMatchObject({ kind: 'error', message: EMPTY_MESSAGE });
+  });
+
+  test('an answer that failed stays failed after later questions', () => {
+    expect(failedMessageId([q, a], 'error')).toBe('a');
+    expect(failedMessageId([q, a], 'idle')).toBeNull();
+    const later = toChatItems(
+      [q, a, q, message({ id: 'b', attachments: [{ text: { content: 'ok' } }] })],
+      'idle',
+      new Set(['a'])
+    );
+    expect(later.map((i) => i.kind)).toEqual(['question', 'error', 'question', 'answer']);
   });
 
   test('earlier answers stay when a later one fails', () => {

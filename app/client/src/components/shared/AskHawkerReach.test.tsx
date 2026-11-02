@@ -55,7 +55,7 @@ describe('ChatPanel', () => {
   test('an error or timeout shows only the plain message', () => {
     const html = panel([
       { kind: 'question', id: 'q', text: 'Kim Keat?' },
-      { kind: 'error', id: 'e' },
+      { kind: 'error', id: 'e', message: ERROR_MESSAGE },
     ]);
     expect(html).toContain(ERROR_MESSAGE.replace("'", '&#x27;'));
     expect(html).not.toContain(FOOTER.replace("'", '&#x27;'));
@@ -70,7 +70,7 @@ describe('ChatPanel', () => {
           text: 'About **2,125** seniors.',
           sql: 'SELECT seniors_cut_off FROM hawkerreach.gold.access_sensitivity',
           table: { columns: ['seniors_cut_off'], rows: [['2,125']] },
-          failed: false,
+          outcome: 'ok',
         },
       },
     ]);
