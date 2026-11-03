@@ -11,7 +11,8 @@ import {
   toAnswer,
   toBlocks,
   toChatItems,
-  toSpans,
+  stripMarkdown,
+  tableAsText,
 } from './genieAnswer';
 
 const message = (over: Partial<GenieMessageItem>): GenieMessageItem => ({
@@ -100,19 +101,22 @@ describe('toAnswer', () => {
         queryResults: new Map([['q1', statement]]),
       })
     );
-    expect(a).toEqual({
-      text: 'About **2,125** seniors.',
-      sql: 'SELECT 1',
-      table: { columns: ['name', 'seniors_cut_off'], rows: [['Kim Keat', '2,125']] },
-      outcome: 'ok',
-    });
+    expect(a).toEqual({ text: 'About 2,125 seniors.', outcome: 'ok' });
+  });
+
+  test('rows with no sentence become plain lines, rounded as the app does', () => {
+    const a = toAnswer(
+      message({
+        attachments: [{ attachmentId: 'q1', query: { query: 'SELECT 1' } }],
+        queryResults: new Map([['q1', statement]]),
+      })
+    );
+    expect(a).toEqual({ text: '- Kim Keat: seniors cut off 2,125', outcome: 'ok' });
   });
 
   test('a refusal with no query is a plain text answer', () => {
     const a = toAnswer(message({ attachments: [{ text: { content: "We don't have footfall data." } }] }));
-    expect(a.outcome).toBe('ok');
-    expect(a.table).toBeNull();
-    expect(a.sql).toBeNull();
+    expect(a).toEqual({ text: "We don't have footfall data.", outcome: 'ok' });
   });
 
   test('failed when Genie errors or fails, empty when it returns nothing', () => {
@@ -124,7 +128,7 @@ describe('toAnswer', () => {
   });
 });
 
-describe('toBlocks and toSpans', () => {
+describe('toBlocks, stripMarkdown and tableAsText', () => {
   test('paragraphs and "- " bullets', () => {
     expect(toBlocks('Super-aged:\n- **POTONG PASIR** (34%)\n- KIM KEAT (24%)\n\nAll estimates.')).toEqual([
       { kind: 'paragraph', text: 'Super-aged:' },
@@ -133,12 +137,24 @@ describe('toBlocks and toSpans', () => {
     ]);
   });
 
-  test('**bold** spans', () => {
-    expect(toSpans('About **2,125** seniors')).toEqual([
-      { text: 'About ', bold: false },
-      { text: '2,125', bold: true },
-      { text: ' seniors', bold: false },
-    ]);
+  test('drops **bold** and `code` marks', () => {
+    expect(stripMarkdown('About **2,125** seniors in `access_sensitivity`')).toBe(
+      'About 2,125 seniors in access_sensitivity'
+    );
+  });
+
+  test('one line per row, ten at most', () => {
+    expect(
+      tableAsText({
+        columns: ['limit_min', 'seniors_cut_off'],
+        rows: [
+          ['10', '1,630'],
+          ['15', '2,125'],
+        ],
+      })
+    ).toBe('- limit min 10, seniors cut off 1,630\n- limit min 15, seniors cut off 2,125');
+    const many = { columns: ['year'], rows: Array.from({ length: 12 }, (_, i) => [String(2000 + i)]) };
+    expect(tableAsText(many).split('\n').at(-1)).toBe('- and 2 more');
   });
 });
 

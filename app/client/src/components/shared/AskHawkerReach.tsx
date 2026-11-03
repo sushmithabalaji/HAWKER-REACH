@@ -1,4 +1,4 @@
-/* eslint-disable react/no-array-index-key -- an answer's blocks, rows and cells never reorder */
+/* eslint-disable react/no-array-index-key -- an answer's paragraphs and bullets never reorder */
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { useAnalyticsQuery, useGenieChat } from '@databricks/appkit-ui/react';
 import { MessageCircle, RotateCcw, Send, X } from 'lucide-react';
@@ -14,7 +14,6 @@ import {
   toBlocks,
   failedMessageId,
   toChatItems,
-  toSpans,
   type Answer,
   type ChatItem,
 } from './genieAnswer';
@@ -291,62 +290,21 @@ function ChatBubble({ item, slow, dateLine }: { item: ChatItem; slow: boolean; d
 
 function AnswerBubble({ answer, className, dateLine }: { answer: Answer; className: string; dateLine: string }) {
   return (
-    <div className={`${className} flex w-[calc(100%-1rem)] flex-col gap-2`}>
+    <div className={`${className} flex flex-col gap-2 leading-relaxed`}>
       {toBlocks(answer.text).map((block, i) =>
         block.kind === 'list' ? (
-          <ul key={i} className="list-disc pl-5">
+          <ul key={i} className="list-disc space-y-0.5 pl-5">
             {block.items.map((text, j) => (
-              <li key={j}>
-                <Spans text={text} />
-              </li>
+              <li key={j}>{text}</li>
             ))}
           </ul>
         ) : (
-          <p key={i}>
-            <Spans text={block.text} />
-          </p>
+          <p key={i}>{block.text}</p>
         )
       )}
-      {answer.table && answer.table.rows.length > 0 && (
-        // About 10 rows show; more scroll.
-        <div className="max-h-[17rem] overflow-auto rounded-md border bg-card">
-          <table className="w-full border-collapse text-xs">
-            <thead className="sticky top-0 bg-card">
-              <tr>
-                {answer.table.columns.map((c) => (
-                  <th key={c} scope="col" className="border-b px-2 py-1 text-left font-mono font-medium">
-                    {c}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {answer.table.rows.map((row, r) => (
-                <tr key={r} className="border-b last:border-b-0">
-                  {row.map((cell, c) => (
-                    <td key={c} className="px-2 py-1 font-mono">
-                      {cell}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-      {answer.sql && (
-        <details className="text-xs">
-          <summary className="cursor-pointer text-muted-foreground">Show SQL</summary>
-          <pre className="mt-1 overflow-x-auto whitespace-pre-wrap rounded-md bg-card p-2 font-mono">{answer.sql}</pre>
-        </details>
-      )}
-      <p className="text-xs text-muted-foreground">
+      <p className="border-t border-border pt-1.5 text-[11px] leading-snug text-muted-foreground">
         {FOOTER} {dateLine}.
       </p>
     </div>
   );
-}
-
-function Spans({ text }: { text: string }) {
-  return toSpans(text).map((s, i) => (s.bold ? <strong key={i}>{s.text}</strong> : <span key={i}>{s.text}</span>));
 }

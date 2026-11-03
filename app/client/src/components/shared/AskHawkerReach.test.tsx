@@ -61,23 +61,11 @@ describe('ChatPanel', () => {
     expect(html).not.toContain(FOOTER.replace("'", '&#x27;'));
   });
 
-  test('an answer: text, rounded table, SQL folded away, footer with the data date', () => {
-    const html = panel([
-      {
-        kind: 'answer',
-        id: 'a',
-        answer: {
-          text: 'About **2,125** seniors.',
-          sql: 'SELECT seniors_cut_off FROM hawkerreach.gold.access_sensitivity',
-          table: { columns: ['seniors_cut_off'], rows: [['2,125']] },
-          outcome: 'ok',
-        },
-      },
-    ]);
-    expect(html).toContain('<strong>2,125</strong>');
-    expect(html).toContain('<td class="px-2 py-1 font-mono">2,125</td>');
-    expect(html).toMatch(/<details[^>]*><summary[^>]*>Show SQL<\/summary>/);
-    expect(html).not.toMatch(/<details[^>]*open/);
+  test('an answer: plain text and the footer with the data date; no table, no SQL', () => {
+    const html = panel([{ kind: 'answer', id: 'a', answer: { text: 'About 2,125 seniors.', outcome: 'ok' } }]);
+    expect(html).toContain('About 2,125 seniors.');
+    expect(html).not.toContain('<table');
+    expect(html).not.toContain('SQL');
     expect(html).toContain('See the Assumptions panel. Data as of 2 Nov 2026.');
     expect(html).not.toMatch(/<textarea[^>]*disabled=""/);
   });

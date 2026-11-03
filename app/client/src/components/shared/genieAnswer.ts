@@ -18,10 +18,9 @@ export interface AnswerTable {
   rows: string[][];
 }
 
+// The panel shows answers as plain text only: no tables, no SQL.
 export interface Answer {
   text: string;
-  sql: string | null;
-  table: AnswerTable | null;
   // Genie failed or timed out (failed), or came back with no sentence and no rows (empty): the panel shows a
   // plain message instead, never a partial number.
   outcome: 'ok' | 'failed' | 'empty';
@@ -80,8 +79,10 @@ export function toAnswer(message: GenieMessageItem): Answer {
       )
     : null;
   const failed = Boolean(message.error) || message.status === 'FAILED' || message.status === 'CANCELLED';
-  const outcome = failed ? 'failed' : !text && !table ? 'empty' : 'ok';
-  return { text, sql: query?.query?.query ?? null, table, outcome };
+  // Genie usually writes a sentence; when it only returns rows, say them as plain lines, rounded as the app does.
+  const answerText = stripMarkdown(text) || (table ? tableAsText(table) : '');
+  const outcome = failed ? 'failed' : !answerText ? 'empty' : 'ok';
+  return { text: answerText, outcome };
 }
 
 // Genie writes light markdown: paragraphs, "- " bullets and **bold**. Anything else shows as plain text.
@@ -105,14 +106,22 @@ export function toBlocks(text: string): Block[] {
   return blocks.filter((b) => b.kind === 'list' || b.text);
 }
 
-// "**bold** rest" -> [{ text: 'bold', bold: true }, { text: ' rest', bold: false }]
-export function toSpans(text: string): { text: string; bold: boolean }[] {
-  return text
-    .split(/(\*\*[^*]+\*\*)/)
-    .filter(Boolean)
-    .map((part) =>
-      /^\*\*[^*]+\*\*$/.test(part) ? { text: part.slice(2, -2), bold: true } : { text: part, bold: false }
-    );
+// Plain text: Genie's **bold** and `code` marks are dropped; its "- " bullets stay (toBlocks).
+export function stripMarkdown(text: string): string {
+  return text.replace(/\*\*([^*]+)\*\*/g, '$1').replace(/`([^`]+)`/g, '$1');
+}
+
+// One line per row: "Kim Keat Palm: seniors cut off 2,125, blocks cut off 28". At most 10 rows.
+export function tableAsText(table: AnswerTable): string {
+  const label = (c: string) => c.replace(/_/g, ' ');
+  const lines = table.rows.slice(0, 10).map((row) => {
+    const [first, ...rest] = row;
+    const named = table.columns.length > 1 && !/^\d|^–$/.test(first);
+    const parts = (named ? rest : row).map((v, i) => `${label(table.columns[named ? i + 1 : i])} ${v}`);
+    return `- ${named ? `${first}: ` : ''}${parts.join(', ')}`;
+  });
+  const more = table.rows.length > 10 ? [`- and ${table.rows.length - 10} more`] : [];
+  return [...lines, ...more].join('\n');
 }
 
 // Enter sends, Shift+Enter is a new line (#125, Phase 3).
