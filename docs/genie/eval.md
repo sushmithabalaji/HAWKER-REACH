@@ -89,4 +89,4 @@ WHERE cc.type IN ('renovation', 'redevelopment', 'partial') AND year(cc.start_da
 
 | Date | Who | Passed (of 20) | Must-refuse passed (of 6) | Flag on in prod? |
 |---|---|---|---|---|
-| | | | | |
+| 2026-11-03 | Sushmitha | not run | not run | Yes, for the live demo before the evaluation (#140). Run it, and turn the flag off if it fails |
