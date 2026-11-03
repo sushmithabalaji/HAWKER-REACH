@@ -6,6 +6,6 @@ env:
   # "Ask HawkerReach" (Spec 6): the Genie space, from the app's "genie-space" resource.
   - name: DATABRICKS_GENIE_SPACE_ID
     valueFrom: genie-space
-  # Turns the chat on. Off until the evaluation passes (docs/genie/eval.md); set "true" to turn it on.
+  # Turns the chat on. On for the live demo before the evaluation ran (docs/genie/eval.md, #140); set "false" to turn it off.
   - name: HAWKERREACH_GENIE_ENABLED
-    value: "false"
+    value: "true"
