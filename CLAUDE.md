@@ -1,6 +1,6 @@
 # HawkerReach
 
-Databricks notebooks (`01_ingest` → `05_gold_closures`) build bronze, silver and gold tables in the `hawkerreach` catalog. The Lakeflow Job `hawkerreach_rebuild` (bundle `databricks.yml` at the repo root) runs them in order on serverless, then logs MLflow sensitivity runs (`06_sensitivity_mlflow`) and checks lineage (`07_lineage_check`). Run it by hand after a data refresh: `databricks bundle deploy && databricks bundle run rebuild` from the repo root. The app in `app/` is a React (Vite) front end with deck.gl maps, served by a small Node (Express) API that reads gold tables through `@databricks/sql`, deployed as a Databricks App. No Python UI frameworks (no Streamlit, Dash or FastAPI). The current `app/app.py` is a Streamlit placeholder that Spec 1 replaces. Overview: `docs/architecture.md`; reasoning: `docs/adr/0001-react-and-node-on-databricks-apps.md`. Screens are in `docs/wireframes/v1/README.md`.
+Databricks notebooks (`01_ingest` → `05_gold_closures`) build bronze, silver and gold tables in the `hawkerreach` catalog. The Lakeflow Job `hawkerreach_rebuild` (bundle `databricks.yml` at the repo root) runs them in order on serverless, then `08_gold_assumptions` (gold comments and `model_assumptions`, for Genie); alongside, it logs MLflow sensitivity runs (`06_sensitivity_mlflow`), and last it checks lineage (`07_lineage_check`). Run it by hand after a data refresh: `databricks bundle deploy && databricks bundle run rebuild` from the repo root. The app in `app/` is a React (Vite) front end with deck.gl maps, served by a small Node (Express) API that reads gold tables through `@databricks/sql`, deployed as a Databricks App. No Python UI frameworks (no Streamlit, Dash or FastAPI). The current `app/app.py` is a Streamlit placeholder that Spec 1 replaces. Overview: `docs/architecture.md`; reasoning: `docs/adr/0001-react-and-node-on-databricks-apps.md`. Screens are in `docs/wireframes/v1/README.md`.
 
 ## Spec owners
 
@@ -11,6 +11,7 @@ Databricks notebooks (`01_ingest` → `05_gold_closures`) build bronze, silver a
 | 3 · Closure scenarios page: ripple and "can these close together?" | Aanya |
 | 4 · Demand, waste and scheduling candidates | Aanya |
 | 5 · Demo readiness | Everyone |
+| 6 · Ask HawkerReach: floating Genie chat (gold `model_assumptions`, notebook `08_gold_assumptions`, Genie space; see #125) | Sushmitha |
 
 The spec's owner builds all of its tickets.
 

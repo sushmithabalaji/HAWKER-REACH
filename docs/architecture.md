@@ -11,6 +11,8 @@ Databricks (Unity Catalog: hawkerreach)
   silver  ← 02_silver           centres, blocks, subzones, closures
           ← 03_dist_matrix      walking network + block→centre walks (≤ 2 km)
   gold    ← 04_gold_access      block_access (+ Spec 1 and 2 tables)
+          ← 08_gold_assumptions model_assumptions + column comments for Genie
+                                (re-run it after 04 or 05 alone: their overwrites drop the comments)
                               ▼
 SQL warehouse
                               ▲  @databricks/sql
