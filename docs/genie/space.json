@@ -1,0 +1,189 @@
+{
+ "version": 2,
+ "config": {
+  "sample_questions": [
+   {
+    "id": "10000000000000000000000000000000",
+    "question": [
+     "How many seniors are cut off if Kim Keat Palm closes?"
+    ]
+   },
+   {
+    "id": "10000000000000000000000000000001",
+    "question": [
+     "What are the top 5 works closures starting in 2026 by seniors cut off?"
+    ]
+   },
+   {
+    "id": "10000000000000000000000000000002",
+    "question": [
+     "How many works closures were there per year from 2024 to 2026, and how long did they last?"
+    ]
+   },
+   {
+    "id": "10000000000000000000000000000003",
+    "question": [
+     "What walking pace do you assume for seniors?"
+    ]
+   }
+  ]
+ },
+ "data_sources": {
+  "tables": [
+   {
+    "identifier": "hawkerreach.gold.access_sensitivity"
+   },
+   {
+    "identifier": "hawkerreach.gold.centre_closures",
+    "column_configs": [
+     {
+      "column_name": "type",
+      "enable_entity_matching": true,
+      "enable_format_assistance": true
+     }
+    ]
+   },
+   {
+    "identifier": "hawkerreach.gold.centre_demand"
+   },
+   {
+    "identifier": "hawkerreach.gold.centres",
+    "column_configs": [
+     {
+      "column_name": "name",
+      "enable_entity_matching": true,
+      "enable_format_assistance": true
+     },
+     {
+      "column_name": "pln_area_n",
+      "enable_entity_matching": true,
+      "enable_format_assistance": true
+     }
+    ]
+   },
+   {
+    "identifier": "hawkerreach.gold.closure_scenarios"
+   },
+   {
+    "identifier": "hawkerreach.gold.model_assumptions",
+    "column_configs": [
+     {
+      "column_name": "key",
+      "enable_entity_matching": true,
+      "enable_format_assistance": true
+     }
+    ]
+   },
+   {
+    "identifier": "hawkerreach.gold.subzone_seniors",
+    "column_configs": [
+     {
+      "column_name": "pln_area_n",
+      "enable_entity_matching": true,
+      "enable_format_assistance": true
+     },
+     {
+      "column_name": "subzone_name",
+      "enable_entity_matching": true,
+      "enable_format_assistance": true
+     }
+    ]
+   }
+  ]
+ },
+ "instructions": {
+  "text_instructions": [
+   {
+    "id": "30000000000000000000000000000000",
+    "content": [
+     "HawkerReach is a closure stress test for NEA hawker centres in Singapore. It is used by NEA planners and Active Ageing Centres (AACs) to see who loses a walkable hawker centre when a centre closes.\n",
+     "\n",
+     "Walking tiers, by the walk to the nearest open centre (walking-time limit 15 min unless the user asks for 10 or 20): T1 a senior walking 1.0 m/s can make it (at 15 min, up to 900 m), T2 only a typical walker at 1.2 m/s (up to 1,080 m), T3 only a brisk walker at 1.4 m/s (up to 1,260 m), T4 no one can, or there is no centre within 2 km.\n",
+     "\"Seniors cut off\" = T1 before the closure and T2-T4 after it: access_sensitivity.seniors_cut_off, which equals closure_scenarios.seniors_lost_walk at 15 min. \"No one can walk it\" = T1 before, T4 after: access_sensitivity.seniors_no_one_can_walk. Always filter access_sensitivity to one limit_min, 15 by default.\n",
+     "Each closure scenario is one centre closing alone. Its residents move, all or nothing, to their second-nearest centre within 2 km.\n",
+     "\n",
+     "Diners per day = residents whose nearest centre it is x 0.83 (NEA Perception Survey of Hawker Centre Patrons 2018) x 3 visits a week / 7. Diners means hawker visits a day, not unique people. Rankings and % busier hold across 1-5 visits a week, absolute counts do not: say so when giving a diner count.\n",
+     "\n",
+     "Works closures are centre_closures.type IN ('renovation', 'redevelopment', 'partial'). Cleaning is routine and is never a closure. A closure belongs to the year of its start_date. In the app's \"can these close together?\" overlap check, partial closures are not counted: mention this if asked about overlapping closures.\n",
+     "\n",
+     "Never add seniors across closures and call it a headcount: a senior near two closures counts twice. If asked for a total across closures, sum per closure and label it \"senior access losses (summed per closure)\", with that caveat.\n",
+     "\n",
+     "Rounding: do it in the SQL, never in your head, and quote the rounded values exactly. Seniors: CASE WHEN x < 5 THEN x ELSE ROUND(x / 5) * 5 END. Diners and residents: CASE WHEN x < 5 THEN x ELSE ROUND(x / 10) * 10 END. Percentages: ROUND(x). Keep the column name as the alias. In sentences: seniors to the nearest 5, and seniors under 5 are \"fewer than 5\". Diners and residents to the nearest 10, and under 5 are \"fewer than 10\". Percentages to a whole percent. pct_65p is a fraction from 0 to 1: select ROUND(pct_65p * 100) AS pct_65p and say it as a whole percent (0.249 is 25%). worst_neighbour_pct is already a percent. Never show decimals for people.\n",
+     "Every senior, resident and diner number is an estimate from HawkerReach's model: say so.\n",
+     "Keep the gold column names in results (seniors_cut_off, hdb_seniors, baseline_diners_per_day, pct_65p) rather than renaming them.\n",
+     "\n",
+     "Super-aged = 65+ share >= 21% (MOH definition): subzone_seniors.is_super_aged. Our shares are SingStat HDB residents (citizens and PRs), not citizens alone, so they differ slightly from official figures.\n",
+     "Planning area and subzone names are stored in capitals (TOA PAYOH). Centre names are long NEA names such as \"Toa Payoh Lorong 7 Blk 22 (Kim Keat Palm Market and Food Centre)\": match them with LIKE on a distinctive part.\n",
+     "For what the model assumes (walking pace, time limit, diners, thresholds), use model_assumptions and give value, unit, source and status. status 'open' means a source is still needed: say so.\n",
+     "\n",
+     "We have no data on footfall, coffee shops, buses, AAC locations, or anything at block level. If a question needs it, say we don't have that data and point to the Assumptions panel, or to the Seniors & access page for block-level detail. Never estimate it. Questions unrelated to hawker centres: say this assistant only answers questions about HawkerReach's results.\n"
+    ]
+   }
+  ],
+  "example_question_sqls": [
+   {
+    "id": "20000000000000000000000000000000",
+    "question": [
+     "How many seniors are cut off if Kim Keat Palm closes?"
+    ],
+    "sql": [
+     "SELECT c.name, CASE WHEN a.seniors_cut_off < 5 THEN a.seniors_cut_off ELSE ROUND(a.seniors_cut_off / 5) * 5 END AS seniors_cut_off, CASE WHEN a.seniors_no_one_can_walk < 5 THEN a.seniors_no_one_can_walk ELSE ROUND(a.seniors_no_one_can_walk / 5) * 5 END AS seniors_no_one_can_walk, a.blocks_cut_off\nFROM hawkerreach.gold.access_sensitivity a\nJOIN hawkerreach.gold.centres c ON c.centre_id = a.closed_centre_id\nWHERE lower(c.name) LIKE '%kim keat%' AND a.limit_min = 15"
+    ]
+   },
+   {
+    "id": "20000000000000000000000000000001",
+    "question": [
+     "What are the top 5 works closures starting in 2026 by seniors cut off?"
+    ],
+    "sql": [
+     "SELECT c.name, cc.type, cc.start_date, cc.end_date, CASE WHEN a.seniors_cut_off < 5 THEN a.seniors_cut_off ELSE ROUND(a.seniors_cut_off / 5) * 5 END AS seniors_cut_off\nFROM hawkerreach.gold.centre_closures cc\nJOIN hawkerreach.gold.centres c ON c.centre_id = cc.centre_id\nLEFT JOIN hawkerreach.gold.access_sensitivity a ON a.closed_centre_id = cc.centre_id AND a.limit_min = 15\nWHERE cc.type IN ('renovation', 'redevelopment', 'partial') AND year(cc.start_date) = 2026\nORDER BY a.seniors_cut_off DESC NULLS LAST, c.name, cc.start_date\nLIMIT 5"
+    ]
+   },
+   {
+    "id": "20000000000000000000000000000002",
+    "question": [
+     "How many works closures were there per year from 2024 to 2026, and how long did they last?"
+    ],
+    "sql": [
+     "SELECT year(start_date) AS year, count(*) AS works_closures,\n       percentile_cont(0.5) WITHIN GROUP (ORDER BY duration_days) AS median_days\nFROM hawkerreach.gold.centre_closures\nWHERE type IN ('renovation', 'redevelopment', 'partial') AND year(start_date) BETWEEN 2024 AND 2026\nGROUP BY 1\nORDER BY 1"
+    ]
+   },
+   {
+    "id": "20000000000000000000000000000003",
+    "question": [
+     "Which centres are flagged as possibly under-counted, and why?"
+    ],
+    "sql": [
+     "SELECT c.name, c.cooked_food_stalls, CASE WHEN d.baseline_residents < 5 THEN d.baseline_residents ELSE ROUND(d.baseline_residents / 10) * 10 END AS baseline_residents, ROUND(d.residents_per_stall) AS residents_per_stall\nFROM hawkerreach.gold.centre_demand d\nJOIN hawkerreach.gold.centres c ON c.centre_id = d.centre_id\nWHERE d.possibly_undercounted\nORDER BY d.residents_per_stall"
+    ]
+   },
+   {
+    "id": "20000000000000000000000000000004",
+    "question": [
+     "How many seniors are cut off at 10, 15 and 20 minutes if Kim Keat Palm closes?"
+    ],
+    "sql": [
+     "SELECT a.limit_min, CASE WHEN a.seniors_cut_off < 5 THEN a.seniors_cut_off ELSE ROUND(a.seniors_cut_off / 5) * 5 END AS seniors_cut_off, CASE WHEN a.seniors_no_one_can_walk < 5 THEN a.seniors_no_one_can_walk ELSE ROUND(a.seniors_no_one_can_walk / 5) * 5 END AS seniors_no_one_can_walk\nFROM hawkerreach.gold.access_sensitivity a\nJOIN hawkerreach.gold.centres c ON c.centre_id = a.closed_centre_id\nWHERE lower(c.name) LIKE '%kim keat%'\nORDER BY a.limit_min"
+    ]
+   },
+   {
+    "id": "20000000000000000000000000000005",
+    "question": [
+     "Which subzones in Toa Payoh are super-aged?"
+    ],
+    "sql": [
+     "SELECT subzone_name, CASE WHEN hdb_residents < 5 THEN hdb_residents ELSE ROUND(hdb_residents / 10) * 10 END AS hdb_residents, CASE WHEN hdb_seniors < 5 THEN hdb_seniors ELSE ROUND(hdb_seniors / 5) * 5 END AS hdb_seniors, ROUND(pct_65p * 100) AS pct_65p\nFROM hawkerreach.gold.subzone_seniors\nWHERE pln_area_n = 'TOA PAYOH' AND is_super_aged\nORDER BY pct_65p DESC, subzone_name"
+    ]
+   },
+   {
+    "id": "20000000000000000000000000000006",
+    "question": [
+     "What walking pace and time limit does the model assume for seniors, and where are they from?"
+    ],
+    "sql": [
+     "SELECT key, name, value, unit, tag, status, source\nFROM hawkerreach.gold.model_assumptions\nWHERE key IN ('walk.pace.senior', 'walk.limit_min')"
+    ]
+   }
+  ]
+ }
+}
