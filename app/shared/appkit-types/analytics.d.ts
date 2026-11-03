@@ -197,6 +197,14 @@ declare module "@databricks/appkit-ui/react" {
           pln_area_n: string;
         }>;
       };
+    shared_data_date: {
+        name: "shared_data_date";
+        parameters: Record<string, never>;
+        result: Array<{
+          /** @sqlType TIMESTAMP */
+          built_at: string;
+        }>;
+      };
     shared_subzone_shapes: {
         name: "shared_subzone_shapes";
         parameters: Record<string, never>;
