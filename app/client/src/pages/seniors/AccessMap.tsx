@@ -220,7 +220,7 @@ export function AccessMap({
           )}
         </div>
 
-        {/* isolate: the map's own layers set z-index, so keep them in this box and stack the cards above */}
+        {/* isolate: the map's own layers set z-index, so contain them here and keep the popup and error box above (#138) */}
         <div className="relative isolate">
           {blocks ? (
             <BaseMap layers={layers} getTooltip={getTooltip} onClick={onClick} fitTo={fitTo} className="h-[560px]" />
@@ -236,7 +236,7 @@ export function AccessMap({
             <div
               role="dialog"
               aria-label={popupName}
-              className="absolute left-3 top-3 z-20 w-72 rounded-lg border-2 border-foreground/20 bg-card p-4 text-sm shadow-2xl"
+              className="absolute left-3 top-3 z-20 w-72 rounded-lg border-2 border-border-strong bg-card p-4 text-sm shadow-2xl"
             >
               <div className="flex items-start gap-2">
                 <strong className="flex-1">{popupName}</strong>
