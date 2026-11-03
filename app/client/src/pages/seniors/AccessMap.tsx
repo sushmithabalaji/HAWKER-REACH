@@ -220,14 +220,15 @@ export function AccessMap({
           )}
         </div>
 
-        <div className="relative">
+        {/* isolate: the map's own layers set z-index, so keep them in this box and stack the cards above */}
+        <div className="relative isolate">
           {blocks ? (
             <BaseMap layers={layers} getTooltip={getTooltip} onClick={onClick} fitTo={fitTo} className="h-[560px]" />
           ) : (
             <Skeleton className="h-[560px] w-full" />
           )}
           {view === 'multiplier' && subzonesError && (
-            <div className="absolute left-3 top-3 max-w-[80%]">
+            <div className="absolute left-3 top-3 z-20 max-w-[80%]">
               <QueryError what="Share aged 65+ by subzone" error={subzonesError} />
             </div>
           )}
@@ -235,7 +236,7 @@ export function AccessMap({
             <div
               role="dialog"
               aria-label={popupName}
-              className="absolute left-3 top-3 w-64 rounded-lg border bg-card p-3 text-sm shadow-lg"
+              className="absolute left-3 top-3 z-20 w-72 rounded-lg border-2 border-foreground/20 bg-card p-4 text-sm shadow-2xl"
             >
               <div className="flex items-start gap-2">
                 <strong className="flex-1">{popupName}</strong>
