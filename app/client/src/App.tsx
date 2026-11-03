@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { createBrowserRouter, RouterProvider, NavLink, Navigate, Outlet, useLocation } from 'react-router';
+import { AskHawkerReach } from '@/components/shared/AskHawkerReach';
 import { AssumptionsPanel } from '@/components/shared/AssumptionsPanel';
 import { GeoDataProvider } from '@/components/shared/GeoData';
 import { pages } from './pages/registry';
@@ -62,6 +63,8 @@ function Layout() {
           <Outlet />
         </GeoDataProvider>
       </main>
+      {/* Spec 6: a floating chat on every page, off unless HAWKERREACH_GENIE_ENABLED is on. */}
+      <AskHawkerReach />
     </div>
   );
 }
