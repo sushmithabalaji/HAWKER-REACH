@@ -200,7 +200,10 @@ declare module "@databricks/appkit-ui/react" {
     shared_data_date: {
         name: "shared_data_date";
         parameters: Record<string, never>;
-        result: unknown;
+        result: Array<{
+          /** @sqlType TIMESTAMP */
+          built_at: string;
+        }>;
       };
     shared_subzone_shapes: {
         name: "shared_subzone_shapes";
